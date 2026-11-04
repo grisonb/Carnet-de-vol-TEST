@@ -1,0 +1,13 @@
+# Données personnelles : JAMAIS dans ce dépôt public
+*.csv
+*.xlsx
+donnees/
+donnees-privees/
+maquette*.html
+*-reference*.json
+sauvegarde-carnet*
+# Outils et résultats de tests
+node_modules/
+tests/navigateur/captures/
+test-results/
+.DS_Store

@@ -1,0 +1,14 @@
+{
+  "name": "carnet-de-vol",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test \"tests/unitaires/*.test.js\"",
+    "test:navigateur": "node tests/navigateur/parcours.mjs",
+    "test:fluidite": "node tests/navigateur/fluidite.mjs"
+  },
+  "devDependencies": {
+    "jspdf": "2.5.2",
+    "playwright": "1.49.1"
+  }
+}
