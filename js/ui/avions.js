@@ -1,8 +1,8 @@
 // Avions : recherche rapide dans la saisie, « Tous mes avions », « Ajouter un avion », fiche avion.
 
-import { $, esc, segs, choisir, toast } from './commun.js';
-import { etat, enregistrerAvion } from '../etat.js';
-import { avionVide, formaterImmat, texteColonneAvion } from '../modele.js';
+import { $, esc, segs, choisir, toast, PLUS, CRAYON } from './commun.js';
+import { etat, enregistrerAvion, reglage } from '../etat.js';
+import { avionVide, formaterImmat, texteColonneAvion, etiquettesParDefaut, etiquettesPourTrain } from '../modele.js';
 import { TYPES, indexTypes, caracteristiquesDuType, MOTEUR, SURFACE } from '../types-avion.js';
 import { normaliser } from '../missions.js';
 import { hm, dateFr } from '../temps.js';
@@ -16,6 +16,7 @@ export function definirTypes(liste) { types = indexTypes(liste); }
 export const typesConnus = () => types;
 
 let onChoix = () => {};          // avion choisi pour le vol en cours
+let onModifie = () => {};        // fiche d'un avion modifiée
 let avionCourant = () => null;   // id de l'avion du vol en cours
 let stats = null;                // heures et vols par avion (calculés à l'ouverture de la liste)
 
@@ -50,10 +51,11 @@ function calculerStats() {
   stats = t.parAvion;
 }
 
-export function itemAvion(a) {
+export function itemAvion(a, crayon = false) {
   const s = (stats && stats[a.id]) || { minutes: 0, vols: 0 };
-  const nm = a.nom || a.indicatif;
-  return `<button type="button" class="acitem" data-ac="${esc(a.id)}" aria-current="${a.id === avionCourant()}"><div class="acph">${photo(a)}</div><div><div class="t1">${esc(a.immat)}${nm ? `<span class="nm">${esc(nm)}</span>` : ''}</div><div class="t2">${a.sim ? 'Simulateur' : esc(a.modele || a.typeOACI)}</div><div class="tg">${pastilles(a)}</div></div><div class="hrs">${hm(s.minutes)}<small>${s.vols} vol${s.vols > 1 ? 's' : ''}</small></div></button>`;
+  const nm = a.nom && a.nom.toUpperCase() !== a.immat.toUpperCase() ? a.nom : '';
+  const carte = `<button type="button" class="acitem" data-ac="${esc(a.id)}" aria-current="${a.id === avionCourant()}"><div class="acph">${photo(a)}</div><div><div class="t1">${esc(a.immat)}${nm ? `<span class="nm">${esc(nm)}</span>` : ''}</div><div class="t2">${a.sim ? 'Simulateur' : esc(a.modele || a.typeOACI)}</div><div class="tg">${pastilles(a)}</div></div><div class="hrs">${hm(s.minutes)}<small>${s.vols} vol${s.vols > 1 ? 's' : ''}</small></div></button>`;
+  return crayon ? `<div class="acwrap">${carte}<button type="button" class="penbtn" data-ed="${esc(a.id)}" aria-label="Modifier la fiche de ${esc(a.immat)}">${CRAYON}</button></div>` : carte;
 }
 
 // Ordre : dernier vol le plus récent d'abord
@@ -86,7 +88,7 @@ function rendreFlotte() {
   $('#fl-list').innerHTML = cles.map(k => {
     const L = g[k].sort((x, y) => min(y) - min(x));
     const tot = L.reduce((s, a) => s + min(a), 0);
-    return `<div class="grp"><span>${esc(k)}</span><span>${hm(tot)}</span></div><div class="flist">${L.map(itemAvion).join('')}</div>`;
+    return `<div class="grp"><span>${esc(k)}</span><span>${hm(tot)}</span></div><div class="flist">${L.map(a => itemAvion(a, true)).join('')}</div>`;
   }).join('') || '<p class="hint">Aucun avion. Touche + pour en ajouter un.</p>';
 }
 
@@ -101,7 +103,7 @@ function fermerFlotte() { $('#fleet').hidden = true; $('#sfab').hidden = true; m
 
 function menuPlus(o) {
   $('#sf-menu').hidden = !o; $('#sf-veil').hidden = !o;
-  $('#sf-main').textContent = o ? '×' : '+';
+  $('#sf-main').innerHTML = o ? '<span aria-hidden="true">×</span>' : PLUS;
   $('#sf-main').setAttribute('aria-expanded', String(o));
 }
 
@@ -121,6 +123,7 @@ function verifierAjout() {
 // ---------- Fiche avion ----------
 let FI = null; // brouillon de la fiche
 let fiAvion = null; // avion existant ou null
+let fiOrigine = 'saisie'; // 'saisie' (bouton i), 'flotte' (crayon de Tous mes avions), 'nouveau'
 
 function ligneType() {
   const tl = $('#fi-tl');
@@ -135,7 +138,11 @@ function ligneType() {
     const c = caracteristiquesDuType(t);
     $('#fi-mod').value = c.modele;
     Object.assign(FI, { constructeur: c.constructeur, equipage: c.equipage, moteurs: c.moteurs, moteur: c.moteur, surface: c.surface, train: c.train });
-    boutonsFiche();
+    // nouvel avion : étiquettes par défaut du type (DH8D : BOMBING + TRANSPORT ; train classique : TAILWHEEL)
+    if (!fiAvion) FI.etiquettes = [...new Set([...FI.etiquettes.filter(t => !['BOMBING', 'TRANSPORT', 'TAILWHEEL'].includes(t)),
+      ...etiquettesParDefaut({ typeOACI: o, train: c.train })])];
+    else FI.etiquettes = etiquettesPourTrain(FI.etiquettes, c.train);
+    boutonsFiche(); rendreEtiquettesFiche();
   }
 }
 
@@ -158,26 +165,45 @@ function genreFiche() {
   $('#fi-reg-l').firstChild.textContent = sim ? 'Nom du simulateur ' : 'Immatriculation ';
   $('#fi-reg').placeholder = sim ? 'ex. DHC8-400' : 'F-ABCD';
   $('#fi-oaci-f').hidden = sim; $('#fi-fstd-f').hidden = !sim; $('#fi-easa').hidden = sim;
-  $('#fi-tl').hidden = sim; $('#fi-ind-z').hidden = sim;
+  $('#fi-tl').hidden = sim; $('#fi-ind-z').hidden = sim; $('#fi-tgsec').hidden = sim;
   if (!FI.photo) $('#fi-img').innerHTML = sim ? SIMI : SIL;
   ligneType();
 }
 
-export function ouvrirFiche(a, init = {}) {
-  fiAvion = a || null;
+// Bloc « Étiquettes » de la fiche : toutes les étiquettes existantes, à cocher pour cet avion
+function rendreEtiquettesFiche() {
+  const toutes = [...new Set([...reglage('etiquettes'), ...FI.etiquettes])];
+  $('#fi-tgs').innerHTML = toutes.map(t => `<button type="button" class="tgchip" data-ft="${esc(t)}" aria-pressed="${FI.etiquettes.includes(t)}">${esc(t)}</button>`).join('')
+    || '<p class="hint">Aucune étiquette pour l\'instant (crée-les depuis la saisie d\'un vol).</p>';
+  $('#fi-tgsec').classList.toggle('vide', !FI.etiquettes.length);
+}
+
+// Lecture seule (bouton « i ») ou modification (crayon, nouvel avion)
+function modeFiche(lecture) {
+  $('#fiche').classList.toggle('ro', lecture);
+  $('#fi-ed').hidden = !lecture; $('#fi-save').hidden = lecture;
+  for (const el of document.querySelectorAll('#fiche input')) el.readOnly = lecture;
+}
+
+// mode : 'lecture' ou 'modif' ; origine : 'saisie', 'flotte' ou 'nouveau'
+export function ouvrirFiche(a, init = {}, mode = 'modif', origine = a ? 'saisie' : 'nouveau') {
+  fiAvion = a || null; fiOrigine = origine;
   const b = a ? { ...a } : Object.assign(avionVide(), init);
   FI = { sim: !!b.sim, equipage: b.equipage, moteurs: b.moteurs, moteur: b.moteur, surface: b.surface || 'L',
-    train: b.train || 'tricycle', photo: b.photo, fstd: b.fstd, constructeur: b.constructeur, _o: b.typeOACI };
+    train: b.train || 'tricycle', photo: b.photo, fstd: b.fstd, constructeur: b.constructeur, _o: b.typeOACI,
+    etiquettes: [...(b.etiquettes || [])] };
   $('#fi-reg').value = b.immat; $('#fi-oaci').value = b.sim ? '' : (b.typeOACI || '');
   $('#fi-mod').value = b.modele || ''; $('#fi-ind').value = b.indicatif || ''; $('#fi-nm').value = b.nom || '';
-  $('#fi-tags').value = (b.etiquettes || []).join(', '); $('#fi-rem').value = b.remarques || '';
+  $('#fi-rem').value = b.remarques || '';
+  rendreEtiquettesFiche();
   $('#fi-img').innerHTML = b.photo ? `<img src="${b.photo}" alt="Photo de ${esc(b.immat)}">` : (b.sim ? SIMI : SIL);
   if (!stats) calculerStats();
   const s = a && stats[a.id];
   $('#fi-stat').textContent = s && s.vols ? `${hm(s.minutes)} sur cet ${a.sim ? 'simulateur' : 'avion'} · ${s.vols} vol${s.vols > 1 ? 's' : ''} · dernier vol ${dateFr(s.dernier)}` : '';
   $('#fi-err').textContent = '';
   boutonsFiche(); genreFiche();
-  $('#fiche').hidden = false; $('#fi-save').hidden = false; $('#fiche').scrollTop = 0;
+  $('#fiche').hidden = false; $('#fiche').scrollTop = 0;
+  modeFiche(mode === 'lecture' && !!a);
   if (!a && !b.immat) setTimeout(() => $('#fi-reg').focus(), 50);
 }
 function fermerFiche() { $('#fiche').hidden = true; $('#fi-save').hidden = true; }
@@ -206,27 +232,31 @@ async function enregistrerFiche() {
   }
   const doublon = parImmat(immat);
   if (doublon && doublon !== fiAvion) { err.textContent = immat + ' existe déjà.'; return; }
-  const etiquettes = $('#fi-tags').value.split(',').map(t => t.trim().toUpperCase()).filter(Boolean);
-  if (!FI.sim && FI.train === 'classique' && !etiquettes.includes('TAILWHEEL')) etiquettes.push('TAILWHEEL');
+  const etiquettes = FI.sim ? [] : [...FI.etiquettes];
   const o = $('#fi-oaci').value.toUpperCase().trim(), t = types.get(o);
   const a = Object.assign(fiAvion ? { ...fiAvion } : avionVide(), {
     immat, sim: FI.sim, typeOACI: FI.sim ? 'SIM' : o, constructeur: t ? t.constructeur : (FI.constructeur || ''),
     modele: FI.sim ? ($('#fi-mod').value.trim() || immat) : ($('#fi-mod').value.trim() || o),
-    indicatif: $('#fi-ind').value.trim().toUpperCase(), nom: $('#fi-nm').value.trim(), etiquettes,
+    indicatif: $('#fi-ind').value.trim().toUpperCase(), nom: $('#fi-nm').value.trim().toUpperCase(), etiquettes,
     remarques: $('#fi-rem').value.trim(), photo: FI.photo || null,
     equipage: FI.sim ? null : FI.equipage, moteurs: FI.sim ? null : (FI.equipage === 'MP' ? 'ME' : FI.moteurs),
     moteur: FI.sim ? null : FI.moteur, surface: FI.surface, train: FI.train, fstd: FI.sim ? (FI.fstd || null) : null,
   });
   await enregistrerAvion(a);
   stats = null;
-  fermerFiche(); fermerFlotte(); $('#add1').hidden = true;
+  fermerFiche(); $('#add1').hidden = true;
+  if (fiOrigine === 'flotte') {         // crayon de « Tous mes avions » : on revient à la liste
+    rendreFlotte(); onModifie(a); toast(a.immat + ' enregistré'); return;
+  }
+  fermerFlotte();
   $('#ac-q').value = ''; rechercheRapide();
-  onChoix(a);
-  toast(a.immat + (fiAvion ? ' enregistré' : ' enregistré et choisi pour ce vol'));
+  if (fiAvion) { onModifie(a); toast(a.immat + ' enregistré'); return; }
+  if (!$('#v-saisie').hidden) { onChoix(a); toast(a.immat + ' enregistré et choisi pour ce vol'); }
+  else toast(a.immat + ' enregistré');
 }
 
-export function initAvions({ choix, courant }) {
-  onChoix = choix; avionCourant = courant;
+export function initAvions({ choix, courant, modifie }) {
+  onChoix = choix; avionCourant = courant; onModifie = modifie || (() => {});
   $('#ac-q').addEventListener('input', rechercheRapide);
   $('#ac-res').addEventListener('click', e => {
     const b = e.target.closest('[data-ac]');
@@ -239,10 +269,12 @@ export function initAvions({ choix, courant }) {
   $('#fl-x').addEventListener('click', fermerFlotte);
   $('#fl-q').addEventListener('input', rendreFlotte);
   $('#fl-list').addEventListener('click', e => {
+    const ed = e.target.closest('[data-ed]');
+    if (ed) { calculerStats(); ouvrirFiche(etat.avions.get(ed.dataset.ed), {}, 'modif', 'flotte'); return; }
     const b = e.target.closest('[data-ac]');
     if (!b) return;
     const a = etat.avions.get(b.dataset.ac);
-    if ($('#v-saisie').hidden) { ouvrirFiche(a); return; } // depuis Plus : on ouvre la fiche
+    if ($('#v-saisie').hidden) { ouvrirFiche(a, {}, 'lecture', 'flotte'); return; } // depuis Plus : fiche en lecture
     onChoix(a); $('#ac-q').value = ''; rechercheRapide(); fermerFlotte();
   });
   $('#sf-main').addEventListener('click', () => menuPlus($('#sf-menu').hidden));
@@ -258,14 +290,22 @@ export function initAvions({ choix, courant }) {
     ouvrirFiche(a || null, a ? {} : { immat: r });
   });
   $('#fi-x').addEventListener('click', fermerFiche);
-  $('#ac-fiche').addEventListener('click', () => { const a = etat.avions.get(avionCourant()); if (a) ouvrirFiche(a); });
+  $('#ac-fiche').addEventListener('click', () => { const a = etat.avions.get(avionCourant()); if (a) ouvrirFiche(a, {}, 'lecture', 'saisie'); else toast('Choisis d\'abord un avion'); });
+  $('#fi-ed').addEventListener('click', () => modeFiche(false));
+  $('#fi-tgs').addEventListener('click', e => {
+    const b = e.target.closest('[data-ft]');
+    if (!b || $('#fiche').classList.contains('ro')) return;
+    const t = b.dataset.ft;
+    FI.etiquettes = FI.etiquettes.includes(t) ? FI.etiquettes.filter(x => x !== t) : [...FI.etiquettes, t];
+    rendreEtiquettesFiche();
+  });
   $('#fi-oaci').addEventListener('input', () => { $('#fi-oaci').value = $('#fi-oaci').value.toUpperCase().replace(/[^A-Z0-9]/g, ''); ligneType(); });
   segs('#fi-kind', (b, i) => { FI.sim = i === 1; genreFiche(); });
   segs('#fi-pil', (b, i) => { FI.equipage = i ? 'MP' : 'SP'; if (FI.equipage === 'MP') FI.moteurs = 'ME'; boutonsFiche(); });
   segs('#fi-eng', (b, i) => { FI.moteurs = i ? 'ME' : 'SE'; boutonsFiche(); });
   segs('#fi-mot', (b, i) => { FI.moteur = 'PTJ'[i]; });
   segs('#fi-surf', (b, i) => { FI.surface = 'LAH'[i]; });
-  segs('#fi-tw', (b, i) => { FI.train = i ? 'classique' : 'tricycle'; });
+  segs('#fi-tw', (b, i) => { FI.train = i ? 'classique' : 'tricycle'; FI.etiquettes = etiquettesPourTrain(FI.etiquettes, FI.train); rendreEtiquettesFiche(); });
   segs('#fi-fstd', (b, i) => { FI.fstd = ['FFS', 'FTD', 'FNPT II'][i]; });
   $('#fi-file').addEventListener('change', async e => {
     const f = e.target.files[0];

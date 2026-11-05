@@ -38,7 +38,7 @@ export function rafraichirTotaux() {
   const pa = Object.entries(t.parAvion).sort((x, y) => y[1].minutes - x[1].minutes);
   $('#t-a').innerHTML = pa.map(([id, s]) => {
     const a = etat.avions.get(id);
-    return ligne(`${a ? a.immat : '?'}${a && (a.nom || a.indicatif) ? ' · ' + (a.nom || a.indicatif) : ''}`, `${hm(s.minutes)} <small>${nombre(s.vols)} vol${s.vols > 1 ? 's' : ''}</small>`);
+    return ligne(`${a ? a.immat : '?'}${a && a.nom ? ' · ' + a.nom : ''}`, `${hm(s.minutes)} <small>${nombre(s.vols)} vol${s.vols > 1 ? 's' : ''}</small>`);
   }).join('') || '<p class="hint">Aucun vol sur la période.</p>';
 }
 

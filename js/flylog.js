@@ -4,7 +4,8 @@
 
 import { lireCSVObjets } from './csv.js';
 import { lireDuree, lireHeure, dateValide } from './temps.js';
-import { volVide, avionVide, personneVide, horodater, formaterImmat, cleDoublon, nomPersonne } from './modele.js';
+import { volVide, avionVide, personneVide, horodater, formaterImmat, cleDoublon, nomPersonne,
+  etiquettesParDefaut, completerNomIndicatif } from './modele.js';
 import { lignesDepuisRemarque } from './missions.js';
 import { indexTypes, caracteristiquesDuType } from './types-avion.js';
 
@@ -135,13 +136,14 @@ export function analyserFlyLog(contenu, existant = {}, types = indexTypes(), mai
         const t = types.get(r.type);
         if (t) Object.assign(avion, caracteristiquesDuType(t));
         else { avion.typeOACI = r.type; avion.modele = r.type; typesInconnus.add(r.type); }
-        if (avion.train === 'classique') avion.etiquettes = ['TAILWHEEL'];
+        avion.etiquettes = etiquettesParDefaut(avion);
       }
       horodater(avion, maintenant);
       avions.set(r.immat, avion);
       avionsNouveaux.push(avion);
     }
     r.vol.avionId = avion.id;
+    if (avionsNouveaux.includes(avion)) completerNomIndicatif(avion, r.vol.indicatif); // seulement les avions créés par cet import
 
     for (const cle of ['nomCdB', ...Object.values(NOMS)]) {
       const nom = r.vol[cle];

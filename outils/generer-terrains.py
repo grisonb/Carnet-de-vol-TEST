@@ -1,4 +1,6 @@
-"""Génère ressources/terrains.json : code OACI -> [lat, lon, nom, pays ISO, fuseau IANA].
+"""Génère ressources/terrains.json, table mondiale des terrains ayant un code OACI à 4 lettres :
+  {"z": [fuseaux IANA], "t": {code OACI: [lat, lon, nom, pays ISO, n° du fuseau dans "z"]}}
+Coordonnées arrondies à 0,001° (~100 m : suffisant pour le calcul de nuit), fuseaux mis en liste pour alléger.
 
 Sources publiques :
   - OurAirports (domaine public) : https://github.com/davidmegginson/ourairports-data (airports.csv)
@@ -10,7 +12,7 @@ import csv, json, math, re, sys
 
 TYPES = {'small_airport': 2, 'medium_airport': 1, 'large_airport': 0, 'seaplane_base': 3, 'closed': 4}
 # Terrains absents des sources (coordonnées publiques)
-AJOUTS = {'LFBV': [45.1508, 1.4692, 'Brive-La Roche (fermé)', 'FR', 'Europe/Paris']}
+AJOUTS = {'LFBV': [45.151, 1.469, 'Brive-La Roche (fermé)', 'FR', 'Europe/Paris']}
 
 def principal(source_oa, source_tz, cible):
     tz = {}
@@ -30,7 +32,7 @@ def principal(source_oa, source_tz, cible):
                 continue
             rangs[code] = r
             nom = re.sub(r'\s+(Airport|Airfield|Aerodrome|Air Base)$', '', a['name'].strip(), flags=re.I)
-            terrains[code] = [round(float(a['latitude_deg']), 4), round(float(a['longitude_deg']), 4),
+            terrains[code] = [round(float(a['latitude_deg']), 3), round(float(a['longitude_deg']), 3),
                               nom, a['iso_country'], tz.get(code, '')]
     # Fuseau manquant : terrain le plus proche du même pays (grille de 2° pour aller vite)
     grille = {}
@@ -54,8 +56,11 @@ def principal(source_oa, source_tz, cible):
             manquants += 1
     for code, v in AJOUTS.items():
         terrains.setdefault(code, v)
+    fuseaux = sorted({t[4] for t in terrains.values() if t[4]})
+    index = {z: i for i, z in enumerate(fuseaux)}
+    sortie = {'z': fuseaux, 't': {c: t[:4] + [index.get(t[4], -1)] for c, t in sorted(terrains.items())}}
     with open(cible, 'w', encoding='utf-8') as f:
-        json.dump(dict(sorted(terrains.items())), f, ensure_ascii=False, separators=(',', ':'))
+        json.dump(sortie, f, ensure_ascii=False, separators=(',', ':'))
     print(len(terrains), 'terrains ;', manquants, 'sans fuseau ;', cible)
 
 if __name__ == '__main__':

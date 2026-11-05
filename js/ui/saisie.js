@@ -1,16 +1,18 @@
 // Écran de saisie / modification d'un vol (comme la maquette, de haut en bas).
 
-import { $, $$, esc, segs, choisir, toast, codeAvecDrapeau } from './commun.js';
+import { $, $$, esc, segs, choisir, toast, codeAvecDrapeau, PLUS, MOINS } from './commun.js';
 import { etat, reglage, enregistrerReglage, enregistrerVol, supprimerVol, enregistrerPersonne, supprimerPersonne,
-  listeMissions, trouverPersonne } from '../etat.js';
-import { volVide, FONCTIONS, TEMPS_FONCTION, COMPTEURS, colonnesAvion, texteColonneAvion, personneVide, nomPersonne } from '../modele.js';
+  listeMissions, trouverPersonne, enregistrerAvion } from '../etat.js';
+import { ouvrirAjoutTerrain } from './terrain-perso.js';
+import { volVide, FONCTIONS, TEMPS_FONCTION, COMPTEURS, colonnesAvion, personneVide, nomPersonne, ligneAvion,
+  etiquettesDeLAvion, etiquettesPourAvion, basculerEtiquette, fonctionsPossibles, champPersonneVisible } from '../modele.js';
 import { hm, lireDuree, lireHeure, minutesDuJour, ajouterJours, dateValide, aujourdhui, dateFr, heureH } from '../temps.js';
 import { versLocal, versUTC } from '../fuseaux.js';
 import { terrain, fuseau } from '../terrains.js';
 import { drapeau } from '../drapeaux.js';
 import { minutesDeNuit, estNuit } from '../nuit.js';
 import { plusGrandFeu, ajouterFeu, enleverFeu, lignesPourSaisie, estLigneFeu, normaliser } from '../missions.js';
-import { photo, categorie, initAvions } from './avions.js';
+import { initAvions } from './avions.js';
 import { ouvrirRegles } from './regles.js';
 
 let F = null;          // brouillon du vol en cours
@@ -21,8 +23,10 @@ const nomTerrain = c => (c.length < 4 ? '' : (terrain(c)?.nom || 'Terrain inconn
 function noms() {
   for (const [i, n] of [['#f-dep', '#n-dep'], ['#f-arr', '#n-arr']]) {
     const c = $(i).value.toUpperCase();
+    const inconnu = c.length === 4 && !terrain(c);
     $(n).textContent = nomTerrain(c);
-    $(n).classList.toggle('bad', c.length === 4 && !terrain(c));
+    $(n).classList.toggle('bad', inconnu);
+    $(`[data-ajt="${i}"]`).hidden = !inconnu;
   }
 }
 function champOACI(sel, suivant) {
@@ -67,7 +71,7 @@ function instants() {
 function points() {
   const codes = [$('#f-dep').value, ...F.escales.map(e => e.code), $('#f-arr').value];
   const p = codes.map(terrain);
-  return p.every(Boolean) ? p : null;
+  return p.every(t => t && t.lat != null && t.lon != null) ? p : null; // terrain sans coordonnées : nuit à la main
 }
 
 // ---------- Recalculs automatiques (toujours modifiables ensuite) ----------
@@ -117,6 +121,7 @@ function nomVM() {
   const c = $('#vm-icao').value.toUpperCase();
   $('#vm-name').textContent = c.length < 4 ? 'Tape les 4 lettres du code' : (terrain(c)?.nom || 'Terrain inconnu : vérifie le code');
   $('#vm-name').classList.toggle('bad', c.length === 4 && !terrain(c));
+  $('#vm-ajt').hidden = !(c.length === 4 && !terrain(c));
 }
 function ouvrirEscale(i) {
   vmEdit = i;
@@ -131,34 +136,67 @@ function ouvrirEscale(i) {
 }
 
 // ---------- Avion ----------
-function choisirAvion(a, garderIndicatif = false) {
+function afficherLigneAvion(a) {
+  const l = ligneAvion(a);
+  $('#ac-reg').textContent = l.debut; $('#ac-type').textContent = l.modele; $('#ac-sub').textContent = l.fin;
+  $('#ac-cur').setAttribute('aria-label', `Avion : ${[l.debut, l.modele, l.fin].filter(Boolean).join(' ')}. Toucher pour changer d'avion`);
+}
+function ouvrirChoixAvion(o) {
+  $('#ac-sz').hidden = !o; $('#ac-cur').setAttribute('aria-expanded', String(o));
+  if (!o) { $('#ac-q').value = ''; $('#ac-res').hidden = true; }
+}
+// changement = l'utilisateur vient de choisir un autre avion (sinon : ouverture d'un vol)
+function choisirAvion(a, changement = true) {
   if (!a) return;
+  const autre = F.avionId !== a.id;
   F.avionId = a.id;
-  $('#ac-reg').textContent = a.immat;
-  $('#ac-type').textContent = a.sim ? 'Simulateur' : (a.modele || a.typeOACI);
-  $('#ac-cat').textContent = categorie(a);
-  $('#ac-col').textContent = texteColonneAvion(a);
-  $('#ac-ph').innerHTML = photo(a);
-  if (!garderIndicatif) $('#f-mis').value = a.indicatif || '';
+  afficherLigneAvion(a);
+  if (changement && (autre || !F.vol)) F.etiquettes = etiquettesPourAvion(F.etiquettes, a);
+  ouvrirChoixAvion(false);
+  appliquerEquipage();
+  rendreEtiquettes();
   if (!F.charge) { $('#c-col').value = hm(colonneAuto()); $('#c-fn').value = hm(a.sim ? 0 : F.bloc); }
   recap();
 }
+// Fiche de l'avion courant modifiée (nom, étiquettes, monopilote…) : on remet la saisie à jour
+function avionModifie(a) {
+  if (!F || F.avionId !== a.id) return;
+  afficherLigneAvion(a);
+  F.etiquettes = F.etiquettes.filter(t => etiquettesProposees().includes(t));
+  appliquerEquipage(); rendreEtiquettes(); recap();
+}
 
 // ---------- Étiquettes ----------
+// Étiquettes proposées : celles cochées dans la fiche de l'avion (+ celles déjà sur ce vol, pour ne rien perdre)
+function etiquettesProposees() {
+  const a = avion();
+  const t = etiquettesDeLAvion(a);
+  if (F.vol && F.vol.avionId === F.avionId) for (const x of F.vol.etiquettes || []) if (!t.includes(x)) t.push(x);
+  return t;
+}
 function rendreEtiquettes() {
-  const toutes = [...new Set([...reglage('etiquettes'), ...F.etiquettes])];
-  $('#tg-val').innerHTML = F.etiquettes.length ? F.etiquettes.map(t => `<span class="tchip">${esc(t)}</span>`).join('') : '<span class="hint">Aucune</span>';
-  $('#tg-list').innerHTML = toutes.map(t => `<button type="button" role="option" data-tg2="${esc(t)}" aria-selected="${F.etiquettes.includes(t)}">${esc(t)}</button>`).join('');
+  $('#tg-val').innerHTML = etiquettesProposees().map(t =>
+    `<button type="button" class="tgchip" data-tg3="${esc(t)}" aria-pressed="${F.etiquettes.includes(t)}">${esc(t)}</button>`).join('');
 }
 
 // ---------- Fonction et autre pilote ----------
 function choisirFonction(r) {
   F.fonction = r;
   const f = FONCTIONS[r];
+  choisir('#f-fn', ['cdb', 'copi', 'dc', 'inst'].indexOf(r));
   $('#f-copi-l').textContent = f.autre;
   $('#f-fn-h').textContent = f.aide;
   $('#p-add').setAttribute('aria-label', 'Ajouter ' + f.ajout);
+  $('#f-copi-z').hidden = !champPersonneVisible(avion(), r);
   recap();
+}
+// Avion monopilote : pas de « Copi. » (CdB, DC, Inst.) et pas de champ de personne en CdB
+function appliquerEquipage() {
+  const possibles = fonctionsPossibles(avion());
+  const copi = $('#f-fn [data-r="copi"]');
+  copi.hidden = !possibles.includes('copi');
+  $('#f-fn').classList.toggle('fn3', copi.hidden);
+  choisirFonction(possibles.includes(F.fonction) ? F.fonction : 'cdb');
 }
 function rendrePersonnes() {
   const q = normaliser($('#f-copi').value), r = $('#p-res');
@@ -227,7 +265,7 @@ function rendreCompteurs() {
   const conf = reglage('compteurs');
   const noms = Object.fromEntries(COMPTEURS.map(c => [c.cle, c.nom]));
   $('#ctrs').innerHTML = conf.filter(c => c.on || F.compteurs[c.cle]).map(c =>
-    `<div class="step"><span>${esc(noms[c.cle])}</span><span class="ctl"><button type="button" data-c="${c.cle}" data-d="-1" aria-label="${esc(noms[c.cle])} moins">−</button><output id="c-${c.cle}">${F.compteurs[c.cle] || 0}</output><button type="button" data-c="${c.cle}" data-d="1" aria-label="${esc(noms[c.cle])} plus">+</button></span></div>`).join('');
+    `<div class="step"><span>${esc(noms[c.cle])}</span><span class="ctl"><button type="button" data-c="${c.cle}" data-d="-1" aria-label="${esc(noms[c.cle])} moins">${MOINS}</button><output id="c-${c.cle}">${F.compteurs[c.cle] || 0}</output><button type="button" data-c="${c.cle}" data-d="1" aria-label="${esc(noms[c.cle])} plus">${PLUS}</button></span></div>`).join('');
   $('#ctr-panel').innerHTML = '<p class="hint">Allume les compteurs à afficher dans la saisie, et range-les avec les flèches.</p>'
     + conf.map((c, i) => `<div class="prow"><span class="arrows"><button type="button" data-mv="${i}" data-d="-1" aria-label="Monter" ${i ? '' : 'disabled'}>↑</button><button type="button" data-mv="${i}" data-d="1" aria-label="Descendre" ${i < conf.length - 1 ? '' : 'disabled'}>↓</button></span><span class="pname">${esc(noms[c.cle])}</span><button type="button" class="sw" role="switch" aria-checked="${c.on}" data-tg="${i}" aria-label="${esc(noms[c.cle])}"><span></span></button></div>`).join('');
 }
@@ -246,7 +284,7 @@ function recap() {
   rows.push(['Atterrissages', `${F.s.attJour} jour · ${F.s.attNuit} nuit`]);
   const qui = $('#f-copi').value.trim();
   rows.push(['Nom du CdB', F.fonction === 'cdb' || F.fonction === 'inst' ? 'SELF' : (qui || 'à remplir')]);
-  if (F.fonction !== 'copi') rows.push([f.autre, qui || 'à remplir']);
+  if (F.fonction !== 'copi' && champPersonneVisible(a, F.fonction)) rows.push([f.autre, qui || 'à remplir']);
   if (F.s.approches) rows.push(['Approches', String(F.s.approches)]);
   $('#rec-x').innerHTML = rows.map(r => `<div class="tline"><span>${esc(r[0])}</span><b class="rv">${esc(r[1])}</b></div>`).join('');
 }
@@ -289,7 +327,7 @@ export function ouvrirSaisie(vol) {
     ifr: !!v.regleIFR, bloc: v.tempsTotal || v.simTemps || 0, heuresInconnues: !!vol && !(vol.hDep && vol.hArr), charge: true };
   $('#f-err').textContent = '';
   $('#ctr-panel').hidden = true; $('#ctr-open').setAttribute('aria-expanded', 'false');
-  $('#tg-list').hidden = true; $('#p-res').hidden = true; $('#m-res').hidden = true; $('#ac-q').value = ''; $('#ac-res').hidden = true;
+  $('#p-res').hidden = true; $('#m-res').hidden = true; ouvrirChoixAvion(false);
   $('#m-q').value = '';
   choisir('.seg.mini', F.mode === 'loc' ? 0 : 1);
 
@@ -308,7 +346,6 @@ export function ouvrirSaisie(vol) {
     }
     $('#f-date').value = date; $('#f-dep').value = vol.dep; $('#f-arr').value = vol.arr;
     $('#f-t0').value = heureH(t0); $('#f-t1').value = heureH(t1);
-    $('#f-mis').value = vol.indicatif || '';
     $('#f-copi').value = v[FONCTIONS[F.fonction].champ] === 'SELF' ? '' : (v[FONCTIONS[F.fonction].champ] || '');
     $('#f-rem').value = vol.remarques || '';
   } else {
@@ -325,12 +362,10 @@ export function ouvrirSaisie(vol) {
     F.s = { approches: 0, attJour: 1, attNuit: 0 };
   }
   $$('#f-t0, #f-t1').forEach(el => el.classList.remove('bad'));
-  choisir('#f-fn', ['cdb', 'copi', 'dc', 'inst'].indexOf(F.fonction));
-  choisirFonction(F.fonction);
   const a = avion();
-  if (a) choisirAvion(a, true);
-  else { $('#ac-reg').textContent = 'Aucun avion'; $('#ac-type').textContent = ''; $('#ac-cat').textContent = 'Choisis ou ajoute un avion ci-dessous'; $('#ac-col').textContent = ''; $('#ac-ph').innerHTML = photo(null); }
-  if (!vol) $('#f-mis').value = dernier ? (dernier.indicatif || (a && a.indicatif) || '') : (a ? a.indicatif : '');
+  afficherLigneAvion(a);
+  if (a && !vol) F.etiquettes = etiquettesPourAvion(F.etiquettes, a);
+  appliquerEquipage();
   noms(); rendreEscales(); rendreEtiquettes(); rendreCompteurs(); rendreLignes();
   for (const k of ['approches', 'attJour', 'attNuit']) sortie(k);
   choisirIFR(F.ifr);
@@ -370,7 +405,9 @@ async function enregistrer() {
   if (i) { v.date = i.dateUTC; v.hDep = i.hDep; v.hArr = i.hArr; }
   else if (!F.vol || !F.vol.hDep) v.date = date;
   v.mode = F.mode; v.dep = dep; v.arr = arr; v.escales = F.escales.map(e => ({ ...e }));
-  v.avionId = a.id; v.indicatif = $('#f-mis').value.trim().toUpperCase(); v.etiquettes = [...F.etiquettes];
+  // Indicatif radio : celui de la fiche avion (on garde celui déjà enregistré si l'avion n'a pas changé)
+  v.indicatif = F.vol && F.vol.avionId === a.id ? (F.vol.indicatif || '') : (a.indicatif || '');
+  v.avionId = a.id; v.etiquettes = [...F.etiquettes];
   const total = a.sim ? 0 : F.bloc;
   if (a.sim) { v.tempsTotal = 0; v.simTemps = col || F.bloc; v.tempsSE = v.tempsME = v.tempsMP = null; }
   else {
@@ -388,7 +425,7 @@ async function enregistrer() {
   for (const k of TEMPS_FONCTION) if (changee) v[k] = 0;
   v[f.temps] = a.sim ? 0 : fn;
   v.fonction = F.fonction;
-  const qui = $('#f-copi').value.trim();
+  const qui = champPersonneVisible(a, F.fonction) ? $('#f-copi').value.trim() : '';
   if (F.fonction === 'cdb') { v.nomCdB = 'SELF'; v.nomCopi = qui; }
   if (F.fonction === 'copi') { v.nomCdB = qui; }
   if (F.fonction === 'dc') { v.nomInstructeur = qui; v.nomCdB = qui; }
@@ -451,26 +488,38 @@ export function initSaisie({ fermer }) {
     $('#via-modal').hidden = true; rendreEscales(); recalculer();
   });
 
-  initAvions({ choix: a => choisirAvion(a), courant: () => F && F.avionId });
+  initAvions({ choix: a => choisirAvion(a), courant: () => F && F.avionId, modifie: a => avionModifie(a) });
+  $('#ac-cur').addEventListener('click', () => {
+    const o = $('#ac-sz').hidden;
+    ouvrirChoixAvion(o);
+    if (o) setTimeout(() => $('#ac-q').focus(), 50);
+  });
 
-  // étiquettes
-  $('#tg-open').addEventListener('click', () => { const l = $('#tg-list'); l.hidden = !l.hidden; $('#tg-open').setAttribute('aria-expanded', String(!l.hidden)); });
-  $('#tg-list').addEventListener('click', e => {
-    const b = e.target.closest('[data-tg2]');
+  // terrains absents de la table
+  $('#v-saisie').addEventListener('click', e => {
+    const b = e.target.closest('[data-ajt]');
+    if (b) ouvrirAjoutTerrain($(b.dataset.ajt).value, () => { noms(); recalculer(); });
+  });
+  $('#vm-ajt').addEventListener('click', () => ouvrirAjoutTerrain($('#vm-icao').value, () => { nomVM(); rendreEscales(); recalculer(); }));
+
+  // étiquettes (pastilles à cocher ; BOMBING et TRANSPORT s'excluent)
+  $('#tg-val').addEventListener('click', e => {
+    const b = e.target.closest('[data-tg3]');
     if (!b) return;
-    const t = b.dataset.tg2;
-    F.etiquettes = F.etiquettes.includes(t) ? F.etiquettes.filter(x => x !== t) : [...F.etiquettes, t];
+    F.etiquettes = basculerEtiquette(F.etiquettes, b.dataset.tg3);
     rendreEtiquettes();
   });
   $('#tg-add').addEventListener('click', () => { $('#pm2-v').value = ''; $('#pm2-ok').disabled = true; $('#tg-modal').hidden = false; setTimeout(() => $('#pm2-v').focus(), 50); });
   $('#pm2-v').addEventListener('input', () => { $('#pm2-ok').disabled = !$('#pm2-v').value.trim(); });
   $('#pm2-x').addEventListener('click', () => { $('#tg-modal').hidden = true; });
+  // Nouvelle étiquette : ajoutée à la liste générale ET à la fiche de l'avion choisi, puis cochée
   $('#pm2-ok').addEventListener('click', async () => {
     const t = $('#pm2-v').value.trim().toUpperCase();
     const et = reglage('etiquettes');
     if (!et.includes(t)) await enregistrerReglage('etiquettes', [...et, t]);
-    if (F && !F.etiquettes.includes(t)) F.etiquettes.push(t);
-    if (F) rendreEtiquettes();
+    const a = F && avion();
+    if (a && !(a.etiquettes || []).includes(t)) await enregistrerAvion({ ...a, etiquettes: [...(a.etiquettes || []), t] });
+    if (F) { F.etiquettes = basculerEtiquette(F.etiquettes.filter(x => x !== t), t); rendreEtiquettes(); }
     $('#tg-modal').hidden = true;
   });
 

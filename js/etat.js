@@ -2,7 +2,8 @@
 // Les 4000+ vols sont gardés en mémoire (quelques Mo) : recherche et totaux restent rapides.
 
 import * as db from './db.js';
-import { comparerRecentDabord, horodater, COMPTEURS_DEFAUT, nomPersonne } from './modele.js';
+import { comparerRecentDabord, horodater, COMPTEURS_DEFAUT, nomPersonne, migrerAvionsV04 } from './modele.js';
+import { definirTerrainsPerso } from './terrains.js';
 import { REGLES_DEFAUT, missionsConnues } from './missions.js';
 
 export const etat = {
@@ -18,7 +19,7 @@ export const ETIQUETTES_DEFAUT = ['BOMBING', 'TRANSPORT', 'TAILWHEEL'];
 export function reglage(cle) {
   const defauts = {
     compteurs: COMPTEURS_DEFAUT, regles: REGLES_DEFAUT, etiquettes: ETIQUETTES_DEFAUT,
-    missionsAjoutees: [], titulaire: '', derniereSauvegarde: null, reference: null,
+    missionsAjoutees: [], titulaire: '', derniereSauvegarde: null, reference: null, terrainsPerso: {},
   };
   return etat.reglages[cle] ?? defauts[cle];
 }
@@ -30,6 +31,25 @@ export async function charger() {
   etat.avions = new Map(avions.map(a => [a.id, a]));
   etat.personnes = personnes;
   etat.reglages = reglages;
+  definirTerrainsPerso(reglage('terrainsPerso'));
+  await migrer();
+}
+
+// Mises à jour des données enregistrées par une version précédente (une seule fois, rien n'est perdu)
+async function migrer() {
+  if (!etat.reglages.migrationV04) {
+    const modifies = migrerAvionsV04([...etat.avions.values()]);
+    if (modifies.length) await db.enregistrer({ avions: modifies });
+    etat.reglages.migrationV04 = new Date().toISOString();
+    await db.ecrireReglage('migrationV04', etat.reglages.migrationV04);
+  }
+}
+
+// Terrain ajouté à la main par le pilote (enregistré dans ses données, pas dans le code)
+export async function enregistrerTerrainPerso(code, t) {
+  const liste = { ...reglage('terrainsPerso'), [code.toUpperCase()]: t };
+  definirTerrainsPerso(liste);
+  await enregistrerReglage('terrainsPerso', liste);
 }
 
 export function prevenir() { for (const f of etat.ecouteurs) f(); }

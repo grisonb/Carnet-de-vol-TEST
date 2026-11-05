@@ -17,7 +17,7 @@ L'utilisateur n'est pas développeur : lui expliquer les choses simplement, en f
 - Commit et push **uniquement après « OK push » tapé par l'utilisateur**. Jamais de `--force`.
 - Une version = une livraison poussée. Le numéro est écrit à UN SEUL endroit : `js/numero-version.js`.
   Le service worker le lit avec `importScripts` pour nommer son cache ; l'app le lit via `js/version.js`
-  (accueil « vX.Y » en haut à droite, écran Plus). Changer ce numéro change le cache : le téléphone récupère
+  (accueil « vX.Y » en haut à gauche, écran Plus). Changer ce numéro change le cache : le téléphone récupère
   la version. **Le service worker doit rester un script CLASSIQUE (jamais `import`/`export`, jamais
   `type: 'module'`)** : sinon les téléphones déjà installés ne peuvent plus se mettre à jour (bug de la v0.2).
   Ajouter une entrée dans `JOURNAL.md`.
@@ -43,16 +43,21 @@ Pas d'étape de compilation : les fichiers du dépôt sont servis tels quels.
 - `js/` — logique sans interface (testée sous Node) :
   - `temps.js` durées et heures ; `fuseaux.js` UTC <-> heure locale du terrain (Intl) ;
   - `nuit.js` temps de nuit EASA (soleil à plus de 6° sous l'horizon, minute par minute le long de la route) ;
-  - `terrains.js` table OACI `ressources/terrains.json` (code -> lat, lon, nom, pays, fuseau),
-    générée par `outils/generer-terrains.py` depuis OurAirports (domaine public) et mwgg/Airports (MIT) ;
+  - `terrains.js` table mondiale OACI `ressources/terrains.json` ({z: fuseaux, t: {code: [lat, lon, nom, pays,
+    n° de fuseau]}}), générée par `outils/generer-terrains.py` depuis OurAirports (domaine public) et
+    mwgg/Airports (MIT) ; + terrains ajoutés à la main par le pilote (réglage `terrainsPerso`, jamais dans le code) ;
   - `drapeaux.js` drapeaux SVG dessinés par l'app ; `types-avion.js` table des types OACI ;
   - `modele.js` structure vol / avion / personne, colonnes EASA (SE / ME / multipilote), fonctions ;
   - `missions.js` lignes de mission, numéros de feu, pastilles par règles, « Remarque du carnet » ;
   - `flylog.js` import FlyLog (anti-doublon par quantités) ; `totaux.js` ; `controle.js` ;
   - `pdf.js` carnet EASA (jsPDF, `vendor/jspdf.umd.min.js`, MIT) ; `sauvegarde.js` sauvegarde JSON + tableur CSV ;
   - `csv.js` ; `db.js` IndexedDB ; `etat.js` données en mémoire + enregistrement ; `version.js`.
-- `js/ui/` — écrans : `carnet.js` (liste par paquets de 40 au défilement), `saisie.js`, `avions.js`,
-  `totaux.js`, `plus.js`, `regles.js`, `commun.js`. `js/app.js` démarre l'app.
+- `js/ui/` — écrans : `carnet.js` (liste par paquets de 40 au défilement, loupe), `saisie.js`, `avions.js`
+  (recherche, Tous mes avions, fiche lecture seule / modification), `terrain-perso.js`, `totaux.js`, `plus.js`,
+  `regles.js`, `commun.js`.
+- Référence d'interface : maquette v19 (`../donnees-privees/maquette-carnet-v19.html`, contient de vraies données :
+  jamais dans le dépôt) et remarques P1-P6, R1-R15.
+- `js/app.js` démarre l'app.
 
 ### Données (IndexedDB « carnet-de-vol »)
 
@@ -63,6 +68,9 @@ Magasins `vols`, `avions`, `personnes` (clé `id` UUID, `creeLe`, `modifieLe` : 
 Un vol stocke les heures bloc en **UTC** (`date` = date UTC du départ, `hDep`, `hArr`) et `mode` ('loc'|'utc')
 pour l'affichage. Colonnes avion `tempsSE/ME/MP` : `null` = déduit de la fiche avion ; valeur = saisie.
 Monopilote SE/ME = temps total − part multipilote du vol (c'est ainsi que FlyLog compte).
+Avion : `nom` (court, affiché en gras dans la saisie), `indicatif` (radio, seulement dans la fiche),
+`etiquettes` (proposées dans la saisie ; défaut : DH8D -> BOMBING + TRANSPORT, train classique -> TAILWHEEL).
+BOMBING et TRANSPORT s'excluent sur un vol. Migrations de données : `etat.js` (`migrer`, une fois, drapeau en réglage).
 
 ## Tests
 
@@ -71,6 +79,8 @@ Monopilote SE/ME = temps total − part multipilote du vol (c'est ainsi que FlyL
 - `node tests/navigateur/installation.mjs` : manifeste installable, id distinct des autres apps du site,
   service worker limité au Carnet (le serveur de test sert l'app sous /Carnet-de-vol-TEST/).
 - `node tests/navigateur/mise-a-jour.mjs` : mise à jour d'une app installée (v0.1, v0.2, version suivante).
+- `node tests/navigateur/v04.mjs` : écrans v0.4 à 390 px (migration v0.3, avion, étiquettes, monopilote,
+  fiche lecture seule, terrains) + captures `tests/navigateur/captures/v04-*.png`.
 - `node tests/navigateur/fluidite.mjs` : 4070 vols inventés, processeur ralenti ×6.
 - `node outils/controle-import.mjs ../donnees-privees/flylog-decode-v1.csv ../donnees-privees/totaux-flylog-reference.json` :
   contrôle avec le VRAI fichier, en local uniquement (rien n'est écrit dans le dépôt).

@@ -55,22 +55,24 @@ export function carteVol(v) {
     ? `${codeAvecDrapeau(v.dep)} <span class="via">› ${esc0.map(codeAvecDrapeau).join(' › ')} ›</span> ${codeAvecDrapeau(v.arr)}`
     : `${codeAvecDrapeau(v.dep)} → ${codeAvecDrapeau(v.arr)}`;
   const modele = a ? (a.sim ? 'Simulateur' + (a.fstd ? ' ' + a.fstd : '') : (a.modele || a.typeOACI)) : '';
-  const ligne = [dateFr(dateAffichee(v)), v.indicatif || (a && a.indicatif), a && a.immat, modele].filter(Boolean).map(esc).join(' - ');
+  const nom = a && a.nom && a.nom.toUpperCase() !== a.immat.toUpperCase() ? a.nom : '';
+  const ligne = [dateFr(dateAffichee(v)), nom, a && a.immat, modele].filter(Boolean).map(esc).join(' - ');
   const f = FONCTIONS[v.fonction] || FONCTIONS.cdb;
   const autre = v[f.champ];
-  const puces = [`<span class="chip">${esc(f.puce)}</span>`];
-  if (autre && autre !== 'SELF') puces.push(`<span class="chip">${esc(f.puceAutre)} ${esc(autre)}</span>`);
+  // Couleurs : fonction violet, missions orange, IFR bleu, nuit foncé, feu rouge, largages jaune
+  const puces = [`<span class="chip fn">${esc(f.puce)}</span>`];
+  if (autre && autre !== 'SELF') puces.push(`<span class="chip fn">${esc(f.puceAutre)} ${esc(autre)}</span>`);
   const feu = pastilleFeu(v);
   if (feu) puces.push(`<span class="chip ${feu.plein ? 'feu' : 'feu2'}">${esc(feu.texte)}</span>`);
-  for (const p of pastillesRegles(v, reglage('regles'))) puces.push(`<span class="chip">${esc(p)}</span>`);
+  for (const p of pastillesRegles(v, reglage('regles'))) puces.push(`<span class="chip mi">${esc(p)}</span>`);
   for (const c of COMPTEURS) {
     const n = v.compteurs && v.compteurs[c.cle];
     if (n) puces.push(`<span class="chip hl">${n} ${esc(c.court)}</span>`);
   }
   const att = (v.attJour || 0) + (v.attNuit || 0);
   if (att) puces.push(`<span class="chip">${att} att.</span>`);
-  if (v.tempsIFR) puces.push(`<span class="chip">IFR ${hm(v.tempsIFR)}</span>`);
-  if (v.tempsNuit) puces.push(`<span class="chip">Nuit ${hm(v.tempsNuit)}</span>`);
+  if (v.tempsIFR) puces.push(`<span class="chip ifr">IFR ${hm(v.tempsIFR)}</span>`);
+  if (v.tempsNuit) puces.push(`<span class="chip nuit">Nuit ${hm(v.tempsNuit)}</span>`);
   const mission = texteMissions(v);
   const duree = v.tempsTotal || v.simTemps || 0;
   return `<button type="button" class="flight" data-id="${esc(v.id)}">
@@ -115,6 +117,14 @@ export function initCarnet(ouvrir) {
   ouvrirVol = ouvrir;
   let attente = null;
   $('#q').addEventListener('input', () => { clearTimeout(attente); attente = setTimeout(rafraichirCarnet, 120); });
+  // Loupe : ouvre la recherche ; la refermer efface la recherche
+  $('#q-open').addEventListener('click', () => {
+    const ouvrir = $('#q').hidden;
+    $('#q').hidden = !ouvrir;
+    $('#q-open').setAttribute('aria-expanded', String(ouvrir));
+    if (ouvrir) $('#q').focus();
+    else if ($('#q').value) { $('#q').value = ''; rafraichirCarnet(); }
+  });
   $('#list').addEventListener('click', e => {
     const b = e.target.closest('.flight');
     if (b) ouvrirVol(etat.vols.find(v => v.id === b.dataset.id));

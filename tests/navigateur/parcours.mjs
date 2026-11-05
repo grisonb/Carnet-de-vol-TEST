@@ -34,7 +34,8 @@ try {
     const l = await p.locator('#v-carnet .hero .lbl').boundingBox();
     const chevauche = (a, b) => a.x < b.x + b.width && b.x < a.x + a.width && a.y < b.y + b.height && b.y < a.y + a.height;
     verifier(!chevauche(v, t) && !chevauche(v, l), 'la mention de version ne recouvre pas TOTAL HdV');
-    verifier(v.x + v.width > 412 * 0.75 && v.y < t.y, 'la mention de version est en haut à droite');
+    verifier(v.x < 412 * 0.25 && v.y < t.y, 'la mention de version est en haut à gauche');
+    verifier(await p.isHidden('#q') && await p.isVisible('#q-open'), 'recherche cachée, loupe affichée');
   }
   await cap('00-accueil-version', false);
 
@@ -66,11 +67,15 @@ try {
   const carteNuit = p.locator('.flight', { hasText: 'ENT. TEST' });
   verifier((await carteNuit.textContent()).includes('21/08/2025') && (await carteNuit.textContent()).includes('01h30 LOC → 02h50 LOC'), 'heures et date en LOC (vol importé, 23h30 UTC = 01h30 à Nice)');
   await cap('02-carnet', false);
+  await p.click('#q-open');
+  verifier(await p.isVisible('#q'), 'la loupe ouvre la recherche');
   await p.fill('#q', 'f-xzza');
   await p.waitForTimeout(250);
   verifier(await p.locator('.flight').count() === 1, 'recherche par immatriculation');
-  await p.fill('#q', '');
+  await cap('02b-carnet-recherche', false);
+  await p.click('#q-open');
   await p.waitForTimeout(250);
+  verifier(await p.isHidden('#q') && await p.inputValue('#q') === '' && await p.locator('.flight').count() > 1, 'refermer la loupe efface la recherche');
 
   console.log('Nouveau vol');
   await p.click('#fab');
@@ -94,13 +99,13 @@ try {
   await p.click('#a1-go');
   await p.fill('#fi-oaci', 'DR40');
   verifier((await p.textContent('#fi-tl')) === 'ROBIN • DR40 • DR400', 'type OACI reconnu : ROBIN • DR40 • DR400');
-  await p.fill('#fi-ind', 'tst1'); await p.fill('#fi-nm', 'Avion Test');
+  await p.fill('#fi-ind', 'tango 1'); await p.fill('#fi-nm', 't1');
   await cap('03-fiche-avion');
   await p.click('#fi-save');
-  verifier(await p.textContent('#ac-reg') === 'F-XTST', 'nouvel avion choisi pour le vol');
-  verifier(await p.inputValue('#f-mis') === 'TST1', 'indicatif habituel repris');
-  verifier((await p.textContent('#ac-col')).includes('Mono-pilote SE'), 'colonne EASA Mono-pilote SE');
-  await p.fill('#ac-q', 'avion test');
+  verifier(await p.textContent('#ac-reg') === 'T1' && await p.textContent('#ac-sub') === 'F-XTST', 'nouvel avion choisi : « T1 … F-XTST »');
+  verifier(!(await p.textContent('.c-av')).includes('TANGO'), 'indicatif radio absent du bloc Avion');
+  await p.click('#ac-cur');
+  await p.fill('#ac-q', 't1');
   verifier(await p.locator('#ac-res .acitem').count() === 1, 'recherche d\'avion par nom');
   await p.fill('#ac-q', '');
   await p.click('#ac-all');
@@ -108,6 +113,7 @@ try {
   await p.click('#sf-main');
   verifier(!(await p.isHidden('#sf-menu')) && (await p.textContent('#sf-main')) === '×', 'menu + -> Ajouter un simulateur / un avion');
   await p.click('#sf-veil'); await p.click('#fl-x');
+  await p.click('#ac-cur');
 
   console.log('Escale, IFR, approches');
   await p.click('#via-add');
@@ -124,16 +130,16 @@ try {
   verifier(await p.inputValue('#c-ifr') === '1h15', 'IFR : tout le vol en IFR');
   await p.click('[data-s="approches"][data-d="1"]');
 
-  console.log('Ajout de personne');
+  console.log('Ma fonction (avion monopilote) et ajout de personne');
+  verifier(await p.isHidden('#f-fn button[data-r="copi"]'), 'monopilote : pas de bouton « Copi. »');
   await p.click('#f-fn button[data-r="cdb"]');
+  verifier(await p.isHidden('#f-copi-z'), 'monopilote en CdB : pas de champ de personne');
+  await p.click('#f-fn button[data-r="dc"]');
+  verifier(await p.textContent('#f-copi-l') === 'Instructeur', 'DC : champ Instructeur');
   await p.click('#p-add');
   await p.fill('#pm-tri', 'xyz');
   await p.click('#pm-ok');
   verifier(await p.inputValue('#f-copi') === 'XYZ', 'personne ajoutée et choisie');
-  await p.click('#f-fn button[data-r="copi"]');
-  verifier(await p.textContent('#f-copi-l') === 'CdB', 'le champ suit la fonction (Copi. -> CdB)');
-  await p.click('#f-fn button[data-r="cdb"]');
-  verifier(await p.textContent('#f-copi-l') === 'Copi', 'le champ suit la fonction (CdB -> Copi)');
 
   console.log('Mission avec feu');
   await p.fill('#m-q', 'rodez');
@@ -152,21 +158,21 @@ try {
   await p.click('#ctr-panel [data-tg="2"]');
   verifier(await p.locator('#ctrs .step').count() === 3, 'compteur supplémentaire affiché (choix des compteurs)');
   await p.click('[data-c="largCdbDash"][data-d="1"]'); await p.click('[data-c="largCdbDash"][data-d="1"]');
-  verifier((await p.textContent('#rec-x')).includes('XYZ'), 'temps du carnet : nom du copi');
+  verifier((await p.textContent('#rec-x')).includes('XYZ'), 'temps du carnet : nom de l\'instructeur');
   verifier((await p.textContent('#r-col-l')) === 'Mono-pilote SE', 'temps du carnet : colonne avion');
   await cap('05-saisie-complete');
   await p.click('#save');
   await p.waitForSelector('#v-carnet:not([hidden])');
   const nouvelle = p.locator('.flight').first();
   const txt = await nouvelle.textContent();
-  verifier(txt.includes('Feu n°8') && txt.includes('Copi XYZ') && txt.includes('Entraînement') && txt.includes('2 lrg'), 'carte du nouveau vol : pastilles');
+  verifier(txt.includes('Feu n°8') && txt.includes('Instr. XYZ') && txt.includes('Entraînement') && txt.includes('2 lrg'), 'carte du nouveau vol : pastilles');
   verifier(txt.includes('23h30 UTC → 00h45 UTC (J+1)'), 'heures UTC avec (J+1)');
   verifier((await p.textContent('#h-total')).replace(/\s/g, ' ') === '8h30', 'TOTAL HdV mis à jour');
   await cap('06-carnet-apres-saisie', false);
 
   console.log('Nouveau vol : pré-remplissage');
   await p.click('#fab');
-  verifier(await p.inputValue('#f-dep') === 'LFMD' && await p.textContent('#ac-reg') === 'F-XTST' && await p.inputValue('#f-copi') === 'XYZ', 'pré-rempli : départ, avion, copi du dernier vol');
+  verifier(await p.inputValue('#f-dep') === 'LFMD' && await p.textContent('#ac-sub') === 'F-XTST', 'pré-rempli : départ et avion du dernier vol');
   await p.click('#cancel');
 
   console.log('Modification et suppression');

@@ -18,13 +18,14 @@
 
   <!-- ========== CARNET ========== -->
   <section id="v-carnet">
-    <div class="hero">
+    <div class="hero hrow">
       <span class="ver" id="h-version" aria-label="Version de l'app"></span>
       <span class="lbl" style="text-transform:none">TOTAL HdV</span>
       <span class="big num" id="h-total">0h00</span>
+      <button type="button" class="loupe" id="q-open" aria-label="Rechercher un vol" aria-expanded="false" aria-controls="q"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 3a7 7 0 0 1 5.6 11.2l5.1 5.1-1.4 1.4-5.1-5.1A7 7 0 1 1 10 3zm0 2a5 5 0 1 0 0 10 5 5 0 0 0 0-10z"/></svg></button>
     </div>
     <div class="quick" id="h-quick"></div>
-    <input class="search" id="q" type="search" placeholder="Rechercher : terrain, immat., remarque, mission…" aria-label="Rechercher un vol">
+    <input class="search" id="q" type="search" hidden placeholder="Rechercher : terrain, immat., remarque, mission…" aria-label="Rechercher un vol">
     <div id="list"></div>
     <div id="list-fin" aria-hidden="true"></div>
   </section>
@@ -37,16 +38,15 @@
       <span style="width:72px"></span>
     </div>
 
-    <div class="sec">
-      <div class="tophead"><h3>Vol</h3>
+    <div class="sec c-vol">
+      <div class="tophead"><input id="f-date" class="datein" type="date" aria-label="Date du vol">
         <div class="seg mini" role="group" aria-label="Heures saisies en">
           <button type="button" id="tz-loc" aria-pressed="true">LOC</button><button type="button" id="tz-utc" aria-pressed="false">UTC</button>
         </div></div>
-      <div class="field"><label for="f-date">Date</label><input id="f-date" type="date"></div>
       <div class="aprow">
-        <div class="field"><label for="f-dep">Départ (OACI)</label><input class="big" id="f-dep" maxlength="4" autocapitalize="characters" autocomplete="off" spellcheck="false"><span class="apname" id="n-dep"></span></div>
-        <button type="button" class="plus" id="via-add" aria-label="Ajouter un terrain intermédiaire">+</button>
-        <div class="field"><label for="f-arr">Arrivée (OACI)</label><input class="big" id="f-arr" maxlength="4" autocapitalize="characters" autocomplete="off" spellcheck="false"><span class="apname" id="n-arr"></span></div>
+        <div class="field"><label for="f-dep">Départ (OACI)</label><input class="big" id="f-dep" maxlength="4" autocapitalize="characters" autocomplete="off" spellcheck="false"><span class="apname" id="n-dep"></span><button type="button" class="linkbtn ajt" data-ajt="#f-dep" hidden>Ajouter ce terrain ›</button></div>
+        <button type="button" class="plus" id="via-add" aria-label="Ajouter un terrain intermédiaire"><svg class="ip" viewBox="0 0 24 24" aria-hidden="true"><path d="M10.75 4h2.5v16h-2.5zM4 10.75h16v2.5H4z"/></svg></button>
+        <div class="field"><label for="f-arr">Arrivée (OACI)</label><input class="big" id="f-arr" maxlength="4" autocapitalize="characters" autocomplete="off" spellcheck="false"><span class="apname" id="n-arr"></span><button type="button" class="linkbtn ajt" data-ajt="#f-arr" hidden>Ajouter ce terrain ›</button></div>
       </div>
       <div id="via-list" class="vialist"></div>
       <div class="blocrow">
@@ -58,45 +58,40 @@
       <div class="condrow">
         <div class="mstep"><span class="mlbl">Règles</span>
           <div class="swwrap"><span id="lbl-vfr" class="on">VFR</span><button type="button" class="sw" id="f-ifr" role="switch" aria-checked="false" aria-label="VFR ou IFR"><span></span></button><span id="lbl-ifr">IFR</span></div></div>
-        <div class="mstep"><span class="mlbl">Appr</span><span class="ctl"><button type="button" data-s="approches" data-d="-1" aria-label="Approches moins">−</button><output id="s-approches">0</output><button type="button" data-s="approches" data-d="1" aria-label="Approches plus">+</button></span></div>
+        <div class="mstep"><span class="mlbl">Appr</span><span class="ctl"><button type="button" data-s="approches" data-d="-1" aria-label="Approches moins"><svg class="ip" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10.75h16v2.5H4z"/></svg></button><output id="s-approches">0</output><button type="button" data-s="approches" data-d="1" aria-label="Approches plus"><svg class="ip" viewBox="0 0 24 24" aria-hidden="true"><path d="M10.75 4h2.5v16h-2.5zM4 10.75h16v2.5H4z"/></svg></button></span></div>
         <div class="mstep"><label class="mlbl" for="c-ifr">Temps IFR</label><input id="c-ifr" class="tin num" value="0h00" inputmode="numeric" autocomplete="off"></div>
       </div>
       <div class="condrow">
-        <div class="mstep"><span class="mlbl">Att. Jour</span><span class="ctl"><button type="button" data-s="attJour" data-d="-1" aria-label="Atterrissages jour moins">−</button><output id="s-attJour">1</output><button type="button" data-s="attJour" data-d="1" aria-label="Atterrissages jour plus">+</button></span></div>
-        <div class="mstep"><span class="mlbl">Att. Nuit</span><span class="ctl"><button type="button" data-s="attNuit" data-d="-1" aria-label="Atterrissages nuit moins">−</button><output id="s-attNuit">0</output><button type="button" data-s="attNuit" data-d="1" aria-label="Atterrissages nuit plus">+</button></span></div>
+        <div class="mstep"><span class="mlbl">Att. Jour</span><span class="ctl"><button type="button" data-s="attJour" data-d="-1" aria-label="Atterrissages jour moins"><svg class="ip" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10.75h16v2.5H4z"/></svg></button><output id="s-attJour">1</output><button type="button" data-s="attJour" data-d="1" aria-label="Atterrissages jour plus"><svg class="ip" viewBox="0 0 24 24" aria-hidden="true"><path d="M10.75 4h2.5v16h-2.5zM4 10.75h16v2.5H4z"/></svg></button></span></div>
+        <div class="mstep"><span class="mlbl">Att. Nuit</span><span class="ctl"><button type="button" data-s="attNuit" data-d="-1" aria-label="Atterrissages nuit moins"><svg class="ip" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10.75h16v2.5H4z"/></svg></button><output id="s-attNuit">0</output><button type="button" data-s="attNuit" data-d="1" aria-label="Atterrissages nuit plus"><svg class="ip" viewBox="0 0 24 24" aria-hidden="true"><path d="M10.75 4h2.5v16h-2.5zM4 10.75h16v2.5H4z"/></svg></button></span></div>
         <div class="mstep"><label class="mlbl" for="c-nuit">Temps nuit</label><input id="c-nuit" class="tin num" value="0h00" inputmode="numeric" autocomplete="off"></div>
       </div>
     </div>
 
-    <div class="sec">
+    <div class="sec c-av">
       <h3>Avion</h3>
-      <div class="accard" id="ac-cur"><div class="acph" id="ac-ph"></div><div class="acmain" style="min-width:0"><b id="ac-reg">—</b> <span id="ac-type"></span><div class="hint" id="ac-cat"></div><div class="accol" id="ac-col"></div></div><button type="button" class="linkbtn" id="ac-fiche">Fiche ›</button></div>
-      <div class="acsearch"><div class="pwrap"><input class="search" id="ac-q" type="search" autocomplete="off" placeholder="Changer d'avion (immat, indicatif, nom…)" aria-label="Chercher un avion"><button type="button" class="plus" id="ac-add" aria-label="Ajouter un avion" style="margin:0">+</button></div><div id="ac-res" class="acres" hidden></div></div>
-      <button type="button" class="linkbtn" id="ac-all">Tous mes avions ›</button>
-      <div class="field"><label for="f-mis">Indicatif</label><input id="f-mis" class="big" placeholder="ex. ABC12" autocapitalize="characters" autocomplete="off"></div>
-      <div class="field"><span class="flabel">Étiquette</span>
-        <div class="pwrap"><button type="button" class="ddbtn" id="tg-open" aria-expanded="false"><span id="tg-val"></span><span aria-hidden="true">▾</span></button><button type="button" class="plus" id="tg-add" aria-label="Nouvelle étiquette" style="margin:0">+</button></div>
-        <div class="ddlist" id="tg-list" hidden role="listbox" aria-multiselectable="true"></div>
-        <p class="hint">Total d'heures par étiquette dans l'écran Totaux (hors carnet EASA).</p></div>
+      <div class="acline"><button type="button" class="acbtn" id="ac-cur" aria-expanded="false" aria-controls="ac-sz" aria-label="Changer d'avion"><span class="t"><b id="ac-reg">—</b><span id="ac-type"></span><small id="ac-sub"></small></span></button><button type="button" class="ibtn" id="ac-fiche" aria-label="Fiche de l'avion (lecture)">i</button><button type="button" class="plus" id="ac-add" aria-label="Ajouter un avion"><svg class="ip" viewBox="0 0 24 24" aria-hidden="true"><path d="M10.75 4h2.5v16h-2.5zM4 10.75h16v2.5H4z"/></svg></button></div>
+      <div class="acsearch" id="ac-sz" hidden><input class="search" id="ac-q" type="search" autocomplete="off" placeholder="Chercher : immat, nom, type…" aria-label="Chercher un avion"><div id="ac-res" class="acres" hidden></div><button type="button" class="linkbtn" id="ac-all">Tous mes avions ›</button></div>
+      <div class="tgrow"><span class="flabel">Étiquette</span><span id="tg-val" class="tgrow" style="display:contents"></span><button type="button" class="plus petit" id="tg-add" aria-label="Nouvelle étiquette pour cet avion"><svg class="ip" viewBox="0 0 24 24" aria-hidden="true"><path d="M10.75 4h2.5v16h-2.5zM4 10.75h16v2.5H4z"/></svg></button></div>
     </div>
 
-    <div class="sec">
+    <div class="sec c-fn">
       <h3>Ma fonction</h3>
       <div class="seg fn4" id="f-fn" role="group" aria-label="Fonction">
         <button type="button" aria-pressed="true" data-r="cdb">CdB</button><button type="button" aria-pressed="false" data-r="copi">Copi.</button><button type="button" aria-pressed="false" data-r="dc">DC</button><button type="button" aria-pressed="false" data-r="inst">Inst.</button>
       </div>
-      <div class="field"><label for="f-copi" id="f-copi-l">Copi</label>
-        <div class="pwrap"><input id="f-copi" autocomplete="off" placeholder="Trigramme, prénom ou nom"><button type="button" class="plus" id="p-add" aria-label="Ajouter une personne" style="margin:0">+</button></div>
+      <div class="field" id="f-copi-z"><label for="f-copi" id="f-copi-l">Copi</label>
+        <div class="pwrap"><input id="f-copi" autocomplete="off" placeholder="Trigramme, prénom ou nom"><button type="button" class="plus" id="p-add" aria-label="Ajouter une personne" style="margin:0"><svg class="ip" viewBox="0 0 24 24" aria-hidden="true"><path d="M10.75 4h2.5v16h-2.5zM4 10.75h16v2.5H4z"/></svg></button></div>
         <div id="p-res" class="acres" hidden></div></div>
       <p class="hint" id="f-fn-h"></p>
     </div>
 
-    <div class="sec">
+    <div class="sec c-mi">
       <h3>Mission</h3>
       <div id="ml" class="mlines"></div>
-      <div class="pwrap"><input class="search" id="m-q" autocomplete="off" placeholder="Mission : tape (ex. EN) ou choisis" aria-label="Mission" style="margin:0"><button type="button" class="plus" id="m-add" aria-label="Ajouter cette mission" style="margin:0">+</button></div>
+      <div class="pwrap"><input class="search" id="m-q" autocomplete="off" placeholder="Mission : tape (ex. EN) ou choisis" aria-label="Mission" style="margin:0"><button type="button" class="plus" id="m-add" aria-label="Ajouter cette mission" style="margin:0"><svg class="ip" viewBox="0 0 24 24" aria-hidden="true"><path d="M10.75 4h2.5v16h-2.5zM4 10.75h16v2.5H4z"/></svg></button></div>
       <div id="m-res" class="acres" hidden></div>
-      <div class="step"><span>Feux <small class="hint" id="fire-next"></small></span><span class="ctl"><button type="button" id="feu-m" aria-label="Feux moins">−</button><output id="s-feu">0</output><button type="button" id="feu-p" aria-label="Feux plus">+</button></span></div>
+      <div class="step"><span>Feux <small class="hint" id="fire-next"></small></span><span class="ctl"><button type="button" id="feu-m" aria-label="Feux moins"><svg class="ip" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10.75h16v2.5H4z"/></svg></button><output id="s-feu">0</output><button type="button" id="feu-p" aria-label="Feux plus"><svg class="ip" viewBox="0 0 24 24" aria-hidden="true"><path d="M10.75 4h2.5v16h-2.5zM4 10.75h16v2.5H4z"/></svg></button></span></div>
       <div id="ctrs" style="display:grid;gap:10px"></div>
       <button type="button" class="ghost" id="ctr-open" aria-expanded="false">Choisir et ranger les compteurs ▾</button>
       <div id="ctr-panel" hidden class="panel"></div>
@@ -104,7 +99,7 @@
       <button type="button" class="linkbtn" id="rules-open2">Règles des pastilles ›</button>
     </div>
 
-    <div class="sec">
+    <div class="sec c-tp">
       <h3>Temps du carnet</h3>
       <div>
         <p class="hint" style="margin-bottom:4px">Tout ce qui sera écrit dans ton carnet EASA pour ce vol.</p>
@@ -115,7 +110,7 @@
       </div>
     </div>
 
-    <div class="sec">
+    <div class="sec c-rq">
       <h3>Remarques</h3>
       <div class="field"><label for="f-rem">Remarques et visas (apparaissent dans le PDF officiel)</label><textarea id="f-rem" rows="3"></textarea></div>
     </div>
@@ -193,18 +188,18 @@
 
 <!-- Mes avions -->
 <div class="sheet" id="fleet" hidden role="dialog" aria-modal="true" aria-labelledby="fl-t"><div class="sheet-in">
-  <div class="shead"><button type="button" class="xbtn" id="fl-x" aria-label="Fermer">×</button><h2 id="fl-t">Mes avions</h2></div>
+  <div class="shead"><button type="button" class="xbtn" id="fl-x" aria-label="Fermer">×</button><h2 id="fl-t">Mes avions</h2><span style="width:42px;flex:none"></span></div>
   <input class="search" id="fl-q" type="search" autocomplete="off" placeholder="Rechercher : immat, indicatif, type…" aria-label="Rechercher un avion" style="margin:0 0 4px">
   <p class="hint" id="fl-n"></p>
   <div id="fl-list"></div>
 </div></div>
 <div class="sfab-veil" id="sf-veil" hidden></div>
 <div class="sfab" id="sfab" hidden>
+  <button type="button" class="main" id="sf-main" aria-label="Ajouter un avion ou un simulateur" aria-expanded="false"><svg class="ip" viewBox="0 0 24 24" aria-hidden="true"><path d="M10.75 4h2.5v16h-2.5zM4 10.75h16v2.5H4z"/></svg></button>
   <div id="sf-menu" hidden style="display:grid;justify-items:end;gap:10px">
     <button type="button" class="opt" id="sf-sim"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h18v12H3zm2 2v8h14V6zm3 12h8v2H8zM10 8l5 2-5 2z"/></svg>Ajouter un simulateur</button>
     <button type="button" class="opt" id="sf-ac"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5z"/></svg>Ajouter un avion</button>
   </div>
-  <button type="button" class="main" id="sf-main" aria-label="Ajouter" aria-expanded="false">+</button>
 </div>
 
 <!-- Ajouter un avion -->
@@ -219,7 +214,7 @@
 
 <!-- Fiche avion -->
 <div class="sheet" id="fiche" hidden role="dialog" aria-modal="true" aria-labelledby="fi-reg-l" style="z-index:28"><div class="sheet-in">
-  <div class="fphoto"><span id="fi-img"></span><button type="button" class="xbtn" id="fi-x" aria-label="Fermer">×</button>
+  <div class="fphoto"><span id="fi-img"></span><button type="button" class="xbtn" id="fi-x" aria-label="Fermer">×</button><button type="button" class="fedit" id="fi-ed" hidden aria-label="Modifier la fiche"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17.25V21h3.75L17.8 9.94l-3.75-3.75zM20.7 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75z"/></svg></button>
     <label class="cam" aria-label="Prendre ou choisir une photo"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3 7.2 5H4a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-3.2L15 3zm3 5a4.5 4.5 0 1 1 0 9 4.5 4.5 0 0 1 0-9zm0 2a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5z"/></svg><input type="file" accept="image/*" id="fi-file"></label></div>
   <div class="seg" id="fi-kind" role="group" aria-label="Aéronef ou simulateur" style="justify-content:center;margin:14px 0 4px"><button type="button" aria-pressed="true">✈ Aéronef</button><button type="button" aria-pressed="false">Simulateur</button></div>
   <div class="sec">
@@ -228,9 +223,8 @@
       <div class="field" id="fi-fstd-f" hidden><label>Type FSTD</label><div class="seg" id="fi-fstd" role="group" aria-label="Type FSTD"><button type="button" aria-pressed="false">FFS</button><button type="button" aria-pressed="false">FTD</button><button type="button" aria-pressed="false">FNPT II</button></div></div></div>
     <div class="typeline" id="fi-tl"></div>
     <div class="field"><label for="fi-mod">Modèle</label><input id="fi-mod" placeholder="ex. DHC-8-400 Dash 8"></div>
-    <div class="row2" id="fi-ind-z"><div class="field"><label for="fi-ind">Indicatif habituel</label><input class="big" id="fi-ind" placeholder="ex. ABC12" autocapitalize="characters" autocomplete="off"></div>
-      <div class="field"><label for="fi-nm">Nom</label><input id="fi-nm" placeholder="ex. surnom de l'avion"></div></div>
-    <div class="field"><label for="fi-tags">Étiquettes</label><input id="fi-tags" placeholder="G1000, TAILWHEEL…"></div>
+    <div class="row2" id="fi-ind-z"><div class="field"><label for="fi-nm">Nom</label><input class="big" id="fi-nm" placeholder="ex. X12" autocapitalize="characters" autocomplete="off"></div>
+      <div class="field"><label for="fi-ind">Indicatif radio</label><input id="fi-ind" placeholder="ex. ALPHA 12" autocapitalize="characters" autocomplete="off"></div></div>
     <div class="field"><label for="fi-rem">Remarques</label><input id="fi-rem"></div>
   </div>
   <div class="sec" id="fi-easa">
@@ -242,6 +236,11 @@
     <div class="seg" id="fi-surf" role="group" aria-label="Surface"><button type="button" aria-pressed="false">Terrestre</button><button type="button" aria-pressed="false">Amphibie</button><button type="button" aria-pressed="false">Hydravion</button></div>
     <div class="seg" id="fi-tw" role="group" aria-label="Train"><button type="button" aria-pressed="false">Train tricycle</button><button type="button" aria-pressed="false">Train classique</button></div>
     <p class="hint">Rempli tout seul d'après le type OACI, modifiable. Monopilote ou multipilote décide dans quelle colonne du carnet EASA vont les heures ; le reste sert aux totaux par catégorie (piston, turbopropulseur, amphibie…).</p>
+  </div>
+  <div class="sec" id="fi-tgsec">
+    <h3>Étiquettes</h3>
+    <p class="hint" style="margin-top:-6px">Coche les étiquettes proposées pour cet avion quand tu saisis un vol. Hors carnet officiel.</p>
+    <div class="seg" id="fi-tgs"></div>
   </div>
   <p class="fstat" id="fi-stat"></p>
   <p class="apname bad" id="fi-err" style="text-align:center;font-size:15px"></p>
@@ -279,12 +278,27 @@
   <h3 id="vm-t">Terrain intermédiaire</h3>
   <div class="field"><label for="vm-icao">Code OACI</label><input class="big" id="vm-icao" maxlength="4" autocapitalize="characters" autocomplete="off" placeholder="FMEE"></div>
   <p class="apname big2" id="vm-name">Tape les 4 lettres du code</p>
+  <button type="button" class="linkbtn" id="vm-ajt" hidden>Ajouter ce terrain ›</button>
   <div class="row2">
-    <div class="mstep"><span class="mlbl">Att. Jour</span><span class="ctl"><button type="button" data-vm="attJour" data-d="-1" aria-label="moins">−</button><output id="vm-attJour">1</output><button type="button" data-vm="attJour" data-d="1" aria-label="plus">+</button></span></div>
-    <div class="mstep"><span class="mlbl">Att. Nuit</span><span class="ctl"><button type="button" data-vm="attNuit" data-d="-1" aria-label="moins">−</button><output id="vm-attNuit">0</output><button type="button" data-vm="attNuit" data-d="1" aria-label="plus">+</button></span></div>
+    <div class="mstep"><span class="mlbl">Att. Jour</span><span class="ctl"><button type="button" data-vm="attJour" data-d="-1" aria-label="moins"><svg class="ip" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10.75h16v2.5H4z"/></svg></button><output id="vm-attJour">1</output><button type="button" data-vm="attJour" data-d="1" aria-label="plus"><svg class="ip" viewBox="0 0 24 24" aria-hidden="true"><path d="M10.75 4h2.5v16h-2.5zM4 10.75h16v2.5H4z"/></svg></button></span></div>
+    <div class="mstep"><span class="mlbl">Att. Nuit</span><span class="ctl"><button type="button" data-vm="attNuit" data-d="-1" aria-label="moins"><svg class="ip" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10.75h16v2.5H4z"/></svg></button><output id="vm-attNuit">0</output><button type="button" data-vm="attNuit" data-d="1" aria-label="plus"><svg class="ip" viewBox="0 0 24 24" aria-hidden="true"><path d="M10.75 4h2.5v16h-2.5zM4 10.75h16v2.5H4z"/></svg></button></span></div>
   </div>
   <div class="row2"><button type="button" class="ghost" id="vm-cancel">Annuler</button><button type="button" class="ghost primary" id="vm-ok">Ajouter</button></div>
   <button type="button" class="ghost" id="vm-del" hidden style="color:var(--feu);border-color:var(--feu)">Retirer ce terrain</button>
+</div></div>
+
+<!-- Ajouter un terrain absent de la table (enregistré dans les données du pilote) -->
+<div class="modal" id="ter-modal" hidden role="dialog" aria-modal="true" aria-labelledby="ter-t" style="z-index:31"><div class="mbox">
+  <h3 id="ter-t">Ajouter un terrain</h3>
+  <div class="row2"><div class="field"><label for="ter-code">Code OACI</label><input class="big" id="ter-code" maxlength="4" autocapitalize="characters" autocomplete="off"></div>
+    <div class="field"><label for="ter-pays">Pays (2 lettres)</label><input id="ter-pays" maxlength="2" autocapitalize="characters" autocomplete="off" placeholder="FR"></div></div>
+  <div class="field"><label for="ter-nom">Nom</label><input id="ter-nom" autocomplete="off"></div>
+  <div class="row2"><div class="field"><label for="ter-lat">Latitude</label><input id="ter-lat" inputmode="decimal" autocomplete="off" placeholder="45.123"></div>
+    <div class="field"><label for="ter-lon">Longitude</label><input id="ter-lon" inputmode="decimal" autocomplete="off" placeholder="-0.456"></div></div>
+  <div class="field"><label for="ter-tz">Fuseau horaire</label><input id="ter-tz" list="ter-tzs" autocomplete="off" placeholder="Europe/Paris"><datalist id="ter-tzs"></datalist></div>
+  <p class="hint">Latitude et longitude en degrés décimaux (sud et ouest en négatif) : elles servent au calcul du temps de nuit. Le fuseau sert au mode LOC.</p>
+  <p class="apname bad" id="ter-err"></p>
+  <div class="row2"><button type="button" class="ghost" id="ter-x">Annuler</button><button type="button" class="ghost primary" id="ter-ok">Ajouter</button></div>
 </div></div>
 
 <!-- Écran générique plein écran (exports, import, contrôle, types, personnes) -->

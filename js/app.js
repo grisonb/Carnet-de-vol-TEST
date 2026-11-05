@@ -8,6 +8,7 @@ import { initSaisie, ouvrirSaisie } from './ui/saisie.js';
 import { initTotaux, rafraichirTotaux } from './ui/totaux.js';
 import { initPlus, majPlus, verifierRappel, demanderStockagePersistant, appliquerTypesPerso } from './ui/plus.js';
 import { initRegles } from './ui/regles.js';
+import { initTerrainPerso } from './ui/terrain-perso.js';
 import { invaliderStats } from './ui/avions.js';
 import { VERSION } from './version.js';
 
@@ -39,6 +40,7 @@ async function demarrer() {
   initTotaux();
   initPlus();
   initRegles();
+  initTerrainPerso();
   $$('.tabs button').forEach(b => b.addEventListener('click', () => montrer(b.dataset.v)));
   $('#fab').addEventListener('click', () => ouvrirVol(null));
 

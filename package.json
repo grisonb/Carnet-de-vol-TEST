@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "test": "node --test \"tests/unitaires/*.test.js\"",
-    "test:navigateur": "node tests/navigateur/parcours.mjs && node tests/navigateur/installation.mjs && node tests/navigateur/mise-a-jour.mjs",
+    "test:navigateur": "node tests/navigateur/parcours.mjs && node tests/navigateur/installation.mjs && node tests/navigateur/mise-a-jour.mjs && node tests/navigateur/v04.mjs",
     "test:fluidite": "node tests/navigateur/fluidite.mjs"
   },
   "devDependencies": {

@@ -121,3 +121,94 @@ export function comparerRecentDabord(a, b) {
   if (ha !== hb) return ha < hb ? 1 : -1;
   return (b.ordre || 0) - (a.ordre || 0);
 }
+
+// ---------- v0.4 : ligne avion, étiquettes par avion, fonctions possibles ----------
+
+// Ligne avion de la saisie : NOM (gras) · modèle · IMMAT (gras). Sans nom : IMMAT · modèle.
+// L'immatriculation n'apparaît jamais deux fois ; l'indicatif radio n'est pas affiché ici.
+export function ligneAvion(a) {
+  if (!a) return { debut: 'Aucun avion', modele: 'Touche ici pour choisir', fin: '' };
+  const modele = a.sim ? 'Simulateur' + (a.fstd ? ' ' + a.fstd : '') : (a.modele || a.typeOACI || '');
+  const nom = String(a.nom || '').trim();
+  if (nom && nom.toUpperCase() !== String(a.immat).toUpperCase()) return { debut: nom, modele, fin: a.immat };
+  return { debut: a.immat, modele, fin: '' };
+}
+
+// Étiquettes qui ne peuvent pas être cochées ensemble sur un vol (TAILWHEEL reste cumulable)
+export const ETIQUETTES_EXCLUSIVES = ['BOMBING', 'TRANSPORT'];
+
+// Étiquettes cochées d'office dans la fiche d'un avion : BOMBING + TRANSPORT pour le Dash 8 Q400 (DH8D),
+// TAILWHEEL pour un train classique, rien d'autre.
+export function etiquettesParDefaut(a) {
+  const t = [];
+  if (!a || a.sim) return t;
+  if (String(a.typeOACI || '').toUpperCase() === 'DH8D') t.push('BOMBING', 'TRANSPORT');
+  if (a.train === 'classique') t.push('TAILWHEEL');
+  return t;
+}
+
+// Étiquettes proposées dans la saisie pour cet avion (celles cochées dans sa fiche)
+export function etiquettesDeLAvion(a) {
+  if (!a) return [];
+  const t = [...(a.etiquettes || [])];
+  if (a.train === 'classique' && !a.sim && !t.includes('TAILWHEEL')) t.push('TAILWHEEL');
+  return t;
+}
+
+// Coche / décoche une étiquette d'un vol (BOMBING et TRANSPORT s'excluent)
+export function basculerEtiquette(choisies, t) {
+  if (choisies.includes(t)) return choisies.filter(x => x !== t);
+  const ex = ETIQUETTES_EXCLUSIVES.includes(t);
+  return [...choisies.filter(x => !(ex && ETIQUETTES_EXCLUSIVES.includes(x))), t];
+}
+
+// Étiquettes d'un vol quand on choisit un avion : on garde celles proposées par l'avion,
+// TAILWHEEL d'office si train classique, et jamais BOMBING + TRANSPORT ensemble.
+export function etiquettesPourAvion(choisies, a) {
+  const permises = etiquettesDeLAvion(a);
+  let t = (choisies || []).filter(x => permises.includes(x));
+  if (a && a.train === 'classique' && !a.sim && !t.includes('TAILWHEEL')) t.push('TAILWHEEL');
+  const ex = t.filter(x => ETIQUETTES_EXCLUSIVES.includes(x));
+  if (ex.length > 1) t = t.filter(x => !ETIQUETTES_EXCLUSIVES.includes(x) || x === ex[0]);
+  return t;
+}
+
+// Train choisi dans la fiche : classique coche TAILWHEEL, tricycle la décoche
+export function etiquettesPourTrain(etiquettes, train) {
+  const t = (etiquettes || []).filter(x => x !== 'TAILWHEEL');
+  return train === 'classique' ? [...t, 'TAILWHEEL'] : t;
+}
+
+export const estMonopilote = a => !!(a && !a.sim && a.equipage === 'SP');
+
+// Fonctions proposées : pas de « Copi. » sur un avion monopilote
+export function fonctionsPossibles(a) {
+  return estMonopilote(a) ? ['cdb', 'dc', 'inst'] : ['cdb', 'copi', 'dc', 'inst'];
+}
+// Champ « autre personne » affiché ? (monopilote en CdB : non)
+export const champPersonneVisible = (a, fonction) => !(estMonopilote(a) && fonction === 'cdb');
+
+// Indicatif FlyLog d'un vol (FLIGHT_NUMBER) -> fiche avion : court sans espace (« X12 ») = Nom,
+// avec espace (« ALPHA 12 ») = Indicatif radio. Rien n'est écrasé si la fiche est déjà remplie.
+export function completerNomIndicatif(a, texte) {
+  const t = String(texte || '').trim().toUpperCase();
+  if (!t || !a || a.sim) return false;
+  if (/\s/.test(t)) { if (!a.indicatif) { a.indicatif = t; return true; } }
+  else if (!a.nom && t !== String(a.immat).toUpperCase().replace(/-/g, '') && t !== String(a.immat).toUpperCase()) { a.nom = t; return true; }
+  return false;
+}
+
+// Migration des données v0.3 -> v0.4 (rien n'est perdu) : chaque avion garde ses étiquettes et reçoit
+// les étiquettes par défaut (DH8D, train classique) ; Nom et Indicatif radio restent tels quels.
+// Renvoie la liste des avions modifiés.
+export function migrerAvionsV04(avions) {
+  const modifies = [];
+  for (const a of avions) {
+    const avant = JSON.stringify(a.etiquettes || []);
+    const t = [...new Set([...(a.etiquettes || []), ...etiquettesParDefaut(a)])];
+    if (a.nom == null) a.nom = '';
+    if (a.indicatif == null) a.indicatif = '';
+    if (JSON.stringify(t) !== avant) { a.etiquettes = t; modifies.push(a); }
+  }
+  return modifies;
+}

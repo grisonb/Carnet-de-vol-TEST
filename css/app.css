@@ -1,4 +1,4 @@
-/* Styles repris de la maquette validée (v13), puis compléments de l'app. */
+/* Styles repris de la maquette validée (v13 puis v19), puis compléments de l'app. */
 /* Layout : app téléphone, une colonne, barre d'onglets en bas, bouton d'action flottant */
 :root{
   --bg:#edf1f5; --surface:#ffffff; --surface2:#f5f7fa; --ink:#13202e; --muted:#5a6a7b; --line:#d5dde5;
@@ -239,5 +239,98 @@ svg.flag{background:none;flex:none;display:inline-block;width:20px;height:14px;b
 .banner button{background:none;border:0;color:var(--primary);font-weight:600;padding:0}
 select{font:inherit}
 
-/* Version discrète en haut à droite de l'accueil */
-.hero .ver{position:absolute;top:4px;right:2px;font-size:11px;line-height:1;color:var(--muted);opacity:.75;font-weight:500;pointer-events:none}
+/* ---------- v0.4 (maquette v19) ---------- */
+/* Accueil compact : version en haut à gauche, loupe à droite du TOTAL HdV */
+.banner{font-size:12px;padding:4px 10px;margin:6px 0}
+.hrow{position:relative;padding:6px 52px 0}
+.hrow .big{font-size:40px}
+.hrow .ver{position:absolute;left:4px;top:8px;font-size:11px;line-height:1;color:var(--muted);font-family:var(--f-num);pointer-events:none}
+.loupe{position:absolute;right:0;top:50%;transform:translateY(-50%);width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:var(--surface);display:grid;place-items:center;padding:0}
+.loupe svg{width:22px;height:22px;fill:var(--ink)}
+.loupe[aria-expanded="true"]{background:var(--primary);border-color:var(--primary)}
+.loupe[aria-expanded="true"] svg{fill:var(--primary-ink)}
+#v-carnet .quick{margin:8px 0 2px}
+#v-carnet .quick div{padding:5px 6px}
+#v-carnet .quick .lbl{font-size:11px}
+#v-carnet .quick b{font-size:20px}
+.month{margin:12px 4px 6px}
+/* Pastilles des vols en couleur */
+.chip.fn{background:#efe8f6;border-color:transparent;color:#6a3d9a;font-weight:600}
+.chip.mi{background:#fdeedd;border-color:transparent;color:#a04d00;font-weight:600}
+.chip.ifr{background:#e6eef7;border-color:transparent;color:#1f4e79;font-weight:600}
+.chip.nuit{background:#263238;border-color:transparent;color:#fff;font-weight:600}
+/* Saisie : date étroite + LOC/UTC sur la même ligne */
+.datein{width:150px;padding:7px 8px;border-radius:10px;border:1px solid var(--line);background:var(--surface2);color:var(--ink);font:inherit;font-weight:600}
+/* Une couleur par bloc */
+.c-vol{--primary:#1f4e79;--tint:#e6eef7}.c-av{--primary:#00796b;--tint:#e0f2ef}.c-fn{--primary:#6a3d9a;--tint:#efe8f6}
+.c-mi{--primary:#c25e00;--tint:#fdeedd}.c-tp{--primary:#2e7d32;--tint:#e5f3e6}.c-rq{--primary:#546e7a;--tint:#eceff1}
+.c-vol,.c-av,.c-fn,.c-mi,.c-tp,.c-rq{border-left:6px solid var(--primary);background:linear-gradient(var(--tint),var(--surface) 70px)}
+.c-vol>h3,.c-av>h3,.c-fn>h3,.c-mi>h3,.c-tp>h3,.c-rq>h3{color:var(--primary)}
+.c-mi .linkbtn,.c-av .linkbtn{color:var(--primary)}
+/* Interrupteur VFR / IFR : libellés jamais coupés */
+.swwrap{white-space:nowrap;flex-wrap:nowrap;gap:3px}
+.swwrap .sw{width:36px}
+.swwrap .sw[aria-checked="true"] span{left:11px}
+/* Ligne avion : NOM · modèle · IMMAT, puis « i » et « + » */
+.acline{display:flex;gap:8px;align-items:center;min-width:0}
+.sec>*{min-width:0}
+.acline .plus{margin:0}
+.acbtn{flex:1;min-width:0;display:flex;gap:10px;align-items:center;text-align:left;background:var(--surface2);border:1px solid var(--primary);border-radius:12px;padding:8px 10px;color:var(--ink)}
+.acbtn .t{min-width:0;flex:1;display:flex;align-items:baseline;gap:6px;flex-wrap:nowrap}
+.acbtn b{font-family:var(--f-num);font-size:22px;white-space:nowrap}
+.acbtn #ac-type{font-size:14px;min-width:0;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.acbtn small{color:var(--ink);font-size:17px;white-space:nowrap;font-weight:700;font-family:var(--f-num);letter-spacing:.02em}
+.acbtn small:empty{display:none}
+.ibtn{width:40px;height:40px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--primary);font-weight:700;font-size:18px;font-family:Georgia,serif;font-style:italic;flex:none;padding:0}
+.acsearch .search{margin:0}
+/* Étiquettes en pastilles */
+.tgrow{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.tgrow .flabel{margin-right:2px}
+.tgchip{font-size:13px;font-weight:700;letter-spacing:.04em;padding:7px 10px;border-radius:999px;border:1px solid var(--line);background:var(--surface2);color:var(--muted)}
+.tgchip[aria-pressed="true"]{background:var(--primary);border-color:var(--primary);color:var(--primary-ink)}
+#fi-tgs .tgchip{padding:8px 12px}
+/* Ma fonction : 3 boutons si monopilote */
+.fn4.fn3{grid-template-columns:repeat(3,1fr)}
+.fn4 button[hidden]{display:none}
+/* « + » et « − » dessinés, parfaitement centrés */
+svg.ip{width:20px;height:20px;fill:currentColor;display:block;margin:auto}
+.plus{display:grid;place-items:center;padding:0}
+.plus.petit{width:34px;height:34px;margin:0}
+.plus.petit svg.ip{width:16px;height:16px}
+.step button,.mstep .ctl button{display:grid;place-items:center;padding:0}
+.step button svg.ip{width:18px;height:18px}
+.mstep .ctl button svg.ip{width:16px;height:16px}
+.sfab .main svg.ip{width:22px;height:22px}
+.sfab .main span{font-size:28px;line-height:1}
+/* Tous mes avions : « + » en haut à droite, crayon sur chaque carte */
+.sfab{top:calc(12px + env(safe-area-inset-top,0px));bottom:auto}
+.acwrap{display:flex;gap:6px;align-items:stretch}
+.acwrap .acitem{flex:1;min-width:0}
+.penbtn{flex:none;width:44px;border-radius:12px;border:1px solid var(--line);background:var(--surface);color:var(--primary);display:grid;place-items:center;padding:0}
+.penbtn svg{width:20px;height:20px;fill:currentColor}
+/* Fiche avion : lecture seule (bouton i), crayon pour modifier */
+.fphoto .fedit{position:absolute;right:12px;top:12px;width:42px;height:42px;border-radius:50%;border:0;background:var(--primary);color:var(--primary-ink);display:grid;place-items:center;padding:0}
+.fphoto .fedit svg{width:20px;height:20px;fill:currentColor}
+#fiche.ro input,#fiche.ro .seg button,#fiche.ro .tgchip{pointer-events:none}
+#fiche.ro input{background:transparent;border-color:transparent;padding-left:0}
+#fiche.ro .seg button[aria-pressed="false"]{display:none}
+#fiche.ro .cam,#fiche.ro #fi-kind,#fiche.ro .typeline,#fiche.ro #fi-tgsec .hint{display:none}
+#fiche.ro #fi-tgsec.vide{display:none}
+/* Terrain absent de la table */
+.linkbtn.ajt{font-size:13px;padding:0;justify-self:start}
+
+/* Mode sombre : teintes des blocs et des pastilles */
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]) .c-vol{--primary:#6ea8e0;--tint:#1a2a3c}:root:not([data-theme="light"]) .c-av{--primary:#4db6ac;--tint:#15302d}
+  :root:not([data-theme="light"]) .c-fn{--primary:#b39ddb;--tint:#2a2236}:root:not([data-theme="light"]) .c-mi{--primary:#ffa04d;--tint:#38281a}
+  :root:not([data-theme="light"]) .c-tp{--primary:#81c784;--tint:#1c2f1d}:root:not([data-theme="light"]) .c-rq{--primary:#90a4ae;--tint:#232c31}
+  :root:not([data-theme="light"]) .chip.fn{background:#2a2236;color:#b39ddb}:root:not([data-theme="light"]) .chip.mi{background:#38281a;color:#ffa04d}
+  :root:not([data-theme="light"]) .chip.ifr{background:#1a2a3c;color:#6ea8e0}:root:not([data-theme="light"]) .chip.nuit{background:#000;color:#cfd8dc}
+}
+:root[data-theme="dark"] .c-vol{--primary:#6ea8e0;--tint:#1a2a3c}:root[data-theme="dark"] .c-av{--primary:#4db6ac;--tint:#15302d}
+:root[data-theme="dark"] .c-fn{--primary:#b39ddb;--tint:#2a2236}:root[data-theme="dark"] .c-mi{--primary:#ffa04d;--tint:#38281a}
+:root[data-theme="dark"] .c-tp{--primary:#81c784;--tint:#1c2f1d}:root[data-theme="dark"] .c-rq{--primary:#90a4ae;--tint:#232c31}
+:root[data-theme="dark"] .chip.fn{background:#2a2236;color:#b39ddb}:root[data-theme="dark"] .chip.mi{background:#38281a;color:#ffa04d}
+:root[data-theme="dark"] .chip.ifr{background:#1a2a3c;color:#6ea8e0}:root[data-theme="dark"] .chip.nuit{background:#000;color:#cfd8dc}
+.sfab .main{width:42px;height:42px;border-radius:50%;padding:0;display:grid;place-items:center}
+#fiche.ro input::placeholder{color:transparent}

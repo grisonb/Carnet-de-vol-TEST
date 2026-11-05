@@ -67,7 +67,8 @@ mesures['image la plus longue pendant le défilement (ms)'] = await p.evaluate(a
   return Math.round(max);
 });
 await p.evaluate(() => window.scrollTo(0, 0));
-await chrono('recherche « commune-test » (frappe + résultat)', async () => {
+await chrono('recherche « commune-test » (loupe + frappe + résultat)', async () => {
+  await p.click('#q-open');
   await p.fill('#q', 'commune-test');
   await p.waitForFunction(() => [...document.querySelectorAll('.flight')].every(c => c.textContent.includes('COMMUNE-TEST')) && document.querySelectorAll('.flight').length > 0);
 });
@@ -77,7 +78,7 @@ await chrono('Totaux : changer de période (12 mois)', async () => { await p.cli
 await p.click('.tabs button[data-v="carnet"]');
 await chrono('ouvrir un vol en modification', async () => { await p.click('.flight >> nth=0'); await p.waitForSelector('#v-saisie:not([hidden])'); });
 await chrono('nouveau vol (formulaire pré-rempli)', async () => { await p.click('#cancel'); await p.click('#fab'); await p.waitForSelector('#v-saisie:not([hidden])'); });
-await chrono('Tous mes avions', async () => { await p.click('#ac-all'); await p.waitForSelector('#fl-list .acitem'); });
+await chrono('Tous mes avions', async () => { await p.click('#ac-cur'); await p.click('#ac-all'); await p.waitForSelector('#fl-list .acitem'); });
 
 console.log(`Fluidité avec ${N} vols inventés, processeur ralenti ×6 (Pixel 7 émulé) :`);
 for (const [k, v] of Object.entries(mesures)) console.log(`  ${k.padEnd(52)} ${v}${/cartes/.test(k) ? '' : ' ms'}`);

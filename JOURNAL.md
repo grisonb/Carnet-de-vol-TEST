@@ -1,5 +1,36 @@
 # Journal des versions
 
+## v0.4 — 05/11/2026
+
+D'après la nouvelle maquette validée (v19) et les remarques P1 à P6 et R1 à R15.
+
+**Ce qui change**
+- Accueil plus compact : version en haut à gauche, loupe à droite du TOTAL HdV (la barre de recherche
+  s'ouvre en la touchant ; la refermer efface la recherche). Pastilles en couleur : fonction violet,
+  missions orange, IFR bleu, nuit foncé, feu rouge, largages jaune.
+- Saisie : plus de titre « Vol », date étroite en haut à gauche et LOC / UTC à droite ; une couleur par bloc
+  (Vol bleu, Avion vert-bleu, Ma fonction violet, Mission orange, Temps du carnet vert, Remarques gris),
+  teintes prévues en mode sombre ; libellé IFR jamais coupé ; signes « + » et « − » dessinés et centrés.
+- Bloc Avion : une ligne « NOM modèle IMMAT » (sans nom : « IMMAT modèle »), qui ouvre / ferme la recherche
+  (« Tous mes avions › ») ; boutons « i » (fiche en lecture seule, crayon pour modifier) et « + ».
+  Champ Indicatif supprimé (l'indicatif radio est dans la fiche). Étiquettes en pastilles : seulement celles
+  de l'avion choisi, « + » pour en créer une (ajoutée à l'avion) ; BOMBING et TRANSPORT exclusives ;
+  TAILWHEEL cochée d'office pour un train classique.
+- Fiche avion : champs « Nom » et « Indicatif radio » séparés ; bloc « Étiquettes » (hors carnet officiel) ;
+  BOMBING + TRANSPORT par défaut pour les DH8D seulement ; train classique coche TAILWHEEL, tricycle la décoche.
+- Tous mes avions : « + » en haut à droite ; crayon sur chaque carte (fiche en modification).
+- Ma fonction : avion monopilote = pas de « Copi. », pas de champ de personne en CdB.
+- Terrains : table mondiale des codes OACI à 4 lettres allégée (19 316 terrains, 0,97 Mo, 0,35 Mo
+  compressé) ; « Ajouter ce terrain » pour un code inconnu (enregistré dans les données du pilote).
+- Migration automatique des données v0.3 (une fois) : chaque avion garde ses étiquettes, Nom et Indicatif
+  radio ; les DH8D reçoivent BOMBING + TRANSPORT, les trains classiques TAILWHEEL. Aucun vol modifié.
+
+**Tests**
+- 45 tests unitaires (dont 12 nouveaux : ligne avion, étiquettes, monopilote, terrains, migration).
+- Nouveau test `tests/navigateur/v04.mjs` (Chromium, 390 px) avec captures ; parcours complet, installation,
+  mise à jour (v0.1, v0.2 -> v0.4) et fluidité (4070 vols) : réussis.
+- Contrôle avec le vrai fichier FlyLog (local) : tous les totaux toujours identiques.
+
 ## v0.3 — 05/11/2026
 
 Correction : un téléphone qui avait la v0.1 restait bloqué en v0.1 (il fallait vider le cache de Chrome).
