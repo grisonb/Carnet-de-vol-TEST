@@ -74,7 +74,7 @@ Avion : `nom` (court, affiché en gras dans la saisie), `indicatif` (radio, seul
 `etiquettes` (proposées dans la saisie ; défaut : DH8D -> BOMBING + TRANSPORT, train classique -> TAILWHEEL).
 BOMBING et TRANSPORT s'excluent sur un vol. Suggestions de missions masquées : réglage `missionsMasquees`
 (on ne modifie jamais le texte des vols). Compteurs du bloc Mission par type d'avion : `COMPTEURS_PAR_TYPE`
-(`modele.js`, DH8D seulement pour l'instant). Bande d'heures : réglage `bandeHeures` (liste ordonnée de clés). Migrations de données : `etat.js` (`migrer`, une fois, drapeau en réglage).
+(`modele.js`, DH8D seulement pour l'instant). Bande d'heures : réglage `bandeHeures` (liste ordonnée de clés, rangée avec ↑ ↓ dans la fenêtre de choix). Migrations de données : `etat.js` (`migrer`, une fois, drapeau en réglage).
 
 ## Tests
 
@@ -88,6 +88,7 @@ BOMBING et TRANSPORT s'excluent sur un vol. Suggestions de missions masquées : 
 - `node tests/navigateur/v05.mjs` : glisser une suggestion de mission pour la supprimer (glissés tactiles simulés
   par le protocole DevTools), Annuler, suggestions masquées, sauvegarde / restauration.
 - `node tests/navigateur/v06.mjs` : bande d'heures, libellés missions, suppression d'un vol par glissé, compteurs DH8D.
+- `node tests/navigateur/v07.mjs` : bande d'heures sous le TOTAL, ordre ↑ ↓, Feux / Largages CdB Dash.
 - `node tests/navigateur/fluidite.mjs` : 4070 vols inventés, processeur ralenti ×6.
 - `node outils/controle-import.mjs ../donnees-privees/flylog-decode-v1.csv ../donnees-privees/totaux-flylog-reference.json` :
   contrôle avec le VRAI fichier, en local uniquement (rien n'est écrit dans le dépôt).

@@ -369,3 +369,8 @@ svg.ip{width:20px;height:20px;fill:currentColor;display:block;margin:auto}
 #mlm-list{display:grid;gap:6px}
 /* Le message (et son « Annuler ») passe toujours devant les fenêtres */
 .toast{z-index:40}
+
+/* ---------- v0.7 : ordre de la bande d'heures ---------- */
+#hs-ordre .prow b{font-family:var(--f-num);font-size:17px;white-space:nowrap}
+#hs-ordre .arrows button{display:grid;place-items:center;padding:0;font-size:17px}
+#v-carnet .hstrip{margin:6px 0 0}

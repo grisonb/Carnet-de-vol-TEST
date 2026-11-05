@@ -1,5 +1,21 @@
 # Journal des versions
 
+## v0.7 — 05/11/2026
+
+Remarque R24 (bande d'heures de l'accueil), maquette v23.
+
+**Ce qui change**
+- La bande d'heures est juste sous le TOTAL HdV, au-dessus des cases 3 / 7 / 30 jours.
+- Fenêtre « Heures affichées en haut » : section « Ordre d'affichage » en haut (une ligne par valeur cochée,
+  flèches ↑ ↓, libellé, valeur) ; ↑ désactivée en première ligne, ↓ en dernière. L'ordre est enregistré
+  (réglage `bandeHeures`, compris dans la sauvegarde) ; une valeur nouvellement cochée s'ajoute à la fin.
+- Deux nouveaux choix « Général » : Feux et Largages CdB Dash (nombres, mêmes calculs que l'écran Totaux).
+- Le choix déjà fait sur le téléphone est conservé (même réglage qu'en v0.6).
+
+**Tests**
+- 59 tests unitaires (dont 4 nouveaux) ; nouveau test `tests/navigateur/v07.mjs` (390 px) avec captures ;
+  tous les tests existants réussis ; vrai fichier FlyLog (local) : Feux 47, Largages CdB Dash 225, totaux identiques.
+
 ## v0.6 — 05/11/2026
 
 Remarques R17 à R21, d'après la maquette v21.

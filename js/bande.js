@@ -14,6 +14,8 @@ export const BANDE_GENERAL = [
   { cle: 'tempsNuit', lib: 'Nuit' },
   { cle: 'vols', lib: 'Vols', nombre: true },
   { cle: 'atterrissages', lib: 'Atterrissages', nombre: true },
+  { cle: 'feux', lib: 'Feux', nombre: true },
+  { cle: 'largCdbDash', lib: 'Largages CdB Dash', nombre: true },
 ];
 
 export const BANDE_DEFAUT = ['tempsCdB', 'tempsCopi', 'tempsDC', 'tempsInst', 'tempsIFR', 'tempsNuit'];
@@ -46,7 +48,16 @@ export function valeurBande(cle, t) {
   return null;
 }
 
-// Cocher / décocher : l'ordre d'affichage est l'ordre dans lequel on coche
+// Cocher / décocher : une valeur nouvellement cochée s'ajoute à la fin
 export function basculerChoix(liste, cle) {
   return liste.includes(cle) ? liste.filter(x => x !== cle) : [...liste, cle];
+}
+
+// Flèches ↑ (sens -1) / ↓ (sens +1) : échange avec la voisine ; rien aux bornes
+export function deplacerChoix(liste, i, sens) {
+  const j = i + sens;
+  if (i < 0 || i >= liste.length || j < 0 || j >= liste.length) return [...liste];
+  const l = [...liste];
+  [l[i], l[j]] = [l[j], l[i]];
+  return l;
 }

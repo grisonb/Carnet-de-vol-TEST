@@ -24,8 +24,8 @@
       <span class="big num" id="h-total">0h00</span>
       <button type="button" class="loupe" id="q-open" aria-label="Rechercher un vol" aria-expanded="false" aria-controls="q"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 3a7 7 0 0 1 5.6 11.2l5.1 5.1-1.4 1.4-5.1-5.1A7 7 0 1 1 10 3zm0 2a5 5 0 1 0 0 10 5 5 0 0 0 0-10z"/></svg></button>
     </div>
-    <div class="quick" id="h-quick"></div>
     <div class="hstrip" id="h-strip" role="button" tabindex="0" aria-label="Choisir les heures affichées"></div>
+    <div class="quick" id="h-quick"></div>
     <input class="search" id="q" type="search" hidden placeholder="Rechercher : terrain, immat., remarque, mission…" aria-label="Rechercher un vol">
     <div id="list"></div>
     <div id="list-fin" aria-hidden="true"></div>
@@ -314,7 +314,9 @@
 <!-- Heures affichées en haut de l'accueil -->
 <div class="modal" id="hs-modal" hidden role="dialog" aria-modal="true" aria-labelledby="hs-t"><div class="mbox" style="max-height:85vh;overflow:auto">
   <h3 id="hs-t">Heures affichées en haut</h3>
-  <p class="hint" style="font-size:15px">Coche ce que tu veux voir sous le TOTAL HdV. Elles s'affichent dans l'ordre où tu les coches.</p>
+  <p class="hint" style="font-size:15px">Coche ce que tu veux voir sous le TOTAL HdV. Range-les avec les flèches ↑ ↓.</p>
+  <span class="lbl">Ordre d'affichage</span>
+  <div class="panel" id="hs-ordre"></div>
   <span class="lbl">Général</span>
   <div class="seg" id="hs-gen"></div>
   <span class="lbl">Par type d'appareil</span>

@@ -60,7 +60,7 @@ try {
   verifier(b.every(([lib, val]) => T[correspond[lib]] === val), 'valeurs = écran Totaux au chiffre près ' + JSON.stringify(b));
   await cap('01-accueil-bande');
   await p.click('#h-strip');
-  verifier(await p.isVisible('#hs-modal') && await p.locator('#hs-gen button').count() === 10, 'toucher la bande : fenêtre « Heures affichées en haut » (10 choix généraux)');
+  verifier(await p.isVisible('#hs-modal') && await p.locator('#hs-gen button').count() === 12, 'toucher la bande : fenêtre « Heures affichées en haut » (12 choix généraux)');
   const types = await p.$$eval('#hs-typ button', l => l.map(x => x.textContent));
   verifier(types.includes('DH8D total') && types.includes('DH8D CdB') && types.includes('DH8D Copi') && types.includes('DR40') && !types.includes('SIMULATEURS'),
     'par type : un bouton par type, DH8D total / CdB / Copi ' + JSON.stringify(types));

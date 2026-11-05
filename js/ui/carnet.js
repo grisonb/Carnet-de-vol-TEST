@@ -5,7 +5,7 @@ import { $, esc, codeAvecDrapeau } from './commun.js';
 import { etat, avionDe, reglage, enregistrerReglage } from '../etat.js';
 import { activerGlisser } from './glisser.js';
 import { demanderSuppression, initSuppression } from './suppression.js';
-import { BANDE_GENERAL, choixParType, valeurBande, basculerChoix } from '../bande.js';
+import { BANDE_GENERAL, choixParType, valeurBande, basculerChoix, deplacerChoix } from '../bande.js';
 import { hm, heureH, dateFr, aujourdhui, MOIS, arriveeLendemain } from '../temps.js';
 import { heuresLocales } from '../fuseaux.js';
 import { fuseau } from '../terrains.js';
@@ -127,6 +127,13 @@ function dessinerBande() {
 function rendreChoixBande() {
   const t = totauxCarnet(), coches = reglage('bandeHeures');
   const bouton = c => `<button type="button" data-hs="${esc(c.cle)}" aria-pressed="${coches.includes(c.cle)}">${esc(c.lib)}</button>`;
+  // Ordre d'affichage : une ligne par valeur cochée, flèches ↑ ↓ à gauche, valeur à droite
+  const lignes = coches.map(c => ({ c, v: valeurBande(c, t) })).filter(x => x.v);
+  $('#hs-ordre').innerHTML = lignes.map(({ c, v }, i) => `<div class="prow"><span class="arrows">`
+    + `<button type="button" data-hsmv="${i}" data-d="-1" aria-label="Monter ${esc(v.lib)}" ${i ? '' : 'disabled'}>↑</button>`
+    + `<button type="button" data-hsmv="${i}" data-d="1" aria-label="Descendre ${esc(v.lib)}" ${i < lignes.length - 1 ? '' : 'disabled'}>↓</button>`
+    + `</span><span class="pname">${esc(v.lib)}</span><b class="num">${esc(v.texte)}</b></div>`).join('')
+    || '<p class="hint">Rien de coché pour l\'instant.</p>';
   $('#hs-gen').innerHTML = BANDE_GENERAL.map(bouton).join('');
   $('#hs-typ').innerHTML = choixParType(t, [...etat.avions.values()]).map(bouton).join('') || '<p class="hint">Aucun avion pour l\'instant.</p>';
 }
@@ -176,6 +183,13 @@ export function initCarnet(ouvrir) {
   $('#h-strip').addEventListener('click', ouvrirChoix);
   $('#h-strip').addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); ouvrirChoix(); } });
   $('#hs-modal').addEventListener('click', async e => {
+    const m = e.target.closest('[data-hsmv]');
+    if (m) {
+      const coches = reglage('bandeHeures').filter(c => valeurBande(c, totauxCarnet()));
+      await enregistrerReglage('bandeHeures', deplacerChoix(coches, Number(m.dataset.hsmv), Number(m.dataset.d)));
+      dessinerBande(); rendreChoixBande();
+      return;
+    }
     const b = e.target.closest('[data-hs]');
     if (!b) return;
     await enregistrerReglage('bandeHeures', basculerChoix(reglage('bandeHeures'), b.dataset.hs));
