@@ -7,6 +7,7 @@ import { ouvrirAjoutTerrain } from './terrain-perso.js';
 import { volVide, FONCTIONS, TEMPS_FONCTION, COMPTEURS, colonnesAvion, personneVide, nomPersonne, ligneAvion,
   etiquettesDeLAvion, etiquettesPourAvion, basculerEtiquette, fonctionsPossibles, champPersonneVisible, compteursAffiches } from '../modele.js';
 import { supprimerVolAvecAnnuler } from './suppression.js';
+import { afficherCarteVol } from './carte.js';
 import { hm, lireDuree, lireHeure, minutesDuJour, ajouterJours, dateValide, aujourdhui, dateFr, heureH } from '../temps.js';
 import { versLocal, versUTC } from '../fuseaux.js';
 import { terrain, fuseau } from '../terrains.js';
@@ -414,6 +415,7 @@ export function ouvrirSaisie(vol) {
   } else recalculer();
   F.charge = false;
   recap(); apercu();
+  afficherCarteVol(vol || null); // carte du vol enregistré (sans jamais toucher aux heures)
 }
 
 // ---------- Enregistrement ----------

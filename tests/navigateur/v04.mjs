@@ -51,7 +51,7 @@ try {
   await p.goto(srv.url);
   await p.waitForSelector('body[data-pret="1"]');
   await p.evaluate(async ({ avions, vol }) => {
-    const db = await new Promise((ok, ko) => { const r = indexedDB.open('carnet-de-vol', 1); r.onsuccess = () => ok(r.result); r.onerror = () => ko(r.error); });
+    const db = await new Promise((ok, ko) => { const r = indexedDB.open('carnet-de-vol'); r.onsuccess = () => ok(r.result); r.onerror = () => ko(r.error); });
     const tx = db.transaction(['avions', 'vols', 'reglages'], 'readwrite');
     for (const a of avions) tx.objectStore('avions').put(a);
     tx.objectStore('vols').put(vol);
@@ -63,7 +63,7 @@ try {
   await p.reload();
   await p.waitForSelector('body[data-pret="1"]');
   const migres = await p.evaluate(async () => {
-    const db = await new Promise(ok => { const r = indexedDB.open('carnet-de-vol', 1); r.onsuccess = () => ok(r.result); });
+    const db = await new Promise(ok => { const r = indexedDB.open('carnet-de-vol'); r.onsuccess = () => ok(r.result); });
     const lire = m => new Promise(ok => { const q = db.transaction(m).objectStore(m).getAll(); q.onsuccess = () => ok(q.result); });
     const [avions, vols, reglages] = [await lire('avions'), await lire('vols'), await lire('reglages')];
     db.close();

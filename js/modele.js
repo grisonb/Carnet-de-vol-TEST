@@ -64,6 +64,7 @@ export function avionVide() {
     id: null, creeLe: null, modifieLe: null, immat: '', sim: false, typeOACI: '', constructeur: '',
     modele: '', indicatif: '', nom: '', etiquettes: [], remarques: '', photo: null,
     equipage: null, moteurs: null, moteur: null, surface: 'L', train: 'tricycle', fstd: null,
+    hexAdsb: '', // code ADS-B (6 caractères hexadécimaux), pour la carte du vol
   };
 }
 

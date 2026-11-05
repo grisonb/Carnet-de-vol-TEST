@@ -165,7 +165,7 @@ function genreFiche() {
   $('#fi-reg-l').firstChild.textContent = sim ? 'Nom du simulateur ' : 'Immatriculation ';
   $('#fi-reg').placeholder = sim ? 'ex. DHC8-400' : 'F-ABCD';
   $('#fi-oaci-f').hidden = sim; $('#fi-fstd-f').hidden = !sim; $('#fi-easa').hidden = sim;
-  $('#fi-tl').hidden = sim; $('#fi-ind-z').hidden = sim; $('#fi-tgsec').hidden = sim;
+  $('#fi-tl').hidden = sim; $('#fi-ind-z').hidden = sim; $('#fi-tgsec').hidden = sim; $('#fi-hex-z').hidden = sim;
   if (!FI.photo) $('#fi-img').innerHTML = sim ? SIMI : SIL;
   ligneType();
 }
@@ -194,6 +194,7 @@ export function ouvrirFiche(a, init = {}, mode = 'modif', origine = a ? 'saisie'
     etiquettes: [...(b.etiquettes || [])] };
   $('#fi-reg').value = b.immat; $('#fi-oaci').value = b.sim ? '' : (b.typeOACI || '');
   $('#fi-mod').value = b.modele || ''; $('#fi-ind').value = b.indicatif || ''; $('#fi-nm').value = b.nom || '';
+  $('#fi-hex').value = (b.hexAdsb || '').toUpperCase();
   $('#fi-rem').value = b.remarques || '';
   rendreEtiquettesFiche();
   $('#fi-img').innerHTML = b.photo ? `<img src="${b.photo}" alt="Photo de ${esc(b.immat)}">` : (b.sim ? SIMI : SIL);
@@ -233,12 +234,15 @@ async function enregistrerFiche() {
   const doublon = parImmat(immat);
   if (doublon && doublon !== fiAvion) { err.textContent = immat + ' existe déjà.'; return; }
   const etiquettes = FI.sim ? [] : [...FI.etiquettes];
+  const hex = $('#fi-hex').value.trim().toLowerCase();
+  if (hex && !/^[0-9a-f]{6}$/.test(hex)) { err.textContent = 'Code ADS-B : 6 caractères (chiffres 0-9 et lettres A-F).'; return; }
+  const hexManuel = (fiAvion ? (fiAvion.hexAdsb || '') : '') !== hex || !!(fiAvion && fiAvion.hexAdsbManuel);
   const o = $('#fi-oaci').value.toUpperCase().trim(), t = types.get(o);
   const a = Object.assign(fiAvion ? { ...fiAvion } : avionVide(), {
     immat, sim: FI.sim, typeOACI: FI.sim ? 'SIM' : o, constructeur: t ? t.constructeur : (FI.constructeur || ''),
     modele: FI.sim ? ($('#fi-mod').value.trim() || immat) : ($('#fi-mod').value.trim() || o),
     indicatif: $('#fi-ind').value.trim().toUpperCase(), nom: $('#fi-nm').value.trim().toUpperCase(), etiquettes,
-    remarques: $('#fi-rem').value.trim(), photo: FI.photo || null,
+    remarques: $('#fi-rem').value.trim(), photo: FI.photo || null, hexAdsb: FI.sim ? '' : hex, hexAdsbManuel: hexManuel,
     equipage: FI.sim ? null : FI.equipage, moteurs: FI.sim ? null : (FI.equipage === 'MP' ? 'ME' : FI.moteurs),
     moteur: FI.sim ? null : FI.moteur, surface: FI.surface, train: FI.train, fstd: FI.sim ? (FI.fstd || null) : null,
   });

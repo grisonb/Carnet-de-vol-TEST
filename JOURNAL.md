@@ -1,5 +1,32 @@
 # Journal des versions
 
+## v0.8 — 05/11/2026
+
+« Carte du vol » (remarques R22 / R23) : trace ADS-B des archives adsb.lol, récupérées chaque nuit par le VPS
+(/carnet-traces/, protégé par mot de passe). Affichage SEULEMENT : la trace ne modifie, ne propose et ne compare
+jamais les heures ni les terrains.
+
+**Ce qui change**
+- Écran du vol : bloc bleu « Carte du vol » (trace en trait bleu, terrains de départ / escales / arrivée nommés).
+  Fond OpenStreetMap avec du réseau (« © OpenStreetMap »), fond neutre sans réseau ; toujours « Données © adsb.lol,
+  ODbL ». Toucher la carte : plein écran avec zoom au doigt, × pour fermer.
+- Textes selon le cas : disponible demain matin, pas de code ADS-B, pas de trace (avion non capté), La Réunion non
+  couverte, pas d'archive avant mars 2023, mot de passe à saisir, simulateur, rattrapage en cours.
+- Récupération : à l'ouverture d'un vol, et en arrière-plan au démarrage pour les 30 derniers jours ; une demande à
+  la fois, discrète. Seule la partie entre les heures bloc (marge 10 min, vol par-dessus minuit compris) est gardée,
+  allégée à 800 points au plus, rangée sur le téléphone (nouveau magasin IndexedDB « traces », base v2) : ensuite
+  affichée sans réseau. Recalculée si la date, les heures ou l'avion du vol changent.
+- Plus › Cartes de vol : mot de passe (gardé sur le téléphone seulement : ni CSV, ni sauvegarde de secours ; conservé
+  lors d'une restauration), bouton « Tester », état du serveur.
+- Fiche avion : champ « Code ADS-B », rempli automatiquement depuis la liste du serveur (protégée), modifiable.
+- Traces hors sauvegarde de secours (elles se retéléchargent ; la sauvegarde reste légère).
+- Bibliothèque de carte Leaflet 1.9.4 (BSD-2) incluse : 162 Ko (≈ 46 Ko compressés), chargée à la première carte.
+
+**Tests**
+- 68 tests unitaires (dont 9 nouveaux) ; nouveau test `tests/navigateur/v08.mjs` avec faux serveur de traces et de
+  tuiles (le vrai VPS n'est jamais appelé) ; tous les tests existants réussis.
+- Contrôle local final (non commité) avec le vrai mot de passe et de vrais vols : traces affichées sur la carte.
+
 ## v0.7 — 05/11/2026
 
 Remarque R24 (bande d'heures de l'accueil), maquette v23.

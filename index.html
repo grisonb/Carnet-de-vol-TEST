@@ -69,6 +69,13 @@
       </div>
     </div>
 
+    <div class="sec c-carte" id="carte-zone">
+      <h3>Carte du vol</h3>
+      <div class="carte-mini" id="carte-mini" hidden role="button" tabindex="0" aria-label="Ouvrir la carte en plein écran"></div>
+      <p class="hint" id="carte-txt" role="status"></p>
+      <p class="carte-source" id="carte-source"></p>
+    </div>
+
     <div class="sec c-av">
       <h3>Avion</h3>
       <div class="acline"><button type="button" class="acbtn" id="ac-cur" aria-expanded="false" aria-controls="ac-sz" aria-label="Changer d'avion"><span class="t"><b id="ac-reg">—</b><span id="ac-type"></span><small id="ac-sub"></small></span></button><button type="button" class="ibtn" id="ac-fiche" aria-label="Fiche de l'avion (lecture)">i</button><button type="button" class="plus" id="ac-add" aria-label="Ajouter un avion"><svg class="ip" viewBox="0 0 24 24" aria-hidden="true"><path d="M10.75 4h2.5v16h-2.5zM4 10.75h16v2.5H4z"/></svg></button></div>
@@ -169,6 +176,7 @@
       <button type="button" id="rules-open">Pastilles des missions<small>Ex. « commence par ENT. » → Entraînement</small></button>
       <button type="button" id="pl-types">Types d'avion<small>Monopilote, multipilote, SE / ME, motorisation…</small></button>
       <button type="button" id="pl-avions">Mes avions<small>Fiches, photos, indicatifs</small></button>
+      <button type="button" id="pl-cartes">Cartes de vol<small>Mot de passe, traces ADS-B, codes des avions</small></button>
       <button type="button" id="pl-pers">Personnes<small>Copis, CdB, instructeurs, élèves</small></button>
       <button type="button" id="pl-tit">Titulaire du carnet<small id="pl-tit-s">Nom imprimé sur le PDF</small></button>
     </div>
@@ -231,6 +239,7 @@
     <div class="field"><label for="fi-mod">Modèle</label><input id="fi-mod" placeholder="ex. DHC-8-400 Dash 8"></div>
     <div class="row2" id="fi-ind-z"><div class="field"><label for="fi-nm">Nom</label><input class="big" id="fi-nm" placeholder="ex. X12" autocapitalize="characters" autocomplete="off"></div>
       <div class="field"><label for="fi-ind">Indicatif radio</label><input id="fi-ind" placeholder="ex. ALPHA 12" autocapitalize="characters" autocomplete="off"></div></div>
+    <div class="field" id="fi-hex-z"><label for="fi-hex">Code ADS-B (6 caractères, pour la carte du vol)</label><input id="fi-hex" maxlength="6" autocapitalize="characters" autocomplete="off" spellcheck="false" placeholder="ex. 3A1B2C"></div>
     <div class="field"><label for="fi-rem">Remarques</label><input id="fi-rem"></div>
   </div>
   <div class="sec" id="fi-easa">
@@ -340,6 +349,13 @@
   <p id="fd-txt" style="font-size:15px"></p>
   <p class="hint">Il sera retiré du carnet et des totaux.</p>
   <div class="row2"><button type="button" class="ghost" id="fd-no">Non, garder</button><button type="button" class="ghost" id="fd-yes" style="background:var(--feu);color:#fff;border-color:var(--feu)">Oui, supprimer</button></div>
+</div></div>
+
+<!-- Carte du vol en plein écran (zoom au doigt) -->
+<div class="sheet" id="carte-plein" hidden role="dialog" aria-modal="true" aria-labelledby="cp-t" style="z-index:33"><div class="carte-plein-in">
+  <div class="shead"><button type="button" class="xbtn" id="cp-x" aria-label="Fermer">×</button><h2 id="cp-t">Carte du vol</h2></div>
+  <div class="carte-grande" id="carte-grande"></div>
+  <p class="carte-source">Données © adsb.lol, ODbL</p>
 </div></div>
 
 <!-- Écran générique plein écran (exports, import, contrôle, types, personnes) -->

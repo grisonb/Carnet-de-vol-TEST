@@ -374,3 +374,23 @@ svg.ip{width:20px;height:20px;fill:currentColor;display:block;margin:auto}
 #hs-ordre .prow b{font-family:var(--f-num);font-size:17px;white-space:nowrap}
 #hs-ordre .arrows button{display:grid;place-items:center;padding:0;font-size:17px}
 #v-carnet .hstrip{margin:6px 0 0}
+
+/* ---------- v0.8 : carte du vol ---------- */
+.c-carte{--primary:#1565c0;--tint:#e3eefb;border-left:6px solid var(--primary);background:linear-gradient(var(--tint),var(--surface) 70px)}
+.c-carte>h3{color:var(--primary)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .c-carte{--primary:#64a8f0;--tint:#162a40}}
+:root[data-theme="dark"] .c-carte{--primary:#64a8f0;--tint:#162a40}
+.carte-mini{height:210px;border-radius:12px;border:1px solid var(--line);overflow:hidden;cursor:pointer;background:var(--surface2)}
+.carte-grande{position:absolute;left:0;right:0;top:66px;bottom:34px}
+.carte-plein-in{position:relative;height:100%;padding:0 16px}
+.carte-plein-in .carte-source{position:absolute;left:16px;right:16px;bottom:8px;margin:0}
+#carte-plein{overflow:hidden}
+.carte-source{font-size:12px;color:var(--muted);margin:0}
+.sans-fond{background:repeating-linear-gradient(45deg,var(--surface2) 0 14px,var(--bg) 14px 28px)!important}
+.leaflet-container{font-family:var(--f-body)}
+.leaflet-tooltip.carte-terrain{background:var(--surface);color:var(--ink);border:1px solid var(--line);font-family:var(--f-num);font-weight:700;font-size:12px;padding:1px 5px;box-shadow:none}
+.leaflet-tooltip.carte-terrain::before{display:none}
+.leaflet-control-attribution{font-size:10px}
+/* Les calques de Leaflet (z-index 400…) restent DANS leur carte : jamais par-dessus les fenêtres */
+.carte-mini,.carte-grande{isolation:isolate;z-index:0}
+.carte-mini{position:relative}

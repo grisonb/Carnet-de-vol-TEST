@@ -51,7 +51,7 @@ const vol = (id, date, missions) => ({ id, creeLe: H, modifieLe: H, source: 'sai
 const VOLS = [vol('v3', '2026-01-03', ['ENT, ESSAI']), vol('v2', '2026-01-02', ['ENT. AUTRE', 'ENT, ESSAI']), vol('v1', '2026-01-01', ['ENTRETIEN TEST'])];
 const AVION = { id: 'av-1', creeLe: H, modifieLe: H, immat: 'F-XQAA', sim: false, typeOACI: 'DR40', constructeur: 'ROBIN', modele: 'DR400', indicatif: '', nom: '', etiquettes: [], remarques: '', photo: null, equipage: 'SP', moteurs: 'SE', moteur: 'P', surface: 'L', train: 'tricycle', fstd: null };
 const lireVols = () => p.evaluate(async () => {
-  const db = await new Promise(ok => { const r = indexedDB.open('carnet-de-vol', 1); r.onsuccess = () => ok(r.result); });
+  const db = await new Promise(ok => { const r = indexedDB.open('carnet-de-vol'); r.onsuccess = () => ok(r.result); });
   const v = await new Promise(ok => { const q = db.transaction('vols').objectStore('vols').getAll(); q.onsuccess = () => ok(q.result); });
   db.close();
   return v.sort((a, b) => a.id.localeCompare(b.id)).map(x => x.missions);
@@ -61,7 +61,7 @@ try {
   await p.goto(srv.url);
   await p.waitForSelector('body[data-pret="1"]');
   await p.evaluate(async ({ vols, avion }) => {
-    const db = await new Promise(ok => { const r = indexedDB.open('carnet-de-vol', 1); r.onsuccess = () => ok(r.result); });
+    const db = await new Promise(ok => { const r = indexedDB.open('carnet-de-vol'); r.onsuccess = () => ok(r.result); });
     const tx = db.transaction(['vols', 'avions'], 'readwrite');
     for (const v of vols) tx.objectStore('vols').put(v);
     tx.objectStore('avions').put(avion);

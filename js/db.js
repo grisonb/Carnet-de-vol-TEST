@@ -5,8 +5,11 @@
 //   reglages { cle, valeur } : compteurs, règles de pastilles, étiquettes, missions ajoutées, etc.
 
 const NOM = 'carnet-de-vol';
-const VERSION = 1;
+const VERSION = 2; // v0.8 : magasin « traces » ajouté (rien d'autre ne change, les données sont conservées)
 export const MAGASINS = { vols: 'id', avions: 'id', personnes: 'id', suppressions: 'id', reglages: 'cle' };
+// Traces ADS-B (affichage seulement) : hors sauvegarde de secours, elles se retéléchargent.
+// Clé : id du vol ; « __index__ » = dernier index.json reçu du serveur.
+export const MAGASINS_CACHE = { traces: 'id' };
 
 let base = null;
 
@@ -16,7 +19,7 @@ export function ouvrir() {
     const req = indexedDB.open(NOM, VERSION);
     req.onupgradeneeded = () => {
       const db = req.result;
-      for (const [nom, cle] of Object.entries(MAGASINS)) {
+      for (const [nom, cle] of Object.entries({ ...MAGASINS, ...MAGASINS_CACHE })) {
         if (!db.objectStoreNames.contains(nom)) db.createObjectStore(nom, { keyPath: cle });
       }
     };
@@ -78,6 +81,15 @@ export async function remplacerTout(contenu) {
     for (const o of contenu[n] || []) st.put(o);
   }
   return fin(tx);
+}
+
+export async function lire(magasin, id) {
+  const db = await ouvrir();
+  return new Promise((ok, ko) => {
+    const req = db.transaction(magasin).objectStore(magasin).get(id);
+    req.onsuccess = () => ok(req.result || null);
+    req.onerror = () => ko(req.error);
+  });
 }
 
 export async function lireReglages() {

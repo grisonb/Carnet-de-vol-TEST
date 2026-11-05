@@ -37,7 +37,7 @@ async function glisser(loc, dx, dy = 0, etapes = 10) {
 const bande = () => p.$$eval('#h-strip div', l => l.map(d => [d.querySelector('span')?.textContent, d.querySelector('b')?.textContent]));
 const totaux = async () => { await p.click('.tabs button[data-v="totaux"]'); const r = Object.fromEntries(await p.$$eval('#t-h .tline', l => l.map(x => [x.querySelector('span').textContent, x.querySelector('b').textContent]))); await p.click('.tabs button[data-v="carnet"]'); return r; };
 const lireVol = id => p.evaluate(async id => {
-  const db = await new Promise(ok => { const r = indexedDB.open('carnet-de-vol', 1); r.onsuccess = () => ok(r.result); });
+  const db = await new Promise(ok => { const r = indexedDB.open('carnet-de-vol'); r.onsuccess = () => ok(r.result); });
   const v = await new Promise(ok => { const q = db.transaction('vols').objectStore('vols').get(id); q.onsuccess = () => ok(q.result); });
   db.close(); return v ? JSON.stringify(v) : null;
 }, id);

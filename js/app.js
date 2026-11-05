@@ -9,6 +9,7 @@ import { initTotaux, rafraichirTotaux } from './ui/totaux.js';
 import { initPlus, majPlus, verifierRappel, demanderStockagePersistant, appliquerTypesPerso } from './ui/plus.js';
 import { initRegles } from './ui/regles.js';
 import { initTerrainPerso } from './ui/terrain-perso.js';
+import { initCarte, lancerArrierePlan } from './ui/carte.js';
 import { invaliderStats } from './ui/avions.js';
 import { VERSION } from './version.js';
 
@@ -41,6 +42,7 @@ async function demarrer() {
   initPlus();
   initRegles();
   initTerrainPerso();
+  initCarte();
   $$('.tabs button').forEach(b => b.addEventListener('click', () => montrer(b.dataset.v)));
   $('#fab').addEventListener('click', () => ouvrirVol(null));
 
@@ -64,6 +66,7 @@ async function demarrer() {
   verifierRappel();
   demanderStockagePersistant().then(() => { if (vue === 'plus') majPlus(); });
   document.body.dataset.pret = '1';
+  setTimeout(lancerArrierePlan, 1500); // traces des 30 derniers jours, discrètement
 }
 
 // Service worker : fonctionnement hors ligne + mise à jour quand une nouvelle version est publiée.

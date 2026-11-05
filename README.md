@@ -9,5 +9,6 @@ Installer : ouvrir l'adresse dans Chrome sur le téléphone, menu ⋮ › « Ajo
 Les données restent sur le téléphone (aucun serveur). Pense à faire régulièrement une sauvegarde de secours
 (Plus › Sauvegarde de secours).
 
-Licences des éléments tiers : jsPDF (MIT), polices Barlow (SIL OFL, `polices/LICENCE-OFL.txt`),
+Licences des éléments tiers : jsPDF (MIT), Leaflet (BSD-2, `vendor/leaflet/LICENCE-leaflet.txt`), polices Barlow (SIL OFL, `polices/LICENCE-OFL.txt`),
 table des terrains issue d'OurAirports (domaine public) et mwgg/Airports (MIT).
+Carte du vol : fond © OpenStreetMap, traces ADS-B © adsb.lol (ODbL).

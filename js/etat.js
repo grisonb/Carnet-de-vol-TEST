@@ -99,6 +99,19 @@ export async function enregistrerAvion(a) {
   prevenir();
 }
 
+// Plusieurs avions d'un coup (ex. codes ADS-B reçus du serveur), un seul rafraîchissement
+export async function enregistrerAvions(liste) {
+  if (!liste.length) return;
+  for (const a of liste) horodater(a);
+  await db.enregistrer({ avions: liste });
+  for (const a of liste) etat.avions.set(a.id, a);
+  prevenir();
+}
+
+// Traces ADS-B stockées (affichage seulement ; hors sauvegarde)
+export const lireTrace = id => db.lire('traces', id);
+export const ecrireTrace = rec => db.enregistrer({ traces: [rec] });
+
 export async function enregistrerPersonne(p) {
   horodater(p);
   await db.enregistrer({ personnes: [p] });
@@ -133,7 +146,10 @@ export async function contenuComplet() {
 }
 
 export async function restaurer(donnees) {
+  // Le mot de passe des cartes n'est pas dans la sauvegarde : on garde celui du téléphone
+  const mdp = etat.reglages.cartesMotDePasse;
   await db.remplacerTout(donnees);
+  if (mdp) await db.ecrireReglage('cartesMotDePasse', mdp);
   await charger();
   prevenir();
 }

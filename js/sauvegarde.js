@@ -8,13 +8,16 @@ import { VERSION } from './version.js';
 
 export const FORMAT = 'carnet-de-vol-sauvegarde';
 
+// Réglages jamais copiés dans la sauvegarde (le fichier peut se retrouver sur Drive ou dans un e-mail)
+export const REGLAGES_PRIVES = ['cartesMotDePasse'];
+
 // contenu : { vols, avions, personnes, suppressions, reglages: [{cle, valeur}] }
 export function creerSauvegarde(contenu, maintenant = new Date().toISOString()) {
   return {
     format: FORMAT, formatVersion: 1, versionApp: VERSION, exporteLe: maintenant,
     nombres: { vols: contenu.vols.length, avions: contenu.avions.length, personnes: contenu.personnes.length },
     vols: contenu.vols, avions: contenu.avions, personnes: contenu.personnes,
-    suppressions: contenu.suppressions || [], reglages: contenu.reglages || [],
+    suppressions: contenu.suppressions || [], reglages: (contenu.reglages || []).filter(r => !REGLAGES_PRIVES.includes(r.cle)),
   };
 }
 

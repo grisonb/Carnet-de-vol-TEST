@@ -24,6 +24,14 @@ L'utilisateur n'est pas développeur : lui expliquer les choses simplement, en f
 - Textes de l'app en français. Durées affichées « 1h18 », totaux « 5 702h48 ».
 - v0.1 : AUCUN serveur ni appel réseau en dehors du chargement de l'app depuis GitHub Pages.
 
+## Traces ADS-B (VPS)
+
+Serveur : `https://vps-3c305ff2.vps.ovh.net/carnet-traces/` (index.json + traces/<code>/<jour>.json), mot de passe
+de l'utilisateur « carnet » (jamais dans le dépôt). Installation, script et retour arrière : dossier privé
+`../donnees-privees/vps-carnet-traces/`. Toute modification du VPS : montrer d'abord, attendre l'OK tapé.
+Les codes ADS-B et immatriculations réels ne sont JAMAIS dans le dépôt (servis par le VPS derrière le mot de passe).
+IndexedDB v2 : magasin `traces` (hors sauvegarde). Le mot de passe (`cartesMotDePasse`) est exclu de la sauvegarde.
+
 ## Hébergement
 
 GitHub Pages, branche `main`, racine : https://grisonb.github.io/Carnet-de-vol-TEST/
@@ -52,11 +60,13 @@ Pas d'étape de compilation : les fichiers du dépôt sont servis tels quels.
   - `flylog.js` import FlyLog (anti-doublon par quantités) ; `totaux.js` ; `controle.js` ;
   - `pdf.js` carnet EASA (jsPDF, `vendor/jspdf.umd.min.js`, MIT) ; `sauvegarde.js` sauvegarde JSON + tableur CSV ;
   - `csv.js` ; `db.js` IndexedDB ; `etat.js` données en mémoire + enregistrement ; `version.js` ;
-  - `bande.js` bande d'heures de l'accueil (choix et valeurs, à partir de `calculerTotaux`).
+  - `bande.js` bande d'heures de l'accueil (choix et valeurs, à partir de `calculerTotaux`) ;
+  - `traces.js` traces ADS-B : découpe aux heures bloc, cas et textes de la « Carte du vol » (affichage seulement).
 - `js/ui/` — écrans : `carnet.js` (liste par paquets de 40 au défilement, loupe), `saisie.js`, `avions.js`
   (recherche, Tous mes avions, fiche lecture seule / modification), `terrain-perso.js`, `glisser.js` (glisser
   une ligne vers la gauche -> bouton « Supprimer »), `totaux.js`, `plus.js`,
-  `regles.js`, `commun.js`, `suppression.js` (suppression d'un vol avec confirmation + Annuler, partagée).
+  `regles.js`, `commun.js`, `carte.js` (Carte du vol : serveur de traces, Leaflet, plein écran, Plus › Cartes de vol),
+  `suppression.js` (suppression d'un vol avec confirmation + Annuler, partagée).
 - Référence d'interface : maquette v19 (`../donnees-privees/maquette-carnet-v19.html`, contient de vraies données :
   jamais dans le dépôt) et remarques P1-P6, R1-R15.
 - `js/app.js` démarre l'app.
@@ -89,6 +99,7 @@ BOMBING et TRANSPORT s'excluent sur un vol. Suggestions de missions masquées : 
   par le protocole DevTools), Annuler, suggestions masquées, sauvegarde / restauration.
 - `node tests/navigateur/v06.mjs` : bande d'heures, libellés missions, suppression d'un vol par glissé, compteurs DH8D.
 - `node tests/navigateur/v07.mjs` : bande d'heures sous le TOTAL, ordre ↑ ↓, Feux / Largages CdB Dash.
+- `node tests/navigateur/v08.mjs` : Carte du vol avec FAUX serveur de traces et de tuiles (jamais le vrai VPS).
 - `node tests/navigateur/fluidite.mjs` : 4070 vols inventés, processeur ralenti ×6.
 - `node outils/controle-import.mjs ../donnees-privees/flylog-decode-v1.csv ../donnees-privees/totaux-flylog-reference.json` :
   contrôle avec le VRAI fichier, en local uniquement (rien n'est écrit dans le dépôt).
