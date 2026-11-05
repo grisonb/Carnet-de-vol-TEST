@@ -69,21 +69,34 @@ test('PDF : le document se crée (jsPDF embarqué)', async () => {
 });
 
 test('la version est écrite à un seul endroit et donne le nom du cache', () => {
-  const sw = readFileSync(new URL('../../sw.js', import.meta.url), 'utf8');
+  const lire = f => readFileSync(new URL('../../' + f, import.meta.url), 'utf8');
+  const sw = lire('sw.js');
   assert.match(VERSION, /^\d+\.\d+$/);
-  assert.match(sw, /import \{ VERSION \} from '\.\/js\/version\.js'/);
-  assert.doesNotMatch(sw, /VERSION\s*=\s*'/);
+  assert.match(lire('js/numero-version.js'), new RegExp(`VERSION_CARNET = '${VERSION.replace('.', '\\.')}'`));
+  // aucun autre fichier de l'app n'écrit le numéro
+  for (const f of ['sw.js', 'js/version.js', 'js/app.js', 'index.html', 'manifest.webmanifest']) {
+    assert.doesNotMatch(lire(f), new RegExp(`['"]v?${VERSION.replace('.', '\\.')}['"]`), f);
+  }
+  assert.match(sw, /importScripts\('js\/numero-version\.js'\)/);
   assert.match(sw, /const CACHE = PREFIXE \+ 'v' \+ VERSION/);
+});
+
+test('le service worker reste un script classique (mise à jour possible depuis la v0.1)', () => {
+  const sw = readFileSync(new URL('../../sw.js', import.meta.url), 'utf8');
+  const app = readFileSync(new URL('../../js/app.js', import.meta.url), 'utf8');
+  assert.doesNotMatch(sw, /^\s*(import|export)\s/m);            // pas de syntaxe module
+  assert.doesNotThrow(() => new Function(sw));                  // se lit comme script classique
+  assert.doesNotMatch(app, /type: 'module'/);
+  assert.match(app, /register\('sw\.js', \{ scope: '\.\/'/);
+  assert.match(sw, /skipWaiting\(\)/);
 });
 
 test('le service worker ne touche qu\'au Carnet (portée et caches)', () => {
   const sw = readFileSync(new URL('../../sw.js', import.meta.url), 'utf8');
-  const app = readFileSync(new URL('../../js/app.js', import.meta.url), 'utf8');
   assert.match(sw, /const PREFIXE = 'carnet-de-vol-'/);
   assert.match(sw, /k\.startsWith\(PREFIXE\)/);          // ne supprime que ses propres caches
   assert.doesNotMatch(sw, /caches\.match\(/);              // ne lit jamais les caches des autres apps
   assert.match(sw, /startsWith\(PORTEE\)/);               // ne répond qu'aux adresses du Carnet
-  assert.match(app, /register\('sw\.js', \{ type: 'module', scope: '\.\/'/);
   const m = JSON.parse(readFileSync(new URL('../../manifest.webmanifest', import.meta.url), 'utf8'));
   assert.equal(m.id, '/Carnet-de-vol-TEST/');
   assert.equal(m.start_url, '/Carnet-de-vol-TEST/');

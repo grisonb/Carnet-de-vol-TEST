@@ -64,18 +64,22 @@ async function demarrer() {
   document.body.dataset.pret = '1';
 }
 
-// Service worker : fonctionnement hors ligne + mise à jour quand une nouvelle version est publiée
+// Service worker : fonctionnement hors ligne + mise à jour quand une nouvelle version est publiée.
+// Enregistré en script classique (comme en v0.1) avec la portée du Carnet seulement.
 if ('serviceWorker' in navigator && location.protocol !== 'file:') {
-  navigator.serviceWorker.register('sw.js', { type: 'module', scope: './', updateViaCache: 'none' }).then(reg => {
-    reg.addEventListener('updatefound', () => {
-      const nouveau = reg.installing;
-      nouveau && nouveau.addEventListener('statechange', () => {
-        if (nouveau.state === 'installed' && navigator.serviceWorker.controller) {
-          toast('Nouvelle version installée : elle sera active au prochain lancement.', 4000);
-        }
-      });
-    });
-  }).catch(() => {});
+  const avaitUnServiceWorker = !!navigator.serviceWorker.controller;
+  navigator.serviceWorker.register('sw.js', { scope: './', updateViaCache: 'none' })
+    .then(reg => reg.update()).catch(() => {});
+  // Une nouvelle version vient de prendre la main : on recharge pour l'afficher, sauf pendant une saisie
+  // (on ne perd jamais un vol en cours) ; dans ce cas elle s'affichera au prochain lancement.
+  let recharge = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (!avaitUnServiceWorker || recharge) return;
+    const saisieOuverte = !$('#v-saisie').hidden || !!document.querySelector('.modal:not([hidden])');
+    if (saisieOuverte) { toast('Nouvelle version installée : elle s\'affichera au prochain lancement.', 4000); return; }
+    recharge = true;
+    location.reload();
+  });
 }
 
 // Version toujours visible sur l'accueil (même si le chargement des vols échoue)

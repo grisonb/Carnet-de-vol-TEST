@@ -1,5 +1,26 @@
 # Journal des versions
 
+## v0.3 — 05/11/2026
+
+Correction : un téléphone qui avait la v0.1 restait bloqué en v0.1 (il fallait vider le cache de Chrome).
+
+**Cause** : la v0.2 avait transformé le service worker en « module ». Le téléphone, enregistré en v0.1 avec un
+service worker classique, relisait le nouveau fichier comme un script classique : erreur, mise à jour
+abandonnée en silence, et l'ancienne app continuait d'être servie depuis son cache.
+
+**Ce qui change**
+- Service worker redevenu un script classique ; le numéro de version est dans `js/numero-version.js`
+  (seul endroit), lu par le service worker (`importScripts`) et par l'app (`js/version.js`).
+- Une nouvelle version prend la main dès qu'elle est téléchargée ; l'app se recharge alors toute seule,
+  sauf pendant une saisie (dans ce cas elle s'affiche au lancement suivant).
+- Téléphone resté en v0.2 : le service worker se met en mode « réparation » (réseau sans cache) et la
+  bonne version s'installe au lancement suivant.
+
+**Tests**
+- 33 tests unitaires (dont : service worker lisible en script classique, version à un seul endroit).
+- Nouveau test `tests/navigateur/mise-a-jour.mjs` (Chromium, Pixel 7) : v0.1 -> v0.3 et v0.2 -> v0.3 au
+  2e lancement ; v0.3 -> version suivante dès le 1er lancement ; un seul cache restant.
+
 ## v0.2 — 05/11/2026
 
 Correction de l'installation sur Android quand d'autres apps du même site (grisonb.github.io) sont installées,

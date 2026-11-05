@@ -15,9 +15,11 @@ L'utilisateur n'est pas développeur : lui expliquer les choses simplement, en f
 - `.gitignore` exclut `*.csv`, `*.xlsx`, `donnees/`, `donnees-privees/`, `maquette*.html`, les captures de tests.
   **Vérifier `git status` avant chaque commit** : aucun fichier de données ne doit être suivi.
 - Commit et push **uniquement après « OK push » tapé par l'utilisateur**. Jamais de `--force`.
-- Une version = une livraison poussée. Le numéro est écrit à UN SEUL endroit : `js/version.js`. Le service
-  worker (`sw.js`, enregistré en module) l'importe pour nommer son cache ; l'accueil (« vX.Y » en haut à
-  droite) et l'écran Plus l'affichent. Changer ce numéro change le cache : le téléphone récupère la version.
+- Une version = une livraison poussée. Le numéro est écrit à UN SEUL endroit : `js/numero-version.js`.
+  Le service worker le lit avec `importScripts` pour nommer son cache ; l'app le lit via `js/version.js`
+  (accueil « vX.Y » en haut à droite, écran Plus). Changer ce numéro change le cache : le téléphone récupère
+  la version. **Le service worker doit rester un script CLASSIQUE (jamais `import`/`export`, jamais
+  `type: 'module'`)** : sinon les téléphones déjà installés ne peuvent plus se mettre à jour (bug de la v0.2).
   Ajouter une entrée dans `JOURNAL.md`.
 - Textes de l'app en français. Durées affichées « 1h18 », totaux « 5 702h48 ».
 - v0.1 : AUCUN serveur ni appel réseau en dehors du chargement de l'app depuis GitHub Pages.
@@ -68,10 +70,11 @@ Monopilote SE/ME = temps total − part multipilote du vol (c'est ainsi que FlyL
 - `node tests/navigateur/parcours.mjs` : parcours complet Chromium, émulation Pixel 7.
 - `node tests/navigateur/installation.mjs` : manifeste installable, id distinct des autres apps du site,
   service worker limité au Carnet (le serveur de test sert l'app sous /Carnet-de-vol-TEST/).
+- `node tests/navigateur/mise-a-jour.mjs` : mise à jour d'une app installée (v0.1, v0.2, version suivante).
 - `node tests/navigateur/fluidite.mjs` : 4070 vols inventés, processeur ralenti ×6.
 - `node outils/controle-import.mjs ../donnees-privees/flylog-decode-v1.csv ../donnees-privees/totaux-flylog-reference.json` :
   contrôle avec le VRAI fichier, en local uniquement (rien n'est écrit dans le dépôt).
 - Sur ce PC (WSL, sans sudo), Chromium a besoin de bibliothèques extraites localement :
-  `LD_LIBRARY_PATH=<dossier>/usr/lib/x86_64-linux-gnu` (paquets libnss3, libnspr4, libasound2t64
+  `LD_LIBRARY_PATH=~/.cache/carnet-chromium-libs/root/usr/lib/x86_64-linux-gnu` (paquets libnss3, libnspr4, libasound2t64
   récupérés avec `apt-get download` puis `dpkg -x`). npm peut être bloqué par le réseau : les paquets
   peuvent être téléchargés avec curl depuis registry.npmjs.org.
