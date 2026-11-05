@@ -14,7 +14,6 @@
 </head>
 <body>
 <div class="app">
-  <p class="banner" id="rappel" hidden></p>
 
   <!-- ========== CARNET ========== -->
   <section id="v-carnet">
@@ -26,7 +25,7 @@
     </div>
     <div class="hstrip" id="h-strip" role="button" tabindex="0" aria-label="Choisir les heures affichées"></div>
     <div class="quick" id="h-quick"></div>
-    <input class="search" id="q" type="search" hidden placeholder="Rechercher : terrain, immat., remarque, mission…" aria-label="Rechercher un vol">
+    <input class="search" id="q" type="search" hidden placeholder="Rechercher : date, terrain, immat., mission…" aria-label="Rechercher un vol">
     <div id="list"></div>
     <div id="list-fin" aria-hidden="true"></div>
   </section>
@@ -165,27 +164,41 @@
 
   <!-- ========== PLUS ========== -->
   <section id="v-plus" hidden>
-    <div class="hero"><span class="lbl">Outils</span><h2 style="font-size:26px">Plus</h2></div>
-    <div class="list-plus">
-      <button type="button" id="pl-pdf">Exporter le carnet officiel (PDF EASA)<small>Pages, totaux de page, reports, signature</small></button>
-      <button type="button" id="pl-csv">Exporter en tableur (CSV)<small>Toutes les colonnes, mission comprise</small></button>
-      <button type="button" id="pl-save">Sauvegarde de secours<small id="pl-save-s">Dernière : jamais</small></button>
-      <button type="button" id="pl-restore">Restaurer une sauvegarde<small>Remplace tout le carnet par le contenu du fichier</small></button>
-      <button type="button" id="pl-import">Importer FlyLog<small>Une seule fois · résumé avant d'enregistrer</small></button>
-      <button type="button" id="pl-ctrl">Contrôle import<small>Totaux des vols importés de FlyLog</small></button>
-      <button type="button" id="rules-open">Pastilles des missions<small>Ex. « commence par ENT. » → Entraînement</small></button>
-      <button type="button" id="pl-types">Types d'avion<small>Monopilote, multipilote, SE / ME, motorisation…</small></button>
-      <button type="button" id="pl-avions">Mes avions<small>Fiches, photos, indicatifs</small></button>
-      <button type="button" id="pl-cartes">Cartes de vol<small>Mot de passe, traces ADS-B, codes des avions</small></button>
-      <button type="button" id="pl-pers">Personnes<small>Copis, CdB, instructeurs, élèves</small></button>
-      <button type="button" id="pl-tit">Titulaire du carnet<small id="pl-tit-s">Nom imprimé sur le PDF</small></button>
+    <div class="hero"><h2 style="font-size:26px">Plus</h2></div>
+    <div class="plus-menu">
+      <div class="pbk" id="pl-bk"><span class="pi" id="pl-bk-i"></span><div><b id="pl-bk-t"></b><span id="pl-bk-s"></span></div><button type="button" id="pl-bk-go">Sauvegarder</button></div>
+      <h3 class="pgrp">Sauvegarde</h3>
+      <div class="pcard">
+        <button type="button" class="prow2" id="pl-save"><span class="pi pi-tp"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 9h-4V3H9v6H5l7 7zM5 18v2h14v-2z"/></svg></span><span class="ptx"><b>Sauvegarde de secours</b><small id="pl-save-s">Dernière : jamais</small></span><span class="pch" aria-hidden="true">›</span></button>
+        <button type="button" class="prow2" id="pl-restore"><span class="pi pi-tp"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 3a9 9 0 0 0-9 9H1l4 4 4-4H6a7 7 0 1 1 2.05 4.95l-1.42 1.42A9 9 0 1 0 13 3zm-1 5v5l4.25 2.52.77-1.28-3.52-2.09V8z"/></svg></span><span class="ptx"><b>Restaurer une sauvegarde</b><small>Remplace tout le carnet par le contenu du fichier</small></span><span class="pch" aria-hidden="true">›</span></button>
+      </div>
+      <h3 class="pgrp">Exporter</h3>
+      <div class="pcard">
+        <button type="button" class="prow2" id="pl-pdf"><span class="pi pi-vol"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zm-1 7V3.5L18.5 9zM8 13h8v2H8zm0 4h8v2H8z"/></svg></span><span class="ptx"><b>Carnet officiel (PDF EASA)</b><small>Pages, totaux de page, reports, signature</small></span><span class="pch" aria-hidden="true">›</span></button>
+        <button type="button" class="prow2" id="pl-csv"><span class="pi pi-vol"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3h18v18H3zm2 2v4h6V5zm8 0v4h6V5zM5 11v4h6v-4zm8 0v4h6v-4zM5 17v2h6v-2zm8 0v2h6v-2z"/></svg></span><span class="ptx"><b>Tableur (CSV)</b><small>Toutes les colonnes, mission comprise</small></span><span class="pch" aria-hidden="true">›</span></button>
+        <button type="button" class="prow2" id="pl-tit"><span class="pi pi-vol"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg></span><span class="ptx"><b>Titulaire du carnet</b><small id="pl-tit-s">Nom imprimé sur le PDF</small></span><span class="pch" aria-hidden="true">›</span></button>
+      </div>
+      <h3 class="pgrp">Mes réglages</h3>
+      <div class="pcard">
+        <button type="button" class="prow2" id="pl-avions"><span class="pi pi-av"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5z"/></svg></span><span class="ptx"><b>Mes avions</b><small>Fiches, photos, indicatifs, code ADS-B</small></span><span class="pch" aria-hidden="true">›</span></button>
+        <button type="button" class="prow2" id="pl-types"><span class="pi pi-av"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16v2H4zm0 5h16v2H4zm0 5h10v2H4z"/></svg></span><span class="ptx"><b>Types d'avion</b><small>Monopilote, multipilote, SE / ME, motorisation…</small></span><span class="pch" aria-hidden="true">›</span></button>
+        <button type="button" class="prow2" id="pl-heures"><span class="pi pi-fn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg></span><span class="ptx"><b>Heures affichées en haut</b><small>Bande sous le TOTAL HdV de l'accueil</small></span><span class="pch" aria-hidden="true">›</span></button>
+        <button type="button" class="prow2" id="rules-open"><span class="pi pi-mi"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21.4 11.6 12.4 2.6A2 2 0 0 0 11 2H4a2 2 0 0 0-2 2v7c0 .55.22 1.05.59 1.42l9 9a2 2 0 0 0 2.82 0l7-7a2 2 0 0 0 0-2.82zM6.5 8A1.5 1.5 0 1 1 8 6.5 1.5 1.5 0 0 1 6.5 8z"/></svg></span><span class="ptx"><b>Pastilles des missions</b><small>Ex. « commence par ENT. » → Entraînement</small></span><span class="pch" aria-hidden="true">›</span></button>
+        <button type="button" class="prow2" id="pl-libelles"><span class="pi pi-mi"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5h2v2H3zm4 0h14v2H7zM3 11h2v2H3zm4 0h14v2H7zm-4 6h2v2H3zm4 0h14v2H7z"/></svg></span><span class="ptx"><b>Libellés missions</b><small>Suggestions proposées quand tu tapes une mission</small></span><span class="pch" aria-hidden="true">›</span></button>
+        <button type="button" class="prow2" id="pl-pers"><span class="pi pi-fn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 11a3 3 0 1 0-3-3 3 3 0 0 0 3 3zm-8 0a3 3 0 1 0-3-3 3 3 0 0 0 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5C15 14.17 10.33 13 8 13zm8 0c-.29 0-.62.02-.97.05A4.2 4.2 0 0 1 17 16.5V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg></span><span class="ptx"><b>Personnes</b><small>Copis, CdB, instructeurs, élèves</small></span><span class="pch" aria-hidden="true">›</span></button>
+        <button type="button" class="prow2" id="pl-cartes"><span class="pi pi-carte"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 3l-.16.03L15 5.1 9 3 3.36 4.9a.5.5 0 0 0-.36.48V20.5a.5.5 0 0 0 .5.5l.16-.03L9 18.9l6 2.1 5.64-1.9a.5.5 0 0 0 .36-.48V3.5a.5.5 0 0 0-.5-.5zM15 19l-6-2.11V5l6 2.11z"/></svg></span><span class="ptx"><b>Cartes de vol</b><small id="pl-cartes-s">Mot de passe, traces ADS-B</small></span><span class="pch" aria-hidden="true">›</span></button>
+      </div>
+      <h3 class="pgrp">Import FlyLog</h3>
+      <div class="pcard">
+        <button type="button" class="prow2" id="pl-import"><span class="pi pi-rq"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20h14v-2H5zM19 9h-4V3H9v6H5l7 7z" transform="rotate(180 12 12)"/></svg></span><span class="ptx"><b>Importer FlyLog</b><small>Une seule fois · résumé avant d'enregistrer</small></span><span class="pch" aria-hidden="true">›</span></button>
+        <button type="button" class="prow2" id="pl-ctrl"><span class="pi pi-rq"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 16.17 4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg></span><span class="ptx"><b>Contrôle import</b><small>Totaux des vols importés de FlyLog</small></span><span class="pch" aria-hidden="true">›</span></button>
+      </div>
+      <h3 class="pgrp">Téléphone</h3>
+      <div class="pcard">
+        <button type="button" class="prow2" id="pl-stockage"><span class="pi pi-rq"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 20h20v-4H2zm2-3h2v2H4zM2 4v4h20V4zm4 3H4V5h2zm-4 7h20v-4H2zm2-3h2v2H4z"/></svg></span><span class="ptx"><b>Stockage</b><small id="pl-stock-s">…</small></span><span class="pch" aria-hidden="true">›</span></button>
+      </div>
+      <p class="pver">Carnet de vol <span id="pl-version"></span> · fonctionne sans réseau</p>
     </div>
-    <div class="sec">
-      <h3>Stockage</h3>
-      <p id="pl-stock">…</p>
-      <p class="hint" id="pl-quota"></p>
-    </div>
-    <p class="fstat">Carnet de vol <b id="pl-version"></b> · fonctionne sans réseau</p>
     <input type="file" id="file-flylog" accept=".csv,text/csv" hidden>
     <input type="file" id="file-restore" accept=".json,application/json" hidden>
     <input type="file" id="file-ref" accept=".json,application/json" hidden>
@@ -202,7 +215,7 @@
 
 <!-- Mes avions -->
 <div class="sheet" id="fleet" hidden role="dialog" aria-modal="true" aria-labelledby="fl-t"><div class="sheet-in">
-  <div class="shead"><button type="button" class="xbtn" id="fl-x" aria-label="Fermer">×</button><h2 id="fl-t">Mes avions</h2><span style="width:42px;flex:none"></span></div>
+  <div class="shead"><button type="button" class="xbtn" id="fl-x" aria-label="Fermer"><svg class="ix" viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></svg></button><h2 id="fl-t">Mes avions</h2><span style="width:42px;flex:none"></span></div>
   <input class="search" id="fl-q" type="search" autocomplete="off" placeholder="Rechercher : immat, indicatif, type…" aria-label="Rechercher un avion" style="margin:0 0 4px">
   <p class="hint" id="fl-n"></p>
   <div id="fl-list"></div>
@@ -228,7 +241,7 @@
 
 <!-- Fiche avion -->
 <div class="sheet" id="fiche" hidden role="dialog" aria-modal="true" aria-labelledby="fi-reg-l" style="z-index:28"><div class="sheet-in">
-  <div class="fphoto"><span id="fi-img"></span><button type="button" class="xbtn" id="fi-x" aria-label="Fermer">×</button><button type="button" class="fedit" id="fi-ed" hidden aria-label="Modifier la fiche"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17.25V21h3.75L17.8 9.94l-3.75-3.75zM20.7 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75z"/></svg></button>
+  <div class="fphoto"><span id="fi-img"></span><button type="button" class="xbtn" id="fi-x" aria-label="Fermer"><svg class="ix" viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></svg></button><button type="button" class="fedit" id="fi-ed" hidden aria-label="Modifier la fiche"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17.25V21h3.75L17.8 9.94l-3.75-3.75zM20.7 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75z"/></svg></button>
     <label class="cam" aria-label="Prendre ou choisir une photo"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3 7.2 5H4a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-3.2L15 3zm3 5a4.5 4.5 0 1 1 0 9 4.5 4.5 0 0 1 0-9zm0 2a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5z"/></svg><input type="file" accept="image/*" id="fi-file"></label></div>
   <div class="seg" id="fi-kind" role="group" aria-label="Aéronef ou simulateur" style="justify-content:center;margin:14px 0 4px"><button type="button" aria-pressed="true">✈ Aéronef</button><button type="button" aria-pressed="false">Simulateur</button></div>
   <div class="sec">
@@ -351,16 +364,23 @@
   <div class="row2"><button type="button" class="ghost" id="fd-no">Non, garder</button><button type="button" class="ghost" id="fd-yes" style="background:var(--feu);color:#fff;border-color:var(--feu)">Oui, supprimer</button></div>
 </div></div>
 
+<!-- Flèche retour Android pendant une saisie modifiée -->
+<div class="modal" id="ab-modal" hidden role="dialog" aria-modal="true" aria-labelledby="ab-t" style="z-index:34"><div class="mbox">
+  <h3 id="ab-t">Abandonner la saisie ?</h3>
+  <p class="hint" style="font-size:15px">Ce que tu as tapé pour ce vol ne sera pas enregistré.</p>
+  <div class="row2"><button type="button" class="ghost" id="ab-no">Continuer la saisie</button><button type="button" class="ghost" id="ab-yes" style="background:var(--feu);color:#fff;border-color:var(--feu)">Abandonner</button></div>
+</div></div>
+
 <!-- Carte du vol en plein écran (zoom au doigt) -->
 <div class="sheet" id="carte-plein" hidden role="dialog" aria-modal="true" aria-labelledby="cp-t" style="z-index:33"><div class="carte-plein-in">
-  <div class="shead"><button type="button" class="xbtn" id="cp-x" aria-label="Fermer">×</button><h2 id="cp-t">Carte du vol</h2></div>
+  <div class="shead"><button type="button" class="xbtn" id="cp-x" aria-label="Fermer"><svg class="ix" viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></svg></button><h2 id="cp-t">Carte du vol</h2></div>
   <div class="carte-grande" id="carte-grande"></div>
   <p class="carte-source">Données © adsb.lol, ODbL</p>
 </div></div>
 
 <!-- Écran générique plein écran (exports, import, contrôle, types, personnes) -->
 <div class="sheet" id="outil" hidden role="dialog" aria-modal="true" aria-labelledby="ou-t" style="z-index:24"><div class="sheet-in">
-  <div class="shead"><button type="button" class="xbtn" id="ou-x" aria-label="Fermer">×</button><h2 id="ou-t"></h2></div>
+  <div class="shead"><button type="button" class="xbtn" id="ou-x" aria-label="Fermer"><svg class="ix" viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></svg></button><h2 id="ou-t"></h2></div>
   <div id="ou-c"></div>
 </div></div>
 

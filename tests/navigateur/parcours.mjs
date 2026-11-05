@@ -111,7 +111,7 @@ try {
   await p.click('#ac-all');
   await cap('04-mes-avions', false);
   await p.click('#sf-main');
-  verifier(!(await p.isHidden('#sf-menu')) && (await p.textContent('#sf-main')) === '×', 'menu + -> Ajouter un simulateur / un avion');
+  verifier(!(await p.isHidden('#sf-menu')) && (await p.locator('#sf-main svg.ix').count()) === 1, 'menu + -> Ajouter un simulateur / un avion');
   await p.click('#sf-veil'); await p.click('#fl-x');
   await p.click('#ac-cur');
 

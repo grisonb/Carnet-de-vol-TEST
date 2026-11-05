@@ -6,6 +6,8 @@ import { drapeau } from '../drapeaux.js';
 // Signes « + » et « − » dessinés (parfaitement centrés dans les boutons ronds)
 export const PLUS = '<svg class="ip" viewBox="0 0 24 24" aria-hidden="true"><path d="M10.75 4h2.5v16h-2.5zM4 10.75h16v2.5H4z"/></svg>';
 export const MOINS = '<svg class="ip" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10.75h16v2.5H4z"/></svg>';
+// Croix des boutons « fermer / enlever » : dessinée (rond rouge, croix blanche en gras, voir .xbtn et .x)
+export const CROIX = '<svg class="ix" viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></svg>';
 export const CRAYON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17.25V21h3.75L17.8 9.94l-3.75-3.75zM20.7 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75z"/></svg>';
 
 export const $ = s => document.querySelector(s);

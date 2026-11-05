@@ -394,3 +394,51 @@ svg.ip{width:20px;height:20px;fill:currentColor;display:block;margin:auto}
 /* Les calques de Leaflet (z-index 400…) restent DANS leur carte : jamais par-dessus les fenêtres */
 .carte-mini,.carte-grande{isolation:isolate;z-index:0}
 .carte-mini{position:relative}
+/* v0.9 R25 : tous les boutons × = rond plein rouge, croix blanche en gras dessinée (svg.ix) */
+:root{--x-bg:#c62828}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--x-bg:#d32f2f}}
+:root[data-theme="dark"]{--x-bg:#d32f2f}
+.xbtn,.mline .x{background:var(--x-bg);border:0;color:#fff;display:grid;place-items:center;padding:0;box-shadow:0 2px 6px rgba(0,0,0,.18)}
+.mline .x{width:40px;height:40px}
+svg.ix{width:22px;height:22px;display:block;fill:none;stroke:#fff;stroke-width:3.4;stroke-linecap:round}
+.mline .x svg.ix{width:20px;height:20px}
+.sfab .main[aria-expanded="true"]{background:var(--x-bg);color:#fff}
+/* v0.9 R28 : pas de sélection, de loupe ni de menu copier à l'appui long (sauf dans les champs de saisie) */
+html{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
+input,textarea,select,[contenteditable]{-webkit-user-select:text;user-select:text;-webkit-touch-callout:default}
+img{-webkit-user-drag:none}
+/* v0.9 R26 : menu Plus par sections (maquette v24) */
+.pbk{display:flex;align-items:center;gap:12px;background:var(--hl-soft);border:1px solid var(--hl);border-radius:14px;padding:12px 14px;margin:4px 0 18px}
+.pbk.ok{background:var(--surface);border-color:var(--line)}
+.pbk .pi{background:var(--hl);color:#3a2c00}
+.pbk.ok .pi{background:var(--ok);color:#fff}
+.pbk div{flex:1;min-width:0}
+.pbk b{display:block;font-size:15px}
+.pbk span:not(.pi){font-size:13px;color:var(--muted)}
+.pbk button{border:0;border-radius:10px;padding:10px 14px;background:var(--primary);color:var(--primary-ink);font:inherit;font-weight:700;font-size:15px;flex:none}
+.pgrp{font-family:var(--f-num);font-weight:700;font-size:14px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:18px 6px 6px}
+.pcard{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.prow2{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:none;border:0;border-top:1px solid var(--line);padding:12px 14px;color:var(--ink);font:inherit;min-height:60px}
+.pcard .prow2:first-child{border-top:0}
+.prow2:active{background:var(--surface2)}
+.pi{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;flex:none;background:var(--pt,#e6eef7);color:var(--pc,var(--primary))}
+.pi svg{width:20px;height:20px;fill:currentColor}
+.ptx{flex:1;min-width:0}
+.ptx b{display:block;font-weight:600;font-size:16px;line-height:1.25}
+.ptx small{display:block;color:var(--muted);font-size:13px;line-height:1.3;margin-top:1px;overflow-wrap:anywhere}
+.pch{color:var(--muted);font-size:22px;line-height:1;flex:none}
+.pver{text-align:center;color:var(--muted);font-size:13px;margin:22px 0 8px}
+.pi-vol{--pc:#1f4e79;--pt:#e6eef7}.pi-av{--pc:#00796b;--pt:#e0f2ef}.pi-fn{--pc:#6a3d9a;--pt:#efe8f6}
+.pi-mi{--pc:#c25e00;--pt:#fdeedd}.pi-tp{--pc:#2e7d32;--pt:#e5f3e6}.pi-rq{--pc:#546e7a;--pt:#eceff1}.pi-carte{--pc:#1565c0;--pt:#e3eefb}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]) .pi-vol{--pc:#6ea8e0;--pt:#1a2a3c}:root:not([data-theme="light"]) .pi-av{--pc:#4db6ac;--pt:#15302d}
+  :root:not([data-theme="light"]) .pi-fn{--pc:#b39ddb;--pt:#2a2236}:root:not([data-theme="light"]) .pi-mi{--pc:#ffa04d;--pt:#38281a}
+  :root:not([data-theme="light"]) .pi-tp{--pc:#81c784;--pt:#1c2f1d}:root:not([data-theme="light"]) .pi-rq{--pc:#90a4ae;--pt:#232c31}
+  :root:not([data-theme="light"]) .pi-carte{--pc:#64a8f0;--pt:#162a40}}
+:root[data-theme="dark"] .pi-vol{--pc:#6ea8e0;--pt:#1a2a3c}:root[data-theme="dark"] .pi-av{--pc:#4db6ac;--pt:#15302d}
+:root[data-theme="dark"] .pi-fn{--pc:#b39ddb;--pt:#2a2236}:root[data-theme="dark"] .pi-mi{--pc:#ffa04d;--pt:#38281a}
+:root[data-theme="dark"] .pi-tp{--pc:#81c784;--pt:#1c2f1d}:root[data-theme="dark"] .pi-rq{--pc:#90a4ae;--pt:#232c31}
+:root[data-theme="dark"] .pi-carte{--pc:#64a8f0;--pt:#162a40}
+/* Boutons posés sur la photo de la fiche avion : leur dessin n'hérite pas de l'icône grise de la photo */
+.fphoto .xbtn svg.ix{width:22px;height:22px;opacity:1;fill:none}
+.fphoto .fedit svg{opacity:1}

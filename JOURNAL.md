@@ -1,5 +1,34 @@
 # Journal des versions
 
+## v0.9 — 05/11/2026
+
+Cinq remarques faites sur le téléphone (R25 à R29), maquette v24.
+
+**Ce qui change**
+- R25 : tous les boutons × (fermer une fiche, une liste, la carte en plein écran, enlever une ligne de mission ou
+  une règle, menu + de Mes avions ouvert) : rond plein rouge, croix blanche en gras dessinée par l'app (SVG),
+  même taille qu'avant (≥ 40 px), lisible en mode sombre.
+- R26 : menu Plus par sections (Sauvegarde, Exporter, Mes réglages, Import FlyLog, Téléphone), chaque entrée avec une
+  icône dans un carré de la couleur du bloc, titre en gras, sous-titre dessous, chevron ›. En haut, un encart
+  « sauvegarde » (jaune s'il n'y en a jamais eu ou plus de 7 jours, avec un bouton « Sauvegarder » ; sinon
+  « Sauvegardé le JJ/MM » avec une coche verte) qui remplace l'ancien bandeau. Nouvelles entrées « Heures affichées
+  en haut », « Libellés missions » et « Stockage » ; « Cartes de vol » indique l'avancement du rattrapage.
+  Version en bas ; plus de mot « OUTILS ».
+- R27 : flèche / geste retour d'Android : ferme la fenêtre ouverte, la carte plein écran, la fiche du vol, revient au
+  Carnet depuis Totaux ou Plus ; sur l'accueil, l'app se ferme. Fiche d'un vol modifiée et non enregistrée :
+  « Abandonner la saisie ? ». Une entrée d'historique par niveau ouvert (js/ui/retour.js) ; fermer par × retire la
+  sienne (pas de double appui).
+- R28 : plus de sélection de texte, de loupe, de menu « copier » ni de surlignage bleu à l'appui long, sauf dans les
+  champs de saisie (copier-coller possible).
+- R29 : recherche par date dans la loupe du Carnet (06/05/25, 6/5/2025, 06.05.2025, 06-05-25, 06 05 2025, 060525,
+  06052025, 2025-05-06 ; 05/2025 = le mois ; 06/05 = ce jour toutes années ; 2025 = l'année). Sinon, recherche texte
+  comme avant (js/recherche.js).
+
+**Tests**
+- 74 tests unitaires (6 nouveaux : formats de date, encart sauvegarde) ; nouveau test `tests/navigateur/v09.mjs`
+  (flèche retour dans chaque cas, × puis retour, entrées de Plus, recherche par date, captures clair / sombre) ;
+  tous les tests existants réussis ; contrôle local avec le vrai fichier FlyLog (non commité).
+
 ## v0.8 — 05/11/2026
 
 « Carte du vol » (remarques R22 / R23) : trace ADS-B des archives adsb.lol, récupérées chaque nuit par le VPS

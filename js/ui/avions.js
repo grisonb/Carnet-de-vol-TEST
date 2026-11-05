@@ -1,6 +1,6 @@
 // Avions : recherche rapide dans la saisie, « Tous mes avions », « Ajouter un avion », fiche avion.
 
-import { $, esc, segs, choisir, toast, PLUS, CRAYON } from './commun.js';
+import { $, esc, segs, choisir, toast, PLUS, CRAYON, CROIX } from './commun.js';
 import { etat, enregistrerAvion, reglage } from '../etat.js';
 import { avionVide, formaterImmat, texteColonneAvion, etiquettesParDefaut, etiquettesPourTrain } from '../modele.js';
 import { TYPES, indexTypes, caracteristiquesDuType, MOTEUR, SURFACE } from '../types-avion.js';
@@ -103,7 +103,7 @@ function fermerFlotte() { $('#fleet').hidden = true; $('#sfab').hidden = true; m
 
 function menuPlus(o) {
   $('#sf-menu').hidden = !o; $('#sf-veil').hidden = !o;
-  $('#sf-main').innerHTML = o ? '<span aria-hidden="true">×</span>' : PLUS;
+  $('#sf-main').innerHTML = o ? CROIX : PLUS;
   $('#sf-main').setAttribute('aria-expanded', String(o));
 }
 

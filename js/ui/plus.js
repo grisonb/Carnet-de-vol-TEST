@@ -5,7 +5,7 @@ import { etat, reglage, enregistrerReglage, enregistrerImport, contenuComplet, r
 import { analyserFlyLog } from '../flylog.js';
 import { calculerTotaux, filtrerPeriode, bornesPeriode } from '../totaux.js';
 import { comparerReference } from '../controle.js';
-import { creerSauvegarde, texteSauvegarde, lireSauvegarde, nomFichier, texteTableur } from '../sauvegarde.js';
+import { creerSauvegarde, texteSauvegarde, lireSauvegarde, nomFichier, texteTableur, etatSauvegarde } from '../sauvegarde.js';
 import { paginer, dessinerPDF, totauxVides, totauxPDF } from '../pdf.js';
 import { hm, aujourdhui, dateFr } from '../temps.js';
 import { TYPES, MOTEUR, SURFACE } from '../types-avion.js';
@@ -13,7 +13,9 @@ import { nomPersonne } from '../modele.js';
 import { VERSION } from '../version.js';
 import { ouvrirRegles } from './regles.js';
 import { ouvrirFlotte, typesConnus, definirTypes } from './avions.js';
-import { ouvrirPersonne } from './saisie.js';
+import { ouvrirPersonne, ouvrirLibelles } from './saisie.js';
+import { ouvrirChoixBande } from './carnet.js';
+import { resumeCartes } from './carte.js';
 
 const nombre = n => n.toLocaleString('fr-FR');
 const chrono = vols => [...vols].reverse(); // etat.vols est du plus récent au plus ancien
@@ -270,7 +272,7 @@ function ecranTitulaire() {
   c.querySelector('#ti-ok').addEventListener('click', async () => { await enregistrerReglage('titulaire', $('#ti-v').value.trim()); fermerOutil(); majPlus(); toast('Enregistré'); });
 }
 
-// ---------- Stockage, rappel ----------
+// ---------- Stockage, encart sauvegarde ----------
 export async function demanderStockagePersistant() {
   if (!navigator.storage) return null;
   let ok = await navigator.storage.persisted?.();
@@ -278,29 +280,43 @@ export async function demanderStockagePersistant() {
   return ok;
 }
 
+function texteStockage(persistant) {
+  return persistant === null ? 'Stockage persistant : non disponible sur ce navigateur.'
+    : persistant ? '<span class="okc">✓</span> Stockage persistant accordé : le téléphone ne videra pas le carnet pour faire de la place.'
+      : '<span class="koc">✗</span> Stockage persistant non accordé. Installe l\'app sur l\'écran d\'accueil puis rouvre-la ; en attendant, fais des sauvegardes.';
+}
+const persiste = async () => (navigator.storage && navigator.storage.persisted ? navigator.storage.persisted() : null);
+async function ecranStockage() {
+  const c = ouvrirOutil('Stockage', `<div class="sec"><p id="st-txt">${texteStockage(await persiste())}</p><p class="hint" id="st-quota"></p></div>`);
+  if (navigator.storage && navigator.storage.estimate) {
+    const e = await navigator.storage.estimate();
+    const q = c.querySelector('#st-quota');
+    if (q) q.textContent = `Utilisé : ${(e.usage / 1e6).toFixed(1)} Mo sur ${(e.quota / 1e9).toFixed(1)} Go disponibles.`;
+  }
+}
+
 export async function majPlus() {
   $('#pl-version').textContent = 'v' + VERSION;
   const d = reglage('derniereSauvegarde');
   $('#pl-save-s').textContent = `Dernière : ${d ? dateFr(d.slice(0, 10)) : 'jamais'} · Téléchargements ou Google Drive`;
   $('#pl-tit-s').textContent = reglage('titulaire') || 'Nom imprimé sur le PDF';
-  const persistant = navigator.storage && navigator.storage.persisted ? await navigator.storage.persisted() : null;
-  $('#pl-stock').innerHTML = persistant === null ? 'Stockage persistant : non disponible sur ce navigateur.'
-    : persistant ? '<span class="okc">✓</span> Stockage persistant accordé : le téléphone ne videra pas le carnet pour faire de la place.'
-      : '<span class="koc">✗</span> Stockage persistant non accordé. Installe l\'app sur l\'écran d\'accueil puis rouvre-la ; en attendant, fais des sauvegardes.';
-  if (navigator.storage && navigator.storage.estimate) {
-    const e = await navigator.storage.estimate();
-    $('#pl-quota').textContent = `Utilisé : ${(e.usage / 1e6).toFixed(1)} Mo sur ${(e.quota / 1e9).toFixed(1)} Go disponibles.`;
-  }
+  verifierRappel();
+  resumeCartes().then(t => { $('#pl-cartes-s').textContent = t; });
+  const p = await persiste();
+  $('#pl-stock-s').textContent = p === null ? 'Protection non disponible sur ce navigateur'
+    : p ? 'Protégé contre l\'effacement automatique' : 'Non protégé : fais des sauvegardes';
 }
 
+// Encart « sauvegarde » en haut de Plus : jaune s'il n'y a jamais eu de sauvegarde ou plus de 7 jours, sinon neutre
+const ICONE_SAUVE = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 9h-4V3H9v6H5l7 7zM5 18v2h14v-2z"/></svg>';
+const ICONE_OK = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 16.17 4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>';
 export function verifierRappel() {
-  const r = $('#rappel');
-  const d = reglage('derniereSauvegarde');
-  const jours = d ? Math.floor((Date.now() - Date.parse(d)) / 864e5) : null;
-  if (!etat.vols.length || (jours !== null && jours < 7)) { r.hidden = true; return; }
-  r.innerHTML = `${jours === null ? 'Aucune sauvegarde de secours pour l\'instant.' : `Pas de sauvegarde depuis ${jours} jours.`} <button type="button" id="rappel-go">Sauvegarder ›</button>`;
-  r.hidden = false;
-  $('#rappel-go').addEventListener('click', ecranSauvegarde);
+  const e = etatSauvegarde(reglage('derniereSauvegarde'));
+  $('#pl-bk').classList.toggle('ok', e.ok);
+  $('#pl-bk-i').innerHTML = e.ok ? ICONE_OK : ICONE_SAUVE;
+  $('#pl-bk-t').textContent = e.titre;
+  $('#pl-bk-s').textContent = e.texte;
+  $('#pl-bk-go').hidden = e.ok;
 }
 
 export function initPlus() {
@@ -318,6 +334,10 @@ export function initPlus() {
   $('#pl-avions').addEventListener('click', () => ouvrirFlotte(''));
   $('#pl-pers').addEventListener('click', ecranPersonnes);
   $('#pl-tit').addEventListener('click', ecranTitulaire);
+  $('#pl-bk-go').addEventListener('click', ecranSauvegarde);
+  $('#pl-heures').addEventListener('click', ouvrirChoixBande);
+  $('#pl-libelles').addEventListener('click', ouvrirLibelles);
+  $('#pl-stockage').addEventListener('click', ecranStockage);
   $('#ou-x').addEventListener('click', fermerOutil);
 }
 

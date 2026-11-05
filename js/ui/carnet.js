@@ -12,6 +12,7 @@ import { fuseau } from '../terrains.js';
 import { FONCTIONS, COMPTEURS } from '../modele.js';
 import { pastilleFeu, pastillesRegles, texteMissions, normaliser } from '../missions.js';
 import { heuresDerniersJours, totalHdV, calculerTotaux } from '../totaux.js';
+import { lireDate, filtreDate } from '../recherche.js';
 
 const PAQUET = 40;
 let resultats = [];
@@ -138,14 +139,17 @@ function rendreChoixBande() {
   $('#hs-typ').innerHTML = choixParType(t, [...etat.avions.values()]).map(bouton).join('') || '<p class="hint">Aucun avion pour l\'instant.</p>';
 }
 
+export function ouvrirChoixBande() { rendreChoixBande(); $('#hs-modal').hidden = false; }
+
 export function rafraichirCarnet() {
   const auj = aujourdhui();
   rendreBande();
   $('#h-total').textContent = hm(totalHdV(etat.vols));
   $('#h-quick').innerHTML = [3, 7, 30].map(n =>
     `<div><span class="lbl">${n} jours</span><b>${hm(heuresDerniersJours(etat.vols, n, auj))}</b></div>`).join('');
-  const q = normaliser($('#q').value);
-  resultats = q ? etat.vols.filter(v => texteRecherche(v).includes(q)) : etat.vols;
+  // Une date (06/05/25, 05/2025, 2025…) : les vols de cette date (date affichée sur la carte) ; sinon recherche texte
+  const brut = $('#q').value, parDate = filtreDate(lireDate(brut)), q = normaliser(brut);
+  resultats = parDate ? etat.vols.filter(v => parDate(dateAffichee(v) || '')) : q ? etat.vols.filter(v => texteRecherche(v).includes(q)) : etat.vols;
   affiches = 0; moisCourant = '';
   $('#list').innerHTML = resultats.length ? ''
     : `<p class="hint">${etat.vols.length ? 'Aucun vol ne correspond.' : 'Aucun vol pour l\'instant. Touche « + Nouveau vol », ou importe FlyLog depuis l\'écran Plus.'}</p>`;
@@ -179,7 +183,7 @@ export function initCarnet(ouvrir) {
     if (b) ouvrirVol(etat.vols.find(v => v.id === b.dataset.id));
   });
   // Bande d'heures : toucher = choisir les valeurs affichées
-  const ouvrirChoix = () => { rendreChoixBande(); $('#hs-modal').hidden = false; };
+  const ouvrirChoix = ouvrirChoixBande;
   $('#h-strip').addEventListener('click', ouvrirChoix);
   $('#h-strip').addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); ouvrirChoix(); } });
   $('#hs-modal').addEventListener('click', async e => {

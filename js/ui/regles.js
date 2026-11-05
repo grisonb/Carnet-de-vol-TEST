@@ -1,6 +1,6 @@
 // Fenêtre « Pastilles des missions » : si une mission commence par X, pastille Y.
 
-import { $, esc } from './commun.js';
+import { $, esc, CROIX } from './commun.js';
 import { reglage, enregistrerReglage } from '../etat.js';
 import { remettreSuggestion } from '../missions.js';
 
@@ -15,7 +15,7 @@ function rendreMasquees() {
 function rendre() {
   const R = reglage('regles');
   $('#rm-list').innerHTML = R.map((r, i) =>
-    `<div class="mline"><div style="flex:1;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface2)">« <b>${esc(r.debut)}</b> » → <span class="chip">${esc(r.pastille)}</span></div><button type="button" class="x" data-rx="${i}" aria-label="Supprimer la règle">×</button></div>`).join('')
+    `<div class="mline"><div style="flex:1;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface2)">« <b>${esc(r.debut)}</b> » → <span class="chip">${esc(r.pastille)}</span></div><button type="button" class="x" data-rx="${i}" aria-label="Supprimer la règle">${CROIX}</button></div>`).join('')
     || '<p class="hint">Aucune règle.</p>';
 }
 const verifier = () => { $('#rm-add').disabled = !($('#rm-p').value.trim() && $('#rm-l').value.trim()); };

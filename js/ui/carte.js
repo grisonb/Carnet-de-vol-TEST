@@ -190,6 +190,17 @@ async function pleinEcran() {
 }
 
 // ---------- Plus › Cartes de vol ----------
+// Sous-titre de la ligne « Cartes de vol » dans Plus (sans réseau : index déjà rangé sur le téléphone)
+export async function resumeCartes() {
+  if (!motDePasse()) return 'Mot de passe à saisir · traces ADS-B';
+  let ix = null;
+  try { ix = await indexStocke(); } catch { /* base indisponible */ }
+  const r = ix && ix.rattrapage;
+  if (r && r.reste > 0) return `Mot de passe · rattrapage ${r.reste} j restants`;
+  if (r) return 'Mot de passe · traces à jour';
+  return 'Mot de passe · traces ADS-B';
+}
+
 function ecranCartes() {
   const ix = index;
   const avecCode = [...etat.avions.values()].filter(a => !a.sim && codeAvion(a, null)).length;

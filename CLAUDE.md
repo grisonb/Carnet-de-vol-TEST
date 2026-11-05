@@ -66,7 +66,11 @@ Pas d'étape de compilation : les fichiers du dépôt sont servis tels quels.
   (recherche, Tous mes avions, fiche lecture seule / modification), `terrain-perso.js`, `glisser.js` (glisser
   une ligne vers la gauche -> bouton « Supprimer »), `totaux.js`, `plus.js`,
   `regles.js`, `commun.js`, `carte.js` (Carte du vol : serveur de traces, Leaflet, plein écran, Plus › Cartes de vol),
-  `suppression.js` (suppression d'un vol avec confirmation + Annuler, partagée).
+  `suppression.js` (suppression d'un vol avec confirmation + Annuler, partagée),
+  `retour.js` (flèche retour Android : une entrée d'historique par niveau ouvert, fenêtres suivies par leur attribut
+  `hidden` ; toute nouvelle fenêtre doit être ajoutée à sa liste COUCHES avec son bouton de fermeture).
+- `js/recherche.js` : recherche de vols par date (jour / mois / année, formats français).
+- Boutons × : constante `CROIX` (`commun.js`, croix dessinée) dans un bouton `.xbtn` ou `.x` (rond rouge).
 - Référence d'interface : maquette v19 (`../donnees-privees/maquette-carnet-v19.html`, contient de vraies données :
   jamais dans le dépôt) et remarques P1-P6, R1-R15.
 - `js/app.js` démarre l'app.
@@ -100,6 +104,7 @@ BOMBING et TRANSPORT s'excluent sur un vol. Suggestions de missions masquées : 
 - `node tests/navigateur/v06.mjs` : bande d'heures, libellés missions, suppression d'un vol par glissé, compteurs DH8D.
 - `node tests/navigateur/v07.mjs` : bande d'heures sous le TOTAL, ordre ↑ ↓, Feux / Largages CdB Dash.
 - `node tests/navigateur/v08.mjs` : Carte du vol avec FAUX serveur de traces et de tuiles (jamais le vrai VPS).
+- `node tests/navigateur/v09.mjs` : boutons × rouges, menu Plus par sections, flèche retour, appui long, recherche par date.
 - `node tests/navigateur/fluidite.mjs` : 4070 vols inventés, processeur ralenti ×6.
 - `node outils/controle-import.mjs ../donnees-privees/flylog-decode-v1.csv ../donnees-privees/totaux-flylog-reference.json` :
   contrôle avec le VRAI fichier, en local uniquement (rien n'est écrit dans le dépôt).

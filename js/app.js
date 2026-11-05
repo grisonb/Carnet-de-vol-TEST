@@ -4,7 +4,8 @@ import { $, $$, toast } from './ui/commun.js';
 import { charger, surChangement } from './etat.js';
 import { chargerTerrains } from './terrains.js';
 import { initCarnet, rafraichirCarnet } from './ui/carnet.js';
-import { initSaisie, ouvrirSaisie } from './ui/saisie.js';
+import { initSaisie, ouvrirSaisie, saisieModifiee, abandonnerSaisie } from './ui/saisie.js';
+import { initRetour, majRetour } from './ui/retour.js';
 import { initTotaux, rafraichirTotaux } from './ui/totaux.js';
 import { initPlus, majPlus, verifierRappel, demanderStockagePersistant, appliquerTypesPerso } from './ui/plus.js';
 import { initRegles } from './ui/regles.js';
@@ -28,6 +29,7 @@ function montrer(v) {
     if (v === 'plus') majPlus();
   }
   window.scrollTo(0, 0);
+  majRetour();
 }
 
 function ouvrirVol(vol) {
@@ -43,6 +45,9 @@ async function demarrer() {
   initRegles();
   initTerrainPerso();
   initCarte();
+  initRetour({ vue: () => vue, montrer, saisieModifiee, abandonnerSaisie });
+  // Appui long : pas de menu « copier / partager » hors des champs de saisie (R28)
+  document.addEventListener('contextmenu', e => { if (!e.target.closest('input, textarea, select, [contenteditable]')) e.preventDefault(); });
   $$('.tabs button').forEach(b => b.addEventListener('click', () => montrer(b.dataset.v)));
   $('#fab').addEventListener('click', () => ouvrirVol(null));
 

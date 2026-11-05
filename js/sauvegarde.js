@@ -108,3 +108,12 @@ export function texteTableur(vols, avions) {
   });
   return ecrireCSV(COLONNES_TABLEUR.map(([t]) => t), lignes);
 }
+
+// Encart « sauvegarde » en haut de Plus : à faire si jamais faite ou plus de 7 jours (date affichée en heure du téléphone)
+const jjmm = d => `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}`;
+export function etatSauvegarde(derniere, maintenant = Date.now()) {
+  const jours = derniere ? Math.floor((maintenant - Date.parse(derniere)) / 864e5) : null;
+  if (jours === null) return { ok: false, titre: 'Aucune sauvegarde', texte: 'Tes vols ne sont que sur ce téléphone.' };
+  if (jours > 7) return { ok: false, titre: `Pas de sauvegarde depuis ${jours} jours`, texte: 'Tes vols ne sont que sur ce téléphone.' };
+  return { ok: true, titre: `Sauvegardé le ${jjmm(new Date(derniere))}`, texte: 'Sauvegarde de secours à jour.' };
+}

@@ -1,6 +1,6 @@
 // Écran de saisie / modification d'un vol (comme la maquette, de haut en bas).
 
-import { $, $$, esc, segs, choisir, toast, toastAction, codeAvecDrapeau, PLUS, MOINS } from './commun.js';
+import { $, $$, esc, segs, choisir, toast, toastAction, codeAvecDrapeau, PLUS, MOINS, CROIX } from './commun.js';
 import { etat, reglage, enregistrerReglage, enregistrerVol, supprimerVol, enregistrerPersonne, supprimerPersonne,
   listeMissions, trouverPersonne, enregistrerAvion } from '../etat.js';
 import { ouvrirAjoutTerrain } from './terrain-perso.js';
@@ -242,7 +242,7 @@ function indicationFeu() {
 }
 function rendreLignes() {
   $('#ml').innerHTML = F.lignes.map((m, i) =>
-    `<div class="mline${estLigneFeu(m.t) ? ' feu' : ''}"><input data-mi="${i}" value="${esc(m.t)}" aria-label="Mission ${i + 1}"><button type="button" class="x" data-mx="${i}" aria-label="Enlever">×</button></div>`).join('');
+    `<div class="mline${estLigneFeu(m.t) ? ' feu' : ''}"><input data-mi="${i}" value="${esc(m.t)}" aria-label="Mission ${i + 1}"><button type="button" class="x" data-mx="${i}" aria-label="Enlever">${CROIX}</button></div>`).join('');
   indicationFeu(); apercu();
 }
 function rendreSuggestions() {
@@ -280,6 +280,7 @@ async function supprimerSuggestion(t) {
 }
 
 // « Libellés missions › » : tous les libellés proposés, avec recherche ; glisser à gauche pour supprimer
+export function ouvrirLibelles() { $('#mlm-q').value = ''; rendreLibelles(); $('#ml-modal').hidden = false; }
 function rendreLibelles() {
   const q = normaliser($('#mlm-q').value);
   const tous = listeMissions();
@@ -415,8 +416,18 @@ export function ouvrirSaisie(vol) {
   } else recalculer();
   F.charge = false;
   recap(); apercu();
+  F.empreinte = empreinte();
   afficherCarteVol(vol || null); // carte du vol enregistré (sans jamais toucher aux heures)
 }
+
+// ---------- Changements non enregistrés (flèche retour : « Abandonner la saisie ? ») ----------
+const CHAMPS = ['#f-date', '#f-dep', '#f-arr', '#f-t0', '#f-t1', '#f-copi', '#f-rem', '#c-ifr', '#c-nuit', '#c-col', '#c-fn'];
+function empreinte() {
+  return JSON.stringify([CHAMPS.map(c => $(c).value), F.mode, F.escales, F.avionId, F.etiquettes, F.fonction,
+    F.lignes.map(l => l.t), F.compteurs, F.s, F.ifr]);
+}
+export const saisieModifiee = () => !!F && F.empreinte !== undefined && empreinte() !== F.empreinte;
+export function abandonnerSaisie() { F = null; quitter(); }
 
 // ---------- Enregistrement ----------
 async function enregistrer() {
@@ -628,7 +639,7 @@ export function initSaisie({ fermer }) {
     rendreCompteurs();
   });
   $('#rules-open2').addEventListener('click', ouvrirRegles);
-  $('#mlm-open').addEventListener('click', () => { $('#mlm-q').value = ''; rendreLibelles(); $('#ml-modal').hidden = false; });
+  $('#mlm-open').addEventListener('click', ouvrirLibelles);
   $('#mlm-q').addEventListener('input', rendreLibelles);
   $('#mlm-x').addEventListener('click', () => { $('#ml-modal').hidden = true; });
   activerGlisser($('#mlm-list'));
