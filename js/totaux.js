@@ -35,7 +35,7 @@ const SOMMES = ['tempsTotal', 'simTemps', 'tempsCdB', 'tempsCopi', 'tempsDC', 't
 
 export function totauxVides() {
   const t = Object.fromEntries(RUBRIQUES.map(r => [r.cle, 0]));
-  t.parEtiquette = {}; t.parAvion = {}; t.parType = {};
+  t.parEtiquette = {}; t.parAvion = {}; t.parType = {}; t.parTypeCdB = {}; t.parTypeCopi = {};
   return t;
 }
 
@@ -67,6 +67,8 @@ export function ajouterVol(t, v, avions) {
     if (v.date > pa.dernier) pa.dernier = v.date;
     const ty = a.sim ? 'SIMULATEURS' : (a.typeOACI || '?');
     t.parType[ty] = (t.parType[ty] || 0) + temps;
+    t.parTypeCdB[ty] = (t.parTypeCdB[ty] || 0) + (v.tempsCdB || 0);
+    t.parTypeCopi[ty] = (t.parTypeCopi[ty] || 0) + (v.tempsCopi || 0);
   }
   return t;
 }

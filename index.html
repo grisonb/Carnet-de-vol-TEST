@@ -25,6 +25,7 @@
       <button type="button" class="loupe" id="q-open" aria-label="Rechercher un vol" aria-expanded="false" aria-controls="q"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 3a7 7 0 0 1 5.6 11.2l5.1 5.1-1.4 1.4-5.1-5.1A7 7 0 1 1 10 3zm0 2a5 5 0 1 0 0 10 5 5 0 0 0 0-10z"/></svg></button>
     </div>
     <div class="quick" id="h-quick"></div>
+    <div class="hstrip" id="h-strip" role="button" tabindex="0" aria-label="Choisir les heures affichées"></div>
     <input class="search" id="q" type="search" hidden placeholder="Rechercher : terrain, immat., remarque, mission…" aria-label="Rechercher un vol">
     <div id="list"></div>
     <div id="list-fin" aria-hidden="true"></div>
@@ -91,12 +92,17 @@
       <div id="ml" class="mlines"></div>
       <div class="pwrap"><input class="search" id="m-q" autocomplete="off" placeholder="Mission : tape (ex. EN) ou choisis" aria-label="Mission" style="margin:0"><button type="button" class="plus" id="m-add" aria-label="Ajouter cette mission" style="margin:0"><svg class="ip" viewBox="0 0 24 24" aria-hidden="true"><path d="M10.75 4h2.5v16h-2.5zM4 10.75h16v2.5H4z"/></svg></button></div>
       <div id="m-res" class="acres" hidden></div>
-      <div class="step"><span>Feux <small class="hint" id="fire-next"></small></span><span class="ctl"><button type="button" id="feu-m" aria-label="Feux moins"><svg class="ip" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10.75h16v2.5H4z"/></svg></button><output id="s-feu">0</output><button type="button" id="feu-p" aria-label="Feux plus"><svg class="ip" viewBox="0 0 24 24" aria-hidden="true"><path d="M10.75 4h2.5v16h-2.5zM4 10.75h16v2.5H4z"/></svg></button></span></div>
+      <div class="step" id="feu-row"><span>Feux <small class="hint" id="fire-next"></small></span><span class="ctl"><button type="button" id="feu-m" aria-label="Feux moins"><svg class="ip" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10.75h16v2.5H4z"/></svg></button><output id="s-feu">0</output><button type="button" id="feu-p" aria-label="Feux plus"><svg class="ip" viewBox="0 0 24 24" aria-hidden="true"><path d="M10.75 4h2.5v16h-2.5zM4 10.75h16v2.5H4z"/></svg></button></span></div>
       <div id="ctrs" style="display:grid;gap:10px"></div>
-      <button type="button" class="ghost" id="ctr-open" aria-expanded="false">Choisir et ranger les compteurs ▾</button>
-      <div id="ctr-panel" hidden class="panel"></div>
+      <div id="ctr-zone" style="display:grid;gap:10px">
+        <button type="button" class="ghost" id="ctr-open" aria-expanded="false">Choisir et ranger les compteurs ▾</button>
+        <div id="ctr-panel" hidden class="panel"></div>
+      </div>
       <p class="mprev" id="m-prev"></p>
-      <button type="button" class="linkbtn" id="rules-open2">Règles des pastilles ›</button>
+      <div class="mi-links">
+        <button type="button" class="linkbtn" id="mlm-open">Libellés missions ›</button>
+        <button type="button" class="linkbtn" id="rules-open2">Règles des pastilles ›</button>
+      </div>
     </div>
 
     <div class="sec c-tp">
@@ -303,6 +309,35 @@
   <p class="hint">Latitude et longitude en degrés décimaux (sud et ouest en négatif) : elles servent au calcul du temps de nuit. Le fuseau sert au mode LOC.</p>
   <p class="apname bad" id="ter-err"></p>
   <div class="row2"><button type="button" class="ghost" id="ter-x">Annuler</button><button type="button" class="ghost primary" id="ter-ok">Ajouter</button></div>
+</div></div>
+
+<!-- Heures affichées en haut de l'accueil -->
+<div class="modal" id="hs-modal" hidden role="dialog" aria-modal="true" aria-labelledby="hs-t"><div class="mbox" style="max-height:85vh;overflow:auto">
+  <h3 id="hs-t">Heures affichées en haut</h3>
+  <p class="hint" style="font-size:15px">Coche ce que tu veux voir sous le TOTAL HdV. Elles s'affichent dans l'ordre où tu les coches.</p>
+  <span class="lbl">Général</span>
+  <div class="seg" id="hs-gen"></div>
+  <span class="lbl">Par type d'appareil</span>
+  <div class="seg" id="hs-typ"></div>
+  <button type="button" class="ghost primary" id="hs-x">Fermer</button>
+</div></div>
+
+<!-- Libellés missions -->
+<div class="modal" id="ml-modal" hidden role="dialog" aria-modal="true" aria-labelledby="mlm-t"><div class="mbox" style="max-height:85vh;overflow:auto">
+  <h3 id="mlm-t">Libellés missions</h3>
+  <p class="hint" style="font-size:15px">Tous les libellés proposés quand tu tapes une mission. Glisse vers la gauche pour en supprimer un : tes vols ne changent pas.</p>
+  <input class="search" id="mlm-q" type="search" autocomplete="off" placeholder="Rechercher un libellé" style="margin:0">
+  <p class="hint" id="mlm-n"></p>
+  <div id="mlm-list" class="acres" style="margin:0"></div>
+  <button type="button" class="ghost primary" id="mlm-x">Fermer</button>
+</div></div>
+
+<!-- Confirmation : supprimer un vol (carnet officiel) -->
+<div class="modal" id="fd-modal" hidden role="dialog" aria-modal="true" aria-labelledby="fd-t" style="z-index:32"><div class="mbox">
+  <h3 id="fd-t">Supprimer ce vol ?</h3>
+  <p id="fd-txt" style="font-size:15px"></p>
+  <p class="hint">Il sera retiré du carnet et des totaux.</p>
+  <div class="row2"><button type="button" class="ghost" id="fd-no">Non, garder</button><button type="button" class="ghost" id="fd-yes" style="background:var(--feu);color:#fff;border-color:var(--feu)">Oui, supprimer</button></div>
 </div></div>
 
 <!-- Écran générique plein écran (exports, import, contrôle, types, personnes) -->

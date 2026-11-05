@@ -4,6 +4,7 @@
 import * as db from './db.js';
 import { comparerRecentDabord, horodater, COMPTEURS_DEFAUT, nomPersonne, migrerAvionsV04 } from './modele.js';
 import { definirTerrainsPerso } from './terrains.js';
+import { BANDE_DEFAUT } from './bande.js';
 import { REGLES_DEFAUT, missionsConnues } from './missions.js';
 
 export const etat = {
@@ -12,6 +13,7 @@ export const etat = {
   personnes: [],
   reglages: {},
   ecouteurs: new Set(),
+  revision: 0,         // augmente à chaque changement (sert à ne recalculer les totaux que si besoin)
 };
 
 export const ETIQUETTES_DEFAUT = ['BOMBING', 'TRANSPORT', 'TAILWHEEL'];
@@ -19,7 +21,7 @@ export const ETIQUETTES_DEFAUT = ['BOMBING', 'TRANSPORT', 'TAILWHEEL'];
 export function reglage(cle) {
   const defauts = {
     compteurs: COMPTEURS_DEFAUT, regles: REGLES_DEFAUT, etiquettes: ETIQUETTES_DEFAUT,
-    missionsAjoutees: [], titulaire: '', derniereSauvegarde: null, reference: null, terrainsPerso: {}, missionsMasquees: [],
+    missionsAjoutees: [], titulaire: '', derniereSauvegarde: null, reference: null, terrainsPerso: {}, missionsMasquees: [], bandeHeures: BANDE_DEFAUT,
   };
   return etat.reglages[cle] ?? defauts[cle];
 }
@@ -31,6 +33,7 @@ export async function charger() {
   etat.avions = new Map(avions.map(a => [a.id, a]));
   etat.personnes = personnes;
   etat.reglages = reglages;
+  etat.revision++;
   definirTerrainsPerso(reglage('terrainsPerso'));
   await migrer();
 }
@@ -52,7 +55,7 @@ export async function enregistrerTerrainPerso(code, t) {
   await enregistrerReglage('terrainsPerso', liste);
 }
 
-export function prevenir() { for (const f of etat.ecouteurs) f(); }
+export function prevenir() { etat.revision++; for (const f of etat.ecouteurs) f(); }
 export const surChangement = f => etat.ecouteurs.add(f);
 
 export async function enregistrerReglage(cle, valeur) {
@@ -78,6 +81,14 @@ export async function enregistrerVol(vol) {
 export async function supprimerVol(id) {
   await db.supprimer('vols', id);
   etat.vols = etat.vols.filter(v => v.id !== id);
+  prevenir();
+}
+
+// « Annuler » après une suppression : le vol revient exactement à l'identique (même id, mêmes dates)
+export async function restaurerVol(vol) {
+  await db.remettre('vols', vol);
+  if (!etat.vols.some(v => v.id === vol.id)) etat.vols.push(vol);
+  etat.vols.sort(comparerRecentDabord);
   prevenir();
 }
 

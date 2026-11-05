@@ -346,3 +346,26 @@ svg.ip{width:20px;height:20px;fill:currentColor;display:block;margin:auto}
 .toast{width:max-content;max-width:calc(100vw - 32px);text-align:center}
 .masq{flex:1;min-width:0;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface2);font-weight:600;overflow-wrap:anywhere}
 #rules-modal .mbox{max-height:calc(100vh - 24px);overflow:auto}
+
+/* ---------- v0.6 (maquette v21) ---------- */
+/* Bande d'heures sous 3 / 7 / 30 jours */
+.hstrip{display:flex;overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:8px 4px;margin-top:8px;scrollbar-width:none;cursor:pointer;-webkit-overflow-scrolling:touch}
+.hstrip::-webkit-scrollbar{display:none}
+.hstrip div{flex:1 0 auto;min-width:64px;text-align:center;padding:0 8px;border-left:1px solid var(--line)}
+.hstrip div:first-child{border-left:0}
+.hstrip b{display:block;font-family:var(--f-num);font-size:17px;white-space:nowrap}
+.hstrip span{font-size:10.5px;letter-spacing:.04em;color:var(--muted);text-transform:uppercase;white-space:nowrap}
+.hstrip .empty{color:var(--muted);font-size:14px;padding:4px 10px;border:0}
+#hs-modal .seg{flex-wrap:wrap}
+/* Carte de vol : glisser à gauche -> « Supprimer » */
+.flrow{margin-bottom:10px;border-radius:14px}
+.flrow .flight{margin:0}
+.flrow .swdel{width:110px;border-radius:0 14px 14px 0}
+.glisse-decale .swrow .swfront{width:100%;transition:transform .18s ease}
+.glisse-decale .swrow.glisse .swfront{transition:none}
+.glisse-decale .flrow.ouvert .swfront{transform:translateX(-110px)}
+/* Bloc Mission : liens « Libellés missions › » et « Règles des pastilles › » */
+.mi-links{display:grid;gap:4px;justify-items:start}
+#mlm-list{display:grid;gap:6px}
+/* Le message (et son « Annuler ») passe toujours devant les fenêtres */
+.toast{z-index:40}

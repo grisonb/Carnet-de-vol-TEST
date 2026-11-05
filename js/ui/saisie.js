@@ -5,7 +5,8 @@ import { etat, reglage, enregistrerReglage, enregistrerVol, supprimerVol, enregi
   listeMissions, trouverPersonne, enregistrerAvion } from '../etat.js';
 import { ouvrirAjoutTerrain } from './terrain-perso.js';
 import { volVide, FONCTIONS, TEMPS_FONCTION, COMPTEURS, colonnesAvion, personneVide, nomPersonne, ligneAvion,
-  etiquettesDeLAvion, etiquettesPourAvion, basculerEtiquette, fonctionsPossibles, champPersonneVisible } from '../modele.js';
+  etiquettesDeLAvion, etiquettesPourAvion, basculerEtiquette, fonctionsPossibles, champPersonneVisible, compteursAffiches } from '../modele.js';
+import { supprimerVolAvecAnnuler } from './suppression.js';
 import { hm, lireDuree, lireHeure, minutesDuJour, ajouterJours, dateValide, aujourdhui, dateFr, heureH } from '../temps.js';
 import { versLocal, versUTC } from '../fuseaux.js';
 import { terrain, fuseau } from '../terrains.js';
@@ -157,6 +158,7 @@ function choisirAvion(a, changement = true) {
   ouvrirChoixAvion(false);
   appliquerEquipage();
   rendreEtiquettes();
+  rendreCompteurs();
   if (!F.charge) { $('#c-col').value = hm(colonneAuto()); $('#c-fn').value = hm(a.sim ? 0 : F.bloc); }
   recap();
 }
@@ -165,7 +167,7 @@ function avionModifie(a) {
   if (!F || F.avionId !== a.id) return;
   afficherLigneAvion(a);
   F.etiquettes = F.etiquettes.filter(t => etiquettesProposees().includes(t));
-  appliquerEquipage(); rendreEtiquettes(); recap();
+  appliquerEquipage(); rendreEtiquettes(); rendreCompteurs(); recap();
 }
 
 // ---------- Étiquettes ----------
@@ -265,11 +267,38 @@ function apercu() {
   $('#m-prev').innerHTML = t || r ? `Remarque du carnet : <b>${esc([r, t].filter(Boolean).join(' • '))}</b>` : '';
 }
 
+// Supprime SEULEMENT la suggestion (les vols enregistrés ne changent pas) ; « Annuler » la remet
+async function supprimerSuggestion(t) {
+  const rafraichir = () => { if (F && !$('#m-res').hidden) rendreSuggestions(); if (!$('#ml-modal').hidden) rendreLibelles(); };
+  await enregistrerReglage('missionsMasquees', masquerSuggestion(reglage('missionsMasquees'), t));
+  rafraichir();
+  toastAction(`« ${t} » supprimée des suggestions`, 'Annuler', async () => {
+    await enregistrerReglage('missionsMasquees', remettreSuggestion(reglage('missionsMasquees'), t));
+    rafraichir();
+  }, 4000);
+}
+
+// « Libellés missions › » : tous les libellés proposés, avec recherche ; glisser à gauche pour supprimer
+function rendreLibelles() {
+  const q = normaliser($('#mlm-q').value);
+  const tous = listeMissions();
+  const m = tous.filter(x => !q || normaliser(x).includes(q));
+  $('#mlm-n').textContent = `${m.length} libellé${m.length > 1 ? 's' : ''}${q ? ` sur ${tous.length}` : ''}`;
+  $('#mlm-list').innerHTML = m.map(x => `<div class="swrow"><button type="button" class="swdel" data-mdel="${esc(x)}" tabindex="-1">Supprimer</button><button type="button" class="mitem swfront${estLigneFeu(x) ? ' feu' : ''}" data-ml="${esc(x)}">${esc(x)}</button></div>`).join('')
+    || '<p class="hint">Aucun libellé.</p>';
+}
+
 // ---------- Compteurs métier ----------
+// Compteurs affichés selon le type d'avion (règles dans modele.js : DH8D seulement pour l'instant) ;
+// un compteur déjà non nul sur ce vol reste toujours visible (rien n'est perdu)
 function rendreCompteurs() {
   const conf = reglage('compteurs');
   const noms = Object.fromEntries(COMPTEURS.map(c => [c.cle, c.nom]));
-  $('#ctrs').innerHTML = conf.filter(c => c.on || F.compteurs[c.cle]).map(c =>
+  const aff = compteursAffiches(avion(), { feux: nbFeux(), compteurs: F.compteurs });
+  $('#feu-row').hidden = !aff.feux;
+  $('#ctr-zone').hidden = !aff.reglable;
+  if (!aff.reglable) { $('#ctr-panel').hidden = true; $('#ctr-open').setAttribute('aria-expanded', 'false'); }
+  $('#ctrs').innerHTML = conf.filter(c => (c.on && aff.compteurs.has(c.cle)) || F.compteurs[c.cle]).map(c =>
     `<div class="step"><span>${esc(noms[c.cle])}</span><span class="ctl"><button type="button" data-c="${c.cle}" data-d="-1" aria-label="${esc(noms[c.cle])} moins">${MOINS}</button><output id="c-${c.cle}">${F.compteurs[c.cle] || 0}</output><button type="button" data-c="${c.cle}" data-d="1" aria-label="${esc(noms[c.cle])} plus">${PLUS}</button></span></div>`).join('');
   $('#ctr-panel').innerHTML = '<p class="hint">Allume les compteurs à afficher dans la saisie, et range-les avec les flèches.</p>'
     + conf.map((c, i) => `<div class="prow"><span class="arrows"><button type="button" data-mv="${i}" data-d="-1" aria-label="Monter" ${i ? '' : 'disabled'}>↑</button><button type="button" data-mv="${i}" data-d="1" aria-label="Descendre" ${i < conf.length - 1 ? '' : 'disabled'}>↓</button></span><span class="pname">${esc(noms[c.cle])}</span><button type="button" class="sw" role="switch" aria-checked="${c.on}" data-tg="${i}" aria-label="${esc(noms[c.cle])}"><span></span></button></div>`).join('');
@@ -556,17 +585,7 @@ export function initSaisie({ fermer }) {
   activerGlisser($('#m-res'));
   $('#m-res').addEventListener('click', async e => {
     const d = e.target.closest('[data-mdel]');
-    if (d) {
-      // Supprime SEULEMENT la suggestion (les vols enregistrés ne changent pas) ; « Annuler » la remet
-      const t = d.dataset.mdel;
-      await enregistrerReglage('missionsMasquees', masquerSuggestion(reglage('missionsMasquees'), t));
-      rendreSuggestions();
-      toastAction(`« ${t} » supprimée des suggestions`, 'Annuler', async () => {
-        await enregistrerReglage('missionsMasquees', remettreSuggestion(reglage('missionsMasquees'), t));
-        if (F) rendreSuggestions();
-      }, 4000);
-      return;
-    }
+    if (d) { await supprimerSuggestion(d.dataset.mdel); return; }
     const b = e.target.closest('[data-mv2]');
     if (b) { F.lignes.push({ t: b.dataset.mv2, nouveauFeu: null }); $('#m-q').value = ''; rendreSuggestions(); rendreLignes(); return; }
     if (e.target.closest('[data-mnew]')) $('#m-add').click();
@@ -607,11 +626,19 @@ export function initSaisie({ fermer }) {
     rendreCompteurs();
   });
   $('#rules-open2').addEventListener('click', ouvrirRegles);
+  $('#mlm-open').addEventListener('click', () => { $('#mlm-q').value = ''; rendreLibelles(); $('#ml-modal').hidden = false; });
+  $('#mlm-q').addEventListener('input', rendreLibelles);
+  $('#mlm-x').addEventListener('click', () => { $('#ml-modal').hidden = true; });
+  activerGlisser($('#mlm-list'));
+  $('#mlm-list').addEventListener('click', async e => {
+    const d = e.target.closest('[data-mdel]');
+    if (d) await supprimerSuggestion(d.dataset.mdel);
+  });
 
   // suppression
   $('#del').addEventListener('click', () => { $('#del-confirm').hidden = false; });
   $('#del-no').addEventListener('click', () => { $('#del-confirm').hidden = true; });
-  $('#del-yes').addEventListener('click', async () => { await supprimerVol(F.vol.id); toast('Vol supprimé'); F = null; quitter(); });
+  $('#del-yes').addEventListener('click', async () => { const v = F.vol; F = null; quitter(); await supprimerVolAvecAnnuler(v); });
   $('#save').addEventListener('click', () => enregistrer().catch(e => { $('#f-err').textContent = 'Erreur : ' + e.message; }));
 }
 

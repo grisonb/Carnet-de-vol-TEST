@@ -141,6 +141,11 @@ try {
   await p.click('#pm-ok');
   verifier(await p.inputValue('#f-copi') === 'XYZ', 'personne ajoutée et choisie');
 
+  console.log('Compteurs selon l\'avion (DH8D seulement)');
+  verifier(await p.isHidden('#feu-row') && await p.isHidden('#ctr-zone') && await p.locator('#ctrs .step').count() === 0, 'avion non-DH8D : aucun compteur (ni Feux)');
+  await p.click('#ac-cur'); await p.fill('#ac-q', 'xzzb'); await p.click('#ac-res .acitem');
+  verifier(await p.isVisible('#feu-row') && await p.isVisible('#ctr-zone') && await p.locator('#ctrs .step').count() === 2, 'DH8D : Feux et compteurs affichés');
+
   console.log('Mission avec feu');
   await p.fill('#m-q', 'rodez');
   await p.click('#feu-p');
@@ -158,6 +163,9 @@ try {
   await p.click('#ctr-panel [data-tg="2"]');
   verifier(await p.locator('#ctrs .step').count() === 3, 'compteur supplémentaire affiché (choix des compteurs)');
   await p.click('[data-c="largCdbDash"][data-d="1"]'); await p.click('[data-c="largCdbDash"][data-d="1"]');
+  await p.click('#ac-cur'); await p.fill('#ac-q', 'xtst'); await p.click('#ac-res .acitem');
+  verifier(await p.isVisible('#feu-row') && await p.locator('#ctrs .step').count() === 1 && await p.isHidden('#ctr-zone'),
+    'retour sur un avion non-DH8D : les compteurs déjà remplis restent visibles (rien n\'est perdu)');
   verifier((await p.textContent('#rec-x')).includes('XYZ'), 'temps du carnet : nom de l\'instructeur');
   verifier((await p.textContent('#r-col-l')) === 'Mono-pilote SE', 'temps du carnet : colonne avion');
   await cap('05-saisie-complete');

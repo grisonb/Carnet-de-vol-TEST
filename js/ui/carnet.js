@@ -2,13 +2,16 @@
 // La liste s'affiche par paquets de 40 cartes au fil du défilement (fluide avec 4000+ vols).
 
 import { $, esc, codeAvecDrapeau } from './commun.js';
-import { etat, avionDe, reglage } from '../etat.js';
+import { etat, avionDe, reglage, enregistrerReglage } from '../etat.js';
+import { activerGlisser } from './glisser.js';
+import { demanderSuppression, initSuppression } from './suppression.js';
+import { BANDE_GENERAL, choixParType, valeurBande, basculerChoix } from '../bande.js';
 import { hm, heureH, dateFr, aujourdhui, MOIS, arriveeLendemain } from '../temps.js';
 import { heuresLocales } from '../fuseaux.js';
 import { fuseau } from '../terrains.js';
 import { FONCTIONS, COMPTEURS } from '../modele.js';
 import { pastilleFeu, pastillesRegles, texteMissions, normaliser } from '../missions.js';
-import { heuresDerniersJours, totalHdV } from '../totaux.js';
+import { heuresDerniersJours, totalHdV, calculerTotaux } from '../totaux.js';
 
 const PAQUET = 40;
 let resultats = [];
@@ -42,7 +45,7 @@ export function ligneHeures(v) {
 }
 
 // Date affichée : date locale du départ en mode LOC
-function dateAffichee(v) {
+export function dateAffichee(v) {
   if (v.mode !== 'utc' && v.hDep) return heuresLocales(v.date, v.hDep, v.hArr || v.hDep, fuseau(v.dep), fuseau(v.arr)).dateLocDep;
   return v.date;
 }
@@ -75,12 +78,13 @@ export function carteVol(v) {
   if (v.tempsNuit) puces.push(`<span class="chip nuit">Nuit ${hm(v.tempsNuit)}</span>`);
   const mission = texteMissions(v);
   const duree = v.tempsTotal || v.simTemps || 0;
-  return `<button type="button" class="flight" data-id="${esc(v.id)}">
+  // la carte se glisse vers la gauche pour faire apparaître « Supprimer » (avec confirmation)
+  return `<div class="swrow flrow"><button type="button" class="swdel" data-fdel="${esc(v.id)}" tabindex="-1">Supprimer</button><button type="button" class="flight swfront" data-id="${esc(v.id)}">
     <div class="fl-top"><span class="fl-route${taille}">${route}</span><span class="fl-bloc">${hm(duree)}</span></div>
     <div class="fl-meta">${ligne}</div>
     <div class="fl-meta num">${esc(ligneHeures(v))}</div>
     <div class="chips">${puces.join('')}</div>
-    ${mission ? `<div class="fl-rem">${esc(mission)}</div>` : ''}</button>`;
+    ${mission ? `<div class="fl-rem">${esc(mission)}</div>` : ''}</button></div>`;
 }
 
 function afficherPaquet() {
@@ -99,8 +103,37 @@ function afficherPaquet() {
   affiches = fin;
 }
 
+// ---------- Bande d'heures (mêmes calculs que l'écran Totaux) ----------
+let cacheTotaux = { revision: -1, t: null };
+function totauxCarnet() {
+  if (cacheTotaux.revision !== etat.revision) cacheTotaux = { revision: etat.revision, t: calculerTotaux(etat.vols, etat.avions) };
+  return cacheTotaux.t;
+}
+// Totaux à jour : bande affichée tout de suite ; sinon calculée juste après l'affichage de la liste
+let bandeEnAttente = false;
+function rendreBande() {
+  if (cacheTotaux.revision === etat.revision) return dessinerBande();
+  if (bandeEnAttente) return;
+  bandeEnAttente = true;
+  setTimeout(() => { bandeEnAttente = false; dessinerBande(); }, 0);
+}
+function dessinerBande() {
+  const t = totauxCarnet();
+  const choix = reglage('bandeHeures').map(c => valeurBande(c, t)).filter(Boolean);
+  $('#h-strip').innerHTML = choix.length
+    ? choix.map(v => `<div><b class="num">${esc(v.texte)}</b><span>${esc(v.lib)}</span></div>`).join('')
+    : '<div class="empty">Touche ici pour choisir des heures à afficher</div>';
+}
+function rendreChoixBande() {
+  const t = totauxCarnet(), coches = reglage('bandeHeures');
+  const bouton = c => `<button type="button" data-hs="${esc(c.cle)}" aria-pressed="${coches.includes(c.cle)}">${esc(c.lib)}</button>`;
+  $('#hs-gen').innerHTML = BANDE_GENERAL.map(bouton).join('');
+  $('#hs-typ').innerHTML = choixParType(t, [...etat.avions.values()]).map(bouton).join('') || '<p class="hint">Aucun avion pour l\'instant.</p>';
+}
+
 export function rafraichirCarnet() {
   const auj = aujourdhui();
+  rendreBande();
   $('#h-total').textContent = hm(totalHdV(etat.vols));
   $('#h-quick').innerHTML = [3, 7, 30].map(n =>
     `<div><span class="lbl">${n} jours</span><b>${hm(heuresDerniersJours(etat.vols, n, auj))}</b></div>`).join('');
@@ -125,10 +158,31 @@ export function initCarnet(ouvrir) {
     if (ouvrir) $('#q').focus();
     else if ($('#q').value) { $('#q').value = ''; rafraichirCarnet(); }
   });
+  activerGlisser($('#list'), { largeur: 110, mode: 'decaler' });
+  initSuppression();
   $('#list').addEventListener('click', e => {
+    const d = e.target.closest('[data-fdel]');
+    if (d) {
+      const v = etat.vols.find(x => x.id === d.dataset.fdel);
+      d.closest('.swrow').classList.remove('ouvert');
+      if (v) demanderSuppression(v, dateFr(dateAffichee(v)));
+      return;
+    }
     const b = e.target.closest('.flight');
     if (b) ouvrirVol(etat.vols.find(v => v.id === b.dataset.id));
   });
+  // Bande d'heures : toucher = choisir les valeurs affichées
+  const ouvrirChoix = () => { rendreChoixBande(); $('#hs-modal').hidden = false; };
+  $('#h-strip').addEventListener('click', ouvrirChoix);
+  $('#h-strip').addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); ouvrirChoix(); } });
+  $('#hs-modal').addEventListener('click', async e => {
+    const b = e.target.closest('[data-hs]');
+    if (!b) return;
+    await enregistrerReglage('bandeHeures', basculerChoix(reglage('bandeHeures'), b.dataset.hs));
+    dessinerBande();
+    rendreChoixBande();
+  });
+  $('#hs-x').addEventListener('click', () => { $('#hs-modal').hidden = true; });
   new IntersectionObserver(es => { if (es.some(e => e.isIntersecting)) completer(); }, { rootMargin: '800px' })
     .observe($('#list-fin'));
 }

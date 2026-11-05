@@ -212,3 +212,22 @@ export function migrerAvionsV04(avions) {
   }
   return modifies;
 }
+
+// ---------- v0.6 : compteurs de mission par type d'avion ----------
+// Type OACI -> compteurs affichés dans le bloc Mission (« feux » = le compteur Feux). Un type absent
+// n'affiche aucun compteur. D'autres règles pourront être ajoutées ici plus tard.
+export const COMPTEURS_PAR_TYPE = {
+  DH8D: ['feux', ...COMPTEURS.map(c => c.cle)],
+};
+
+// Compteurs à afficher pour cet avion ; un ancien vol qui a déjà des compteurs non nuls les garde visibles
+export function compteursAffiches(avion, vol = null) {
+  const type = avion && !avion.sim ? String(avion.typeOACI || '').toUpperCase() : '';
+  const regle = COMPTEURS_PAR_TYPE[type] || [];
+  const visibles = new Set(regle);
+  if (vol) {
+    if (vol.feux > 0) visibles.add('feux');
+    for (const [k, n] of Object.entries(vol.compteurs || {})) if (n) visibles.add(k);
+  }
+  return { feux: visibles.has('feux'), compteurs: visibles, reglable: regle.length > 0 };
+}

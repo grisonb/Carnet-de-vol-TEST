@@ -20,7 +20,8 @@ export function plusGrandFeu(vols, exclureId = null) {
   let max = 0;
   for (const v of vols) {
     if (v.id === exclureId) continue;
-    for (const l of v.missions || []) {
+    // lignes de mission, et aussi les remarques (au cas où un feu y serait écrit)
+    for (const l of [...(v.missions || []), ...String(v.remarques || '').split(/\s+\+\s+|•/)]) {
       const n = numeroFeu(l);
       if (n !== null && n > max) max = n;
     }

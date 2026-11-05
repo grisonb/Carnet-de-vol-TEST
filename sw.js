@@ -19,7 +19,7 @@ const FICHIERS = [
   'js/fuseaux.js', 'js/missions.js', 'js/modele.js', 'js/nuit.js', 'js/pdf.js', 'js/sauvegarde.js',
   'js/temps.js', 'js/terrains.js', 'js/totaux.js', 'js/types-avion.js', 'js/version.js', 'js/numero-version.js',
   'js/ui/avions.js', 'js/ui/carnet.js', 'js/ui/commun.js', 'js/ui/plus.js', 'js/ui/regles.js',
-  'js/ui/saisie.js', 'js/ui/totaux.js', 'js/ui/terrain-perso.js', 'js/ui/glisser.js',
+  'js/ui/saisie.js', 'js/ui/totaux.js', 'js/ui/terrain-perso.js', 'js/ui/glisser.js', 'js/ui/suppression.js', 'js/bande.js',
   'vendor/jspdf.umd.min.js', 'ressources/terrains.json',
   'icones/icone-192.png', 'icones/icone-512.png', 'icones/icone-maskable-512.png',
   'polices/Barlow-400-latin.woff2', 'polices/Barlow-400-latin-ext.woff2',

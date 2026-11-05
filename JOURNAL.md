@@ -1,5 +1,30 @@
 # Journal des versions
 
+## v0.6 — 05/11/2026
+
+Remarques R17 à R21, d'après la maquette v21.
+
+**Ce qui change**
+- Accueil : bande d'heures sous 3 / 7 / 30 jours (valeur « 2 695h20 », libellé dessous, défilement horizontal).
+  Par défaut CdB, Copi, DC, Instructeur, IFR, Nuit. La toucher ouvre « Heures affichées en haut » : Temps bloc,
+  Simulateur, CdB, Copi, DC, Instructeur, IFR, Nuit, Vols, Atterrissages, et un bouton par type d'avion (du plus
+  d'heures au moins ; DH8D : total, CdB, Copi). Ordre = ordre coché ; choix enregistré (réglage `bandeHeures`,
+  compris dans la sauvegarde). Mêmes calculs que l'écran Totaux.
+- Bloc Mission : « Libellés missions › » (au-dessus de « Règles des pastilles › ») : tous les libellés, recherche,
+  glissé à gauche pour supprimer avec « Annuler » (même liste « suggestions masquées » qu'en v0.5).
+- Carnet : glisser une carte de vol vers la gauche -> « Supprimer » -> confirmation « Supprimer ce vol ? » (date,
+  trajet, durée) -> « Vol supprimé — Annuler » 4 s ; « Annuler » remet le vol à l'identique. Même fonction que
+  le bouton « Supprimer ce vol » de l'écran du vol. Tous les totaux sont recalculés.
+- Compteurs du bloc Mission (Feux, largages, « Choisir et ranger ») seulement pour un DH8D (règles par type
+  d'avion dans `modele.js`, `COMPTEURS_PAR_TYPE`) ; un ancien vol avec des compteurs non nuls les garde visibles.
+- Prochain n° de feu : cherché aussi dans les remarques des vols (en plus des lignes de mission).
+- Le message « Annuler » passe toujours devant les fenêtres.
+
+**Tests**
+- 55 tests unitaires (dont 6 nouveaux) ; nouveau test `tests/navigateur/v06.mjs` (390 px, glissés tactiles) avec
+  captures ; tous les tests existants réussis ; contrôle avec le vrai fichier FlyLog (local) : totaux identiques,
+  bande identique aux valeurs de référence, prochain feu n°52.
+
 ## v0.5 — 05/11/2026
 
 Remarque R16 : supprimer une suggestion de mission par glissé à gauche.

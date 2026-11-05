@@ -58,6 +58,15 @@ export async function supprimer(magasin, id, maintenant = new Date().toISOString
   return fin(tx);
 }
 
+// Remet un élément supprimé (Annuler) : il revient et sa trace de suppression est effacée
+export async function remettre(magasin, objet) {
+  const db = await ouvrir();
+  const tx = db.transaction([magasin, 'suppressions'], 'readwrite');
+  tx.objectStore(magasin).put(objet);
+  tx.objectStore('suppressions').delete(objet.id);
+  return fin(tx);
+}
+
 // Restauration d'une sauvegarde : tout est remplacé en une seule transaction
 export async function remplacerTout(contenu) {
   const db = await ouvrir();

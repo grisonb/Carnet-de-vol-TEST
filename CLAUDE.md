@@ -51,11 +51,12 @@ Pas d'étape de compilation : les fichiers du dépôt sont servis tels quels.
   - `missions.js` lignes de mission, numéros de feu, pastilles par règles, « Remarque du carnet » ;
   - `flylog.js` import FlyLog (anti-doublon par quantités) ; `totaux.js` ; `controle.js` ;
   - `pdf.js` carnet EASA (jsPDF, `vendor/jspdf.umd.min.js`, MIT) ; `sauvegarde.js` sauvegarde JSON + tableur CSV ;
-  - `csv.js` ; `db.js` IndexedDB ; `etat.js` données en mémoire + enregistrement ; `version.js`.
+  - `csv.js` ; `db.js` IndexedDB ; `etat.js` données en mémoire + enregistrement ; `version.js` ;
+  - `bande.js` bande d'heures de l'accueil (choix et valeurs, à partir de `calculerTotaux`).
 - `js/ui/` — écrans : `carnet.js` (liste par paquets de 40 au défilement, loupe), `saisie.js`, `avions.js`
   (recherche, Tous mes avions, fiche lecture seule / modification), `terrain-perso.js`, `glisser.js` (glisser
   une ligne vers la gauche -> bouton « Supprimer »), `totaux.js`, `plus.js`,
-  `regles.js`, `commun.js`.
+  `regles.js`, `commun.js`, `suppression.js` (suppression d'un vol avec confirmation + Annuler, partagée).
 - Référence d'interface : maquette v19 (`../donnees-privees/maquette-carnet-v19.html`, contient de vraies données :
   jamais dans le dépôt) et remarques P1-P6, R1-R15.
 - `js/app.js` démarre l'app.
@@ -72,7 +73,8 @@ Monopilote SE/ME = temps total − part multipilote du vol (c'est ainsi que FlyL
 Avion : `nom` (court, affiché en gras dans la saisie), `indicatif` (radio, seulement dans la fiche),
 `etiquettes` (proposées dans la saisie ; défaut : DH8D -> BOMBING + TRANSPORT, train classique -> TAILWHEEL).
 BOMBING et TRANSPORT s'excluent sur un vol. Suggestions de missions masquées : réglage `missionsMasquees`
-(on ne modifie jamais le texte des vols). Migrations de données : `etat.js` (`migrer`, une fois, drapeau en réglage).
+(on ne modifie jamais le texte des vols). Compteurs du bloc Mission par type d'avion : `COMPTEURS_PAR_TYPE`
+(`modele.js`, DH8D seulement pour l'instant). Bande d'heures : réglage `bandeHeures` (liste ordonnée de clés). Migrations de données : `etat.js` (`migrer`, une fois, drapeau en réglage).
 
 ## Tests
 
@@ -85,6 +87,7 @@ BOMBING et TRANSPORT s'excluent sur un vol. Suggestions de missions masquées : 
   fiche lecture seule, terrains) + captures `tests/navigateur/captures/v04-*.png`.
 - `node tests/navigateur/v05.mjs` : glisser une suggestion de mission pour la supprimer (glissés tactiles simulés
   par le protocole DevTools), Annuler, suggestions masquées, sauvegarde / restauration.
+- `node tests/navigateur/v06.mjs` : bande d'heures, libellés missions, suppression d'un vol par glissé, compteurs DH8D.
 - `node tests/navigateur/fluidite.mjs` : 4070 vols inventés, processeur ralenti ×6.
 - `node outils/controle-import.mjs ../donnees-privees/flylog-decode-v1.csv ../donnees-privees/totaux-flylog-reference.json` :
   contrôle avec le VRAI fichier, en local uniquement (rien n'est écrit dans le dépôt).

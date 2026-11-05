@@ -6,10 +6,12 @@
 // - toucher une ligne ouverte la referme (sans la choisir).
 // Structure attendue : <div class="swrow"><button class="swdel">…</button><button class="swfront">…</button></div>
 
-const LARGEUR = 96;   // largeur du bouton qui apparaît
 const SEUIL = 10;     // px avant de décider horizontal / vertical
 
-export function activerGlisser(conteneur) {
+// largeur : largeur du bouton ; mode 'retrecir' (la ligne se rétrécit, son texte reste lisible : suggestions)
+// ou 'decaler' (la ligne glisse sans changer de hauteur : cartes de vol)
+export function activerGlisser(conteneur, { largeur: LARGEUR = 96, mode = 'retrecir' } = {}) {
+  if (mode === 'decaler') conteneur.classList.add('glisse-decale');
   let g = null;              // geste en cours
   let vientDeGlisser = false; // un glissé vient de finir : on ignore le clic qu'il pourrait produire
   let minuterie = null;
@@ -40,7 +42,8 @@ export function activerGlisser(conteneur) {
     g.dx = dx;
     // la ligne se décale vers la gauche (elle se rétrécit : son texte reste lisible)
     const x = Math.max(-LARGEUR - 40, Math.min(0, g.base + dx));
-    g.front.style.setProperty('--d', `${-x}px`);
+    if (mode === 'decaler') g.front.style.transform = `translateX(${x}px)`;
+    else g.front.style.setProperty('--d', `${-x}px`);
     e.preventDefault();
   });
 
@@ -49,7 +52,7 @@ export function activerGlisser(conteneur) {
     if (g.horizontal) {
       const ouvert = g.base + g.dx < -LARGEUR / 2;
       g.row.classList.remove('glisse');
-      g.front.style.removeProperty('--d');
+      g.front.style.removeProperty('--d'); g.front.style.transform = '';
       g.row.classList.toggle('ouvert', ouvert);
       vientDeGlisser = true;
       clearTimeout(minuterie);

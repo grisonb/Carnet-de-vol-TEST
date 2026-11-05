@@ -88,7 +88,7 @@ try {
   await cap('02-accueil-loupe');
   await p.click('#q-open');
   const hauteur = await p.evaluate(() => document.querySelector('#list').getBoundingClientRect().top);
-  verifier(hauteur < 230, `accueil compact : la liste commence à ${Math.round(hauteur)} px du haut`);
+  verifier(hauteur < 300, `accueil compact (avec la bande d'heures) : la liste commence à ${Math.round(hauteur)} px du haut`);
 
   console.log('Saisie : bloc Vol');
   await p.click('#fab');
