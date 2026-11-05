@@ -2,6 +2,15 @@
 
 import { $, esc } from './commun.js';
 import { reglage, enregistrerReglage } from '../etat.js';
+import { remettreSuggestion } from '../missions.js';
+
+// « Suggestions masquées » : un bouton pour remettre chacune
+function rendreMasquees() {
+  const M = reglage('missionsMasquees');
+  $('#rm-masq').innerHTML = M.map(t =>
+    `<div class="mline"><div class="masq">${esc(t)}</div><button type="button" class="ghost" data-remettre="${esc(t)}">Remettre</button></div>`).join('')
+    || '<p class="hint">Aucune suggestion masquée.</p>';
+}
 
 function rendre() {
   const R = reglage('regles');
@@ -12,7 +21,7 @@ function rendre() {
 const verifier = () => { $('#rm-add').disabled = !($('#rm-p').value.trim() && $('#rm-l').value.trim()); };
 
 export function ouvrirRegles() {
-  rendre();
+  rendre(); rendreMasquees();
   $('#rm-p').value = ''; $('#rm-l').value = ''; delete $('#rm-l').dataset.t;
   verifier();
   $('#rules-modal').hidden = false;
@@ -30,6 +39,12 @@ export function initRegles() {
     if (!x) return;
     const R = [...reglage('regles')]; R.splice(Number(x.dataset.rx), 1);
     await enregistrerReglage('regles', R); rendre();
+  });
+  $('#rm-masq').addEventListener('click', async e => {
+    const b = e.target.closest('[data-remettre]');
+    if (!b) return;
+    await enregistrerReglage('missionsMasquees', remettreSuggestion(reglage('missionsMasquees'), b.dataset.remettre));
+    rendreMasquees();
   });
   $('#rm-x').addEventListener('click', () => { $('#rules-modal').hidden = true; });
 }

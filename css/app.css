@@ -334,3 +334,15 @@ svg.ip{width:20px;height:20px;fill:currentColor;display:block;margin:auto}
 :root[data-theme="dark"] .chip.ifr{background:#1a2a3c;color:#6ea8e0}:root[data-theme="dark"] .chip.nuit{background:#000;color:#cfd8dc}
 .sfab .main{width:42px;height:42px;border-radius:50%;padding:0;display:grid;place-items:center}
 #fiche.ro input::placeholder{color:transparent}
+
+/* ---------- v0.5 : glisser une suggestion de mission vers la gauche ---------- */
+.swrow{position:relative;overflow:hidden;border-radius:12px}
+.swrow .swdel{position:absolute;right:0;top:0;bottom:0;width:96px;border:0;background:var(--feu);color:#fff;font-weight:700;font-size:15px;padding:0}
+.swrow .swfront{position:relative;z-index:1;display:block;width:calc(100% - var(--d,0px));touch-action:pan-y;transition:width .18s ease;user-select:none;-webkit-user-select:none}
+.swrow.glisse .swfront{transition:none}
+.swrow.ouvert .swfront{--d:96px}
+.swrow:not(.ouvert):not(.glisse) .swdel{visibility:hidden}
+.toast .tbtn{background:none;border:0;color:var(--hl);font-weight:700;padding:4px 2px;margin-left:2px;text-decoration:underline}
+.toast{width:max-content;max-width:calc(100vw - 32px);text-align:center}
+.masq{flex:1;min-width:0;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface2);font-weight:600;overflow-wrap:anywhere}
+#rules-modal .mbox{max-height:calc(100vh - 24px);overflow:auto}

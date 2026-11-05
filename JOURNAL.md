@@ -1,5 +1,25 @@
 # Journal des versions
 
+## v0.5 — 05/11/2026
+
+Remarque R16 : supprimer une suggestion de mission par glissé à gauche.
+
+**Ce qui change**
+- Bloc Mission de la saisie : glisser une suggestion vers la gauche la décale et fait apparaître un bouton rouge
+  « Supprimer » à droite (moins loin ou vers la droite : elle revient ; une seule ouverte à la fois). Un toucher
+  simple choisit toujours la suggestion ; un glissé ne la choisit jamais ; le défilement vertical reste normal.
+- « Supprimer » : la suggestion disparaît et le message « « … » supprimée des suggestions — Annuler » reste
+  4 secondes. Seule la suggestion est retirée : le texte des vols enregistrés ne change jamais.
+- Liste des suggestions masquées enregistrée dans les données du pilote (réglage `missionsMasquees`, comprise
+  dans la sauvegarde de secours et sa restauration) : elles ne reviennent ni après redémarrage ni après recalcul.
+  Retapée avec « + », une mission redevient une suggestion.
+- Plus › Pastilles des missions : liste « Suggestions masquées » avec un bouton « Remettre ».
+
+**Tests**
+- 49 tests unitaires (dont 4 nouveaux sur les suggestions masquées).
+- Nouveau test `tests/navigateur/v05.mjs` (Chromium, 390 px, glissés tactiles simulés) avec captures.
+- Tous les tests existants réussis ; contrôle avec le vrai fichier FlyLog (local) : totaux identiques.
+
 ## v0.4 — 05/11/2026
 
 D'après la nouvelle maquette validée (v19) et les remarques P1 à P6 et R1 à R15.

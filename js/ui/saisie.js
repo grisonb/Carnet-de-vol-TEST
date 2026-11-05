@@ -1,6 +1,6 @@
 // Écran de saisie / modification d'un vol (comme la maquette, de haut en bas).
 
-import { $, $$, esc, segs, choisir, toast, codeAvecDrapeau, PLUS, MOINS } from './commun.js';
+import { $, $$, esc, segs, choisir, toast, toastAction, codeAvecDrapeau, PLUS, MOINS } from './commun.js';
 import { etat, reglage, enregistrerReglage, enregistrerVol, supprimerVol, enregistrerPersonne, supprimerPersonne,
   listeMissions, trouverPersonne, enregistrerAvion } from '../etat.js';
 import { ouvrirAjoutTerrain } from './terrain-perso.js';
@@ -11,7 +11,9 @@ import { versLocal, versUTC } from '../fuseaux.js';
 import { terrain, fuseau } from '../terrains.js';
 import { drapeau } from '../drapeaux.js';
 import { minutesDeNuit, estNuit } from '../nuit.js';
-import { plusGrandFeu, ajouterFeu, enleverFeu, lignesPourSaisie, estLigneFeu, normaliser } from '../missions.js';
+import { plusGrandFeu, ajouterFeu, enleverFeu, lignesPourSaisie, estLigneFeu, normaliser, estMasquee,
+  masquerSuggestion, remettreSuggestion } from '../missions.js';
+import { activerGlisser } from './glisser.js';
 import { initAvions } from './avions.js';
 import { ouvrirRegles } from './regles.js';
 
@@ -244,8 +246,11 @@ function rendreSuggestions() {
   const q = normaliser($('#m-q').value), r = $('#m-res');
   if (!q) { r.hidden = true; return; }
   const brut = $('#m-q').value.trim();
-  const m = [...new Set([...F.lignes.map(l => l.t), ...listeMissions()])].filter(x => normaliser(x).includes(q)).slice(0, 7);
-  r.innerHTML = m.map(x => `<button type="button" class="mitem${estLigneFeu(x) ? ' feu' : ''}" data-mv2="${esc(x)}">${esc(x)}</button>`).join('')
+  const masquees = reglage('missionsMasquees');
+  const m = [...new Set([...F.lignes.map(l => l.t), ...listeMissions()])]
+    .filter(x => normaliser(x).includes(q) && !estMasquee(masquees, x)).slice(0, 7);
+  // Chaque suggestion se glisse vers la gauche pour faire apparaître « Supprimer »
+  r.innerHTML = m.map(x => `<div class="swrow"><button type="button" class="swdel" data-mdel="${esc(x)}" tabindex="-1">Supprimer</button><button type="button" class="mitem swfront${estLigneFeu(x) ? ' feu' : ''}" data-mv2="${esc(x)}">${esc(x)}</button></div>`).join('')
     + `<button type="button" class="linkbtn" data-mnew="1">+ Nouvelle mission « ${esc(brut.toUpperCase())} »</button>`;
   r.hidden = false;
 }
@@ -548,7 +553,20 @@ export function initSaisie({ fermer }) {
   // missions
   $('#m-q').addEventListener('input', rendreSuggestions);
   $('#m-q').addEventListener('keydown', e => { if (e.key === 'Enter') $('#m-add').click(); });
-  $('#m-res').addEventListener('click', e => {
+  activerGlisser($('#m-res'));
+  $('#m-res').addEventListener('click', async e => {
+    const d = e.target.closest('[data-mdel]');
+    if (d) {
+      // Supprime SEULEMENT la suggestion (les vols enregistrés ne changent pas) ; « Annuler » la remet
+      const t = d.dataset.mdel;
+      await enregistrerReglage('missionsMasquees', masquerSuggestion(reglage('missionsMasquees'), t));
+      rendreSuggestions();
+      toastAction(`« ${t} » supprimée des suggestions`, 'Annuler', async () => {
+        await enregistrerReglage('missionsMasquees', remettreSuggestion(reglage('missionsMasquees'), t));
+        if (F) rendreSuggestions();
+      }, 4000);
+      return;
+    }
     const b = e.target.closest('[data-mv2]');
     if (b) { F.lignes.push({ t: b.dataset.mv2, nouveauFeu: null }); $('#m-q').value = ''; rendreSuggestions(); rendreLignes(); return; }
     if (e.target.closest('[data-mnew]')) $('#m-add').click();
@@ -557,6 +575,9 @@ export function initSaisie({ fermer }) {
     const v = $('#m-q').value.trim().toUpperCase();
     if (!v) { $('#m-q').focus(); return; }
     const aj = reglage('missionsAjoutees');
+    // retapée à la main : une suggestion masquée redevient une suggestion
+    const masq = reglage('missionsMasquees');
+    if (estMasquee(masq, v)) await enregistrerReglage('missionsMasquees', remettreSuggestion(masq, v));
     if (!listeMissions().some(x => x.toUpperCase() === v)) await enregistrerReglage('missionsAjoutees', [v, ...aj]);
     F.lignes.push({ t: v, nouveauFeu: null }); $('#m-q').value = ''; rendreSuggestions(); rendreLignes();
   });

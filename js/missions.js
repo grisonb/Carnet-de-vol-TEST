@@ -101,16 +101,27 @@ export function lignesPourSaisie(vol) {
 }
 
 // Missions proposées : toutes les lignes déjà écrites, de la plus récente à la plus ancienne,
-// plus les missions ajoutées à la main.
-export function missionsConnues(volsRecentsDabord, ajoutees = []) {
-  const vues = new Set(), out = [];
+// plus les missions ajoutées à la main, SAUF les suggestions masquées par le pilote
+// (le texte des vols n'est jamais modifié : on cache seulement la suggestion).
+export function missionsConnues(volsRecentsDabord, ajoutees = [], masquees = []) {
+  const vues = new Set(masquees.map(cleSuggestion)), out = [];
   const ajouter = t => {
-    const k = t.trim().toUpperCase();
+    const k = cleSuggestion(t);
     if (k && !vues.has(k)) { vues.add(k); out.push(t.trim()); }
   };
   ajoutees.forEach(ajouter);
   for (const v of volsRecentsDabord) (v.missions || []).forEach(ajouter);
   return out;
+}
+
+// Suggestions masquées (réglage « missionsMasquees ») : comparaison sans tenir compte des majuscules
+export const cleSuggestion = t => String(t || '').trim().toUpperCase();
+export const estMasquee = (masquees, t) => (masquees || []).some(m => cleSuggestion(m) === cleSuggestion(t));
+export function masquerSuggestion(masquees, t) {
+  return estMasquee(masquees, t) ? [...masquees] : [...(masquees || []), String(t).trim()];
+}
+export function remettreSuggestion(masquees, t) {
+  return (masquees || []).filter(m => cleSuggestion(m) !== cleSuggestion(t));
 }
 
 // Recherche « tolérante » : majuscules, sans accents ni ponctuation

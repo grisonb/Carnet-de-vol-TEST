@@ -14,6 +14,16 @@ export const $$ = s => [...document.querySelectorAll(s)];
 export const esc = t => String(t ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
 let minuterie = null;
+// Message avec un bouton (ex. « Annuler ») pendant quelques secondes
+export function toastAction(texte, libelle, action, duree = 4000) {
+  const t = $('#toast');
+  t.innerHTML = `<span>${esc(texte)} — </span><button type="button" class="tbtn">${esc(libelle)}</button>`;
+  t.querySelector('.tbtn').addEventListener('click', () => { clearTimeout(minuterie); t.hidden = true; action(); }, { once: true });
+  t.hidden = false;
+  clearTimeout(minuterie);
+  minuterie = setTimeout(() => { t.hidden = true; }, duree);
+}
+
 export function toast(texte, duree = 1800) {
   const t = $('#toast');
   t.textContent = texte;

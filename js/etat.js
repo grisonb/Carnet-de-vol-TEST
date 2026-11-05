@@ -19,7 +19,7 @@ export const ETIQUETTES_DEFAUT = ['BOMBING', 'TRANSPORT', 'TAILWHEEL'];
 export function reglage(cle) {
   const defauts = {
     compteurs: COMPTEURS_DEFAUT, regles: REGLES_DEFAUT, etiquettes: ETIQUETTES_DEFAUT,
-    missionsAjoutees: [], titulaire: '', derniereSauvegarde: null, reference: null, terrainsPerso: {},
+    missionsAjoutees: [], titulaire: '', derniereSauvegarde: null, reference: null, terrainsPerso: {}, missionsMasquees: [],
   };
   return etat.reglages[cle] ?? defauts[cle];
 }
@@ -128,5 +128,5 @@ export async function restaurer(donnees) {
 }
 
 export const avionDe = vol => etat.avions.get(vol.avionId) || null;
-export const listeMissions = () => missionsConnues(etat.vols, reglage('missionsAjoutees'));
+export const listeMissions = () => missionsConnues(etat.vols, reglage('missionsAjoutees'), reglage('missionsMasquees'));
 export const trouverPersonne = nom => etat.personnes.find(p => nomPersonne(p).toUpperCase() === String(nom).toUpperCase());
