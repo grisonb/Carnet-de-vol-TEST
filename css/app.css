@@ -23,7 +23,7 @@ h1,h2,h3{margin:0;text-wrap:balance}
 button{font:inherit;color:inherit;cursor:pointer}
 button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid var(--hl);outline-offset:2px}
 /* en-tête carnet */
-.hero{padding:18px 4px 8px;display:grid;gap:4px;justify-items:center;text-align:center}
+.hero{position:relative;padding:18px 4px 8px;display:grid;gap:4px;justify-items:center;text-align:center}
 .hero .big{font-family:var(--f-num);font-weight:700;font-size:44px;line-height:1}
 .hero .sub{color:var(--muted);font-size:14px}
 .quick{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0 4px}
@@ -238,3 +238,6 @@ svg.flag{background:none;flex:none;display:inline-block;width:20px;height:14px;b
 .prog{font-size:15px;color:var(--muted);text-align:center;padding:10px}
 .banner button{background:none;border:0;color:var(--primary);font-weight:600;padding:0}
 select{font:inherit}
+
+/* Version discrète en haut à droite de l'accueil */
+.hero .ver{position:absolute;top:4px;right:2px;font-size:11px;line-height:1;color:var(--muted);opacity:.75;font-weight:500;pointer-events:none}

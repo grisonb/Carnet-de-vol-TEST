@@ -1,8 +1,13 @@
 // Service worker : met toute l'app en cache pour qu'elle marche sans réseau.
-// VERSION doit être identique à js/version.js (un test le vérifie). Changer la version
-// change le nom du cache : le téléphone télécharge alors la nouvelle version.
-const VERSION = '0.1';
-const CACHE = 'carnet-de-vol-v' + VERSION;
+// Le numéro de version vient de js/version.js (seul endroit où il est écrit) : changer la version
+// change le nom du cache, le téléphone télécharge alors la nouvelle version.
+// Ce service worker est enregistré comme « module » et sa portée est /Carnet-de-vol-TEST/ :
+// il ne voit jamais les pages des autres apps de grisonb.github.io et ne touche qu'à SES caches
+// (noms commençant par « carnet-de-vol- »).
+import { VERSION } from './js/version.js';
+const PREFIXE = 'carnet-de-vol-';
+const CACHE = PREFIXE + 'v' + VERSION;
+const PORTEE = self.registration.scope; // ex. https://grisonb.github.io/Carnet-de-vol-TEST/
 
 const FICHIERS = [
   './', 'index.html', 'manifest.webmanifest',
@@ -29,12 +34,16 @@ self.addEventListener('install', e => {
 
 self.addEventListener('activate', e => {
   e.waitUntil(caches.keys()
-    .then(cles => Promise.all(cles.filter(k => k.startsWith('carnet-de-vol-') && k !== CACHE).map(k => caches.delete(k))))
+    .then(cles => Promise.all(cles.filter(k => k.startsWith(PREFIXE) && k !== CACHE).map(k => caches.delete(k))))
     .then(() => self.clients.claim()));
 });
 
 // Toujours le cache d'abord : l'app démarre instantanément, avec ou sans réseau.
 self.addEventListener('fetch', e => {
-  if (e.request.method !== 'GET' || new URL(e.request.url).origin !== location.origin) return;
-  e.respondWith(caches.match(e.request, { ignoreSearch: true }).then(r => r || fetch(e.request)));
+  // Uniquement les fichiers du Carnet (même origine ET sous /Carnet-de-vol-TEST/), et seulement
+  // dans le cache du Carnet : jamais dans les caches des autres apps du même site.
+  if (e.request.method !== 'GET' || !e.request.url.startsWith(PORTEE)) return;
+  e.respondWith(caches.open(CACHE)
+    .then(c => c.match(e.request, { ignoreSearch: true }))
+    .then(r => r || fetch(e.request)));
 });

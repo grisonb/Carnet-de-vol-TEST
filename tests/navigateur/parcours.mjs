@@ -6,6 +6,7 @@ import { mkdirSync, writeFileSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { serveur, playwright, verifier, RACINE } from './outils.mjs';
 import { fauxFlyLog, VOLS_INVENTES } from '../outils/faux-flylog.js';
+import { VERSION } from '../../js/version.js';
 
 const CAPT = join(RACINE, 'tests/navigateur/captures');
 mkdirSync(CAPT, { recursive: true });
@@ -26,9 +27,20 @@ try {
   await p.goto(srv.url);
   await p.waitForSelector('body[data-pret="1"]');
   verifier(await p.textContent('#h-total') === '0h00', 'carnet vide au départ');
+  verifier(await p.isVisible('#h-version') && await p.textContent('#h-version') === 'v' + VERSION,
+    `« v${VERSION} » visible sur l'accueil`);
+  {
+    const v = await p.locator('#h-version').boundingBox(), t = await p.locator('#h-total').boundingBox();
+    const l = await p.locator('#v-carnet .hero .lbl').boundingBox();
+    const chevauche = (a, b) => a.x < b.x + b.width && b.x < a.x + a.width && a.y < b.y + b.height && b.y < a.y + a.height;
+    verifier(!chevauche(v, t) && !chevauche(v, l), 'la mention de version ne recouvre pas TOTAL HdV');
+    verifier(v.x + v.width > 412 * 0.75 && v.y < t.y, 'la mention de version est en haut à droite');
+  }
+  await cap('00-accueil-version', false);
 
   console.log('Import FlyLog (fichier inventé)');
   await p.click('.tabs button[data-v="plus"]');
+  verifier(await p.textContent('#pl-version') === 'v' + VERSION, `version v${VERSION} aussi dans l'écran Plus`);
   await p.setInputFiles('#file-flylog', fichierFlyLog);
   await p.waitForSelector('#im-ok');
   verifier((await p.textContent('#ou-c')).includes('8 vols à ajouter'), 'résumé avant enregistrement : 8 vols');

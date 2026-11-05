@@ -9,6 +9,7 @@ import { initTotaux, rafraichirTotaux } from './ui/totaux.js';
 import { initPlus, majPlus, verifierRappel, demanderStockagePersistant, appliquerTypesPerso } from './ui/plus.js';
 import { initRegles } from './ui/regles.js';
 import { invaliderStats } from './ui/avions.js';
+import { VERSION } from './version.js';
 
 let vue = 'carnet';
 let aRafraichir = new Set(['carnet', 'totaux', 'plus']);
@@ -65,7 +66,7 @@ async function demarrer() {
 
 // Service worker : fonctionnement hors ligne + mise à jour quand une nouvelle version est publiée
 if ('serviceWorker' in navigator && location.protocol !== 'file:') {
-  navigator.serviceWorker.register('sw.js').then(reg => {
+  navigator.serviceWorker.register('sw.js', { type: 'module', scope: './', updateViaCache: 'none' }).then(reg => {
     reg.addEventListener('updatefound', () => {
       const nouveau = reg.installing;
       nouveau && nouveau.addEventListener('statechange', () => {
@@ -77,4 +78,6 @@ if ('serviceWorker' in navigator && location.protocol !== 'file:') {
   }).catch(() => {});
 }
 
+// Version toujours visible sur l'accueil (même si le chargement des vols échoue)
+$('#h-version').textContent = 'v' + VERSION;
 demarrer();

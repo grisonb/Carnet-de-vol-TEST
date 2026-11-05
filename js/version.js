@@ -1,3 +1,5 @@
-// Version affichée dans l'app (écran Plus). Doit être identique à VERSION dans sw.js
-// (un test le vérifie) : changer de version change le nom du cache et force la mise à jour.
-export const VERSION = '0.1';
+// SEUL endroit où est écrit le numéro de version. Il sert à :
+//  - la mention « vX.Y » de l'accueil et de l'écran Plus ;
+//  - le nom du cache du service worker (sw.js l'importe) : changer de version change le cache
+//    et force le téléphone à télécharger la nouvelle version.
+export const VERSION = '0.2';
