@@ -1,5 +1,7 @@
-// Table générique des types d'avion (codes OACI). Sert à remplir la fiche d'un avion
+// Table des types d'avion (codes OACI). Sert à remplir la fiche d'un avion
 // et à ranger les heures dans les bonnes colonnes du carnet EASA.
+// v0.10 : les 4 exemples ajoutés en v0.1 (A320, AT72, C150, DA42) sont retirés ; Plus › Types d'avion ne montre
+// que les types de mes avions + ceux ajoutés à la main (voir typesAffiches).
 //
 // equipage : 'SP' monopilote | 'MP' multipilote
 // moteurs  : 'SE' monomoteur | 'ME' multimoteur
@@ -11,15 +13,12 @@ const T = (code, constructeur, modele, equipage, moteurs, moteur, surface, class
   ({ code, constructeur, modele, equipage, moteurs, moteur, surface, train: classique ? 'classique' : 'tricycle' });
 
 export const TYPES = [
-  T('A320', 'AIRBUS', 'A320', 'MP', 'ME', 'J', 'L'),
   T('AS80', 'STARCK', 'AS-80 Holiday', 'SP', 'SE', 'P', 'L', true),
-  T('AT72', 'ATR', 'ATR 72', 'MP', 'ME', 'T', 'L'),
   T('B190', 'BEECHCRAFT', '1900', 'MP', 'ME', 'T', 'L'),
   T('BE20', 'BEECHCRAFT', 'King Air 200', 'MP', 'ME', 'T', 'L'),
   T('BE58', 'BEECHCRAFT', 'Baron 58', 'SP', 'ME', 'P', 'L'),
   T('BE95', 'BEECHCRAFT', 'Travel Air 95', 'SP', 'ME', 'P', 'L'),
   T('C06T', 'CESSNA', '206 turbine', 'SP', 'SE', 'T', 'L'),
-  T('C150', 'CESSNA', '150', 'SP', 'SE', 'P', 'L'),
   T('C152', 'CESSNA', '152', 'SP', 'SE', 'P', 'L'),
   T('C172', 'CESSNA', '172', 'SP', 'SE', 'P', 'L'),
   T('C182', 'CESSNA', '182 Skylane', 'SP', 'SE', 'P', 'L'),
@@ -30,7 +29,6 @@ export const TYPES = [
   T('D11', 'JODEL', 'D11', 'SP', 'SE', 'P', 'L', true),
   T('D140', 'JODEL', 'D140 Mousquetaire', 'SP', 'SE', 'P', 'L', true),
   T('DA40', 'DIAMOND', 'DA40', 'SP', 'SE', 'P', 'L'),
-  T('DA42', 'DIAMOND', 'DA42 Twin Star', 'SP', 'ME', 'P', 'L'),
   T('DH8D', 'DE HAVILLAND CANADA', 'Dash 8 Q400', 'MP', 'ME', 'T', 'L'),
   T('DR10', 'ROBIN', 'DR100 / DR1050', 'SP', 'SE', 'P', 'L', true),
   T('DR30', 'ROBIN', 'DR300', 'SP', 'SE', 'P', 'L'),
@@ -59,6 +57,22 @@ export const TYPES = [
 
 export const MOTEUR = { P: 'Piston', T: 'Turbopropulseur', J: 'Réacteur' };
 export const SURFACE = { L: 'Terrestre', A: 'Amphibie', H: 'Hydravion' };
+
+// Plus › Types d'avion : seulement les types utilisés par mes avions (donc par mes vols) et ceux que j'ai
+// ajoutés ou modifiés moi-même. sim = au moins un simulateur (ligne « SIM »). Un type inconnu de la table
+// est quand même montré (à compléter).
+export function typesAffiches(avions, typesPerso, connus) {
+  const codes = new Set();
+  let sim = false;
+  for (const a of avions) {
+    if (a.sim) sim = true;
+    else if (a.typeOACI) codes.add(String(a.typeOACI).toUpperCase());
+  }
+  for (const p of typesPerso || []) if (p && p.code) codes.add(p.code);
+  const liste = [...codes].sort().map(c => connus.get(c)
+    || { code: c, constructeur: '', modele: '', equipage: 'SP', moteurs: 'SE', moteur: 'P', surface: 'L', train: 'tricycle', inconnu: true });
+  return { liste, sim };
+}
 
 export function indexTypes(types = TYPES) {
   return new Map(types.map(t => [t.code, t]));

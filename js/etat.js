@@ -6,6 +6,7 @@ import { comparerRecentDabord, horodater, COMPTEURS_DEFAUT, nomPersonne, migrerA
 import { definirTerrainsPerso } from './terrains.js';
 import { BANDE_DEFAUT } from './bande.js';
 import { REGLES_DEFAUT, missionsConnues } from './missions.js';
+import { REGLAGES_PRIVES } from './sauvegarde.js';
 
 export const etat = {
   vols: [],            // du plus récent au plus ancien
@@ -57,6 +58,12 @@ export async function enregistrerTerrainPerso(code, t) {
 
 export function prevenir() { etat.revision++; for (const f of etat.ecouteurs) f(); }
 export const surChangement = f => etat.ecouteurs.add(f);
+
+// Réglage propre au téléphone (copie NAS…) : enregistré sans prévenir les écrans (ne déclenche pas de copie)
+export async function ecrireReglageDiscret(cle, valeur) {
+  etat.reglages[cle] = valeur;
+  await db.ecrireReglage(cle, valeur);
+}
 
 export async function enregistrerReglage(cle, valeur) {
   etat.reglages[cle] = valeur;
@@ -146,10 +153,10 @@ export async function contenuComplet() {
 }
 
 export async function restaurer(donnees) {
-  // Le mot de passe des cartes n'est pas dans la sauvegarde : on garde celui du téléphone
-  const mdp = etat.reglages.cartesMotDePasse;
-  await db.remplacerTout(donnees);
-  if (mdp) await db.ecrireReglage('cartesMotDePasse', mdp);
+  // Mots de passe, adresse et état de la copie NAS ne sont pas dans la sauvegarde : on garde ceux du téléphone
+  const prives = REGLAGES_PRIVES.filter(k => etat.reglages[k] !== undefined).map(k => [k, etat.reglages[k]]);
+  await db.remplacerTout({ ...donnees, reglages: (donnees.reglages || []).filter(r => !REGLAGES_PRIVES.includes(r.cle)) });
+  for (const [k, v] of prives) await db.ecrireReglage(k, v);
   await charger();
   prevenir();
 }

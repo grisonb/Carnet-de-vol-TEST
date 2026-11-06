@@ -32,6 +32,15 @@ de l'utilisateur « carnet » (jamais dans le dépôt). Installation, script et 
 Les codes ADS-B et immatriculations réels ne sont JAMAIS dans le dépôt (servis par le VPS derrière le mot de passe).
 IndexedDB v2 : magasin `traces` (hors sauvegarde). Le mot de passe (`cartesMotDePasse`) est exclu de la sauvegarde.
 
+## Copie automatique sur le NAS (v0.10)
+
+`js/copieur.js` (logique : regroupement 5 s, une seule copie en attente, essais espacés, textes) et `js/ui/nas.js`
+(envoi gzip + SHA-256 vers `<adresse>/carnet.php?action=envoyer|test|liste|lire`, en-tête `X-Carnet-Cle`, écrans Plus).
+L'adresse du NAS et son mot de passe sont TAPÉS sur le téléphone (réglages `nasAdresse`, `nasMotDePasse`, `nasAuto`,
+`nasEtat`, écrits avec `ecrireReglageDiscret` pour ne pas relancer une copie) : jamais dans le dépôt, exclus de la
+sauvegarde (`REGLAGES_PRIVES`). Script PHP, installation (tâche DSM root) et guide : dossier privé
+`../donnees-privees/nas-carnet-sauvegarde/` (jamais dans le dépôt). Ne jamais toucher au NAS soi-même.
+
 ## Hébergement
 
 GitHub Pages, branche `main`, racine : https://grisonb.github.io/Carnet-de-vol-TEST/
@@ -54,7 +63,7 @@ Pas d'étape de compilation : les fichiers du dépôt sont servis tels quels.
   - `terrains.js` table mondiale OACI `ressources/terrains.json` ({z: fuseaux, t: {code: [lat, lon, nom, pays,
     n° de fuseau]}}), générée par `outils/generer-terrains.py` depuis OurAirports (domaine public) et
     mwgg/Airports (MIT) ; + terrains ajoutés à la main par le pilote (réglage `terrainsPerso`, jamais dans le code) ;
-  - `drapeaux.js` drapeaux SVG dessinés par l'app ; `types-avion.js` table des types OACI ;
+  - `drapeaux.js` drapeaux SVG dessinés par l'app ; `types-avion.js` table des types OACI (+ `typesAffiches` pour Plus) ;
   - `modele.js` structure vol / avion / personne, colonnes EASA (SE / ME / multipilote), fonctions ;
   - `missions.js` lignes de mission, numéros de feu, pastilles par règles, « Remarque du carnet » ;
   - `flylog.js` import FlyLog (anti-doublon par quantités) ; `totaux.js` ; `controle.js` ;
@@ -105,6 +114,8 @@ BOMBING et TRANSPORT s'excluent sur un vol. Suggestions de missions masquées : 
 - `node tests/navigateur/v07.mjs` : bande d'heures sous le TOTAL, ordre ↑ ↓, Feux / Largages CdB Dash.
 - `node tests/navigateur/v08.mjs` : Carte du vol avec FAUX serveur de traces et de tuiles (jamais le vrai VPS).
 - `node tests/navigateur/v09.mjs` : boutons × rouges, menu Plus par sections, flèche retour, appui long, recherche par date.
+- `node tests/navigateur/v010.mjs` : types d'avion ; copie NAS avec un FAUX NAS local (regroupement, NAS injoignable,
+  hors ligne, mot de passe refusé, restauration d'une version).
 - `node tests/navigateur/fluidite.mjs` : 4070 vols inventés, processeur ralenti ×6.
 - `node outils/controle-import.mjs ../donnees-privees/flylog-decode-v1.csv ../donnees-privees/totaux-flylog-reference.json` :
   contrôle avec le VRAI fichier, en local uniquement (rien n'est écrit dans le dépôt).

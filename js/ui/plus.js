@@ -8,7 +8,7 @@ import { comparerReference } from '../controle.js';
 import { creerSauvegarde, texteSauvegarde, lireSauvegarde, nomFichier, texteTableur, etatSauvegarde } from '../sauvegarde.js';
 import { paginer, dessinerPDF, totauxVides, totauxPDF } from '../pdf.js';
 import { hm, aujourdhui, dateFr } from '../temps.js';
-import { TYPES, MOTEUR, SURFACE } from '../types-avion.js';
+import { TYPES, MOTEUR, SURFACE, typesAffiches } from '../types-avion.js';
 import { nomPersonne } from '../modele.js';
 import { VERSION } from '../version.js';
 import { ouvrirRegles } from './regles.js';
@@ -16,6 +16,8 @@ import { ouvrirFlotte, typesConnus, definirTypes } from './avions.js';
 import { ouvrirPersonne, ouvrirLibelles } from './saisie.js';
 import { ouvrirChoixBande } from './carnet.js';
 import { resumeCartes } from './carte.js';
+import { ecranNas, ecranRestaurerNas, resumeCopieNas, configNas, etatNas } from './nas.js';
+import { copieNasAJour, depuis } from '../copieur.js';
 
 const nombre = n => n.toLocaleString('fr-FR');
 const chrono = vols => [...vols].reverse(); // etat.vols est du plus récent au plus ancien
@@ -200,12 +202,16 @@ async function chargerReference() {
 // ---------- Types d'avion ----------
 function ecranTypes() {
   const perso = reglage('typesPerso') || [];
-  const liste = [...typesConnus().values()].sort((a, b) => a.code.localeCompare(b.code));
+  const { liste, sim } = typesAffiches([...etat.avions.values()], perso, typesConnus());
+  const ligne = t => t.inconnu
+    ? `<button type="button" class="typerow" data-ty="${esc(t.code)}"><b>${esc(t.code)}</b><span>Type inconnu de l'app : touche pour le compléter</span></button>`
+    : `<button type="button" class="typerow" data-ty="${esc(t.code)}"><b>${esc(t.code)}</b><span>${esc(t.constructeur)} • ${esc(t.modele)}<br>${t.equipage === 'MP' ? 'Multipilote' : 'Monopilote ' + t.moteurs} · ${MOTEUR[t.moteur]} · ${SURFACE[t.surface]}${t.train === 'classique' ? ' · Train classique' : ''}${perso.some(p => p.code === t.code) ? ' · <i>modifié</i>' : ''}</span></button>`;
   const c = ouvrirOutil("Types d'avion", `
-    <p class="hint" style="font-size:15px">Cette table remplit la fiche d'un avion quand tu tapes son type OACI. Les heures du carnet suivent la fiche de chaque avion (Plus › Mes avions). Touche un type pour le corriger.</p>
-    <div class="flist" id="ty-l">${liste.map(t => `<button type="button" class="typerow" data-ty="${esc(t.code)}"><b>${esc(t.code)}</b><span>${esc(t.constructeur)} • ${esc(t.modele)}<br>${t.equipage === 'MP' ? 'Multipilote' : 'Monopilote ' + t.moteurs} · ${MOTEUR[t.moteur]} · ${SURFACE[t.surface]}${t.train === 'classique' ? ' · Train classique' : ''}${perso.some(p => p.code === t.code) ? ' · <i>modifié</i>' : ''}</span></button>`).join('')}</div>
+    <p class="hint" style="font-size:15px">Les types de tes avions (et ceux que tu as ajoutés). Ils remplissent la fiche d'un avion quand tu tapes son type OACI ; les heures du carnet suivent la fiche de chaque avion (Plus › Mes avions). Touche un type pour le corriger.</p>
+    <p class="hint" id="ty-n">${liste.length + (sim ? 1 : 0)} types</p>
+    <div class="flist" id="ty-l">${liste.map(ligne).join('')}${sim ? '<div class="typerow" data-sim="1"><b>SIM</b><span>Simulateurs (FFS, FTD, FNPT II) : réglés dans la fiche de chaque simulateur</span></div>' : ''}</div>
     <button type="button" class="bigbtn" id="ty-add">+ Ajouter un type</button>`);
-  c.querySelector('#ty-l').addEventListener('click', e => { const b = e.target.closest('[data-ty]'); if (b) editerType(typesConnus().get(b.dataset.ty)); });
+  c.querySelector('#ty-l').addEventListener('click', e => { const b = e.target.closest('[data-ty]'); if (b) editerType(liste.find(t => t.code === b.dataset.ty)); });
   c.querySelector('#ty-add').addEventListener('click', () => editerType(null));
 }
 function editerType(t) {
@@ -301,6 +307,7 @@ export async function majPlus() {
   $('#pl-save-s').textContent = `Dernière : ${d ? dateFr(d.slice(0, 10)) : 'jamais'} · Téléchargements ou Google Drive`;
   $('#pl-tit-s').textContent = reglage('titulaire') || 'Nom imprimé sur le PDF';
   verifierRappel();
+  $('#pl-nas-s').textContent = resumeCopieNas();
   resumeCartes().then(t => { $('#pl-cartes-s').textContent = t; });
   const p = await persiste();
   $('#pl-stock-s').textContent = p === null ? 'Protection non disponible sur ce navigateur'
@@ -311,7 +318,11 @@ export async function majPlus() {
 const ICONE_SAUVE = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 9h-4V3H9v6H5l7 7zM5 18v2h14v-2z"/></svg>';
 const ICONE_OK = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 16.17 4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>';
 export function verifierRappel() {
-  const e = etatSauvegarde(reglage('derniereSauvegarde'));
+  // Copie automatique sur le NAS qui marche : encart vert « Copié sur le NAS il y a X min »
+  const nas = etatNas();
+  const e = copieNasAJour(configNas(), nas)
+    ? { ok: true, titre: `Copié sur le NAS ${depuis(nas.derniereCopie)}`, texte: 'Copie automatique à jour.' }
+    : etatSauvegarde(reglage('derniereSauvegarde'));
   $('#pl-bk').classList.toggle('ok', e.ok);
   $('#pl-bk-i').innerHTML = e.ok ? ICONE_OK : ICONE_SAUVE;
   $('#pl-bk-t').textContent = e.titre;
@@ -338,6 +349,10 @@ export function initPlus() {
   $('#pl-heures').addEventListener('click', ouvrirChoixBande);
   $('#pl-libelles').addEventListener('click', ouvrirLibelles);
   $('#pl-stockage').addEventListener('click', ecranStockage);
+  $('#pl-nas').addEventListener('click', ecranNas);
+  $('#pl-nas-rest').addEventListener('click', ecranRestaurerNas);
+  // État de la copie NAS changé (copie faite, NAS injoignable…) : sous-titre et encart à jour
+  document.addEventListener('nas-etat', () => { $('#pl-nas-s').textContent = resumeCopieNas(); verifierRappel(); });
   $('#ou-x').addEventListener('click', fermerOutil);
 }
 

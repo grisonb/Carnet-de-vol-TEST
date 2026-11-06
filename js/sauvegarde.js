@@ -9,7 +9,8 @@ import { VERSION } from './version.js';
 export const FORMAT = 'carnet-de-vol-sauvegarde';
 
 // Réglages jamais copiés dans la sauvegarde (le fichier peut se retrouver sur Drive ou dans un e-mail)
-export const REGLAGES_PRIVES = ['cartesMotDePasse'];
+// (mots de passe, adresse du NAS, état de la copie NAS : propres à ce téléphone)
+export const REGLAGES_PRIVES = ['cartesMotDePasse', 'nasAdresse', 'nasMotDePasse', 'nasAuto', 'nasEtat'];
 
 // contenu : { vols, avions, personnes, suppressions, reglages: [{cle, valeur}] }
 export function creerSauvegarde(contenu, maintenant = new Date().toISOString()) {

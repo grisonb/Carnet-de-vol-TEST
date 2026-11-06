@@ -6,6 +6,7 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { serveur, playwright, verifier, RACINE } from './outils.mjs';
 import { fauxFlyLog, VOLS_INVENTES } from '../outils/faux-flylog.js';
+import { VERSION } from '../../js/version.js';
 
 const CAPT = join(RACINE, 'tests/navigateur/captures');
 mkdirSync(CAPT, { recursive: true });
@@ -91,7 +92,7 @@ try {
   const groupes = await p.$$eval('#v-plus .pgrp', l => l.map(x => x.textContent));
   verifier(JSON.stringify(groupes) === '["Sauvegarde","Exporter","Mes réglages","Import FlyLog","Téléphone"]', 'sections : ' + groupes.join(', '));
   const lignes = await p.$$eval('#v-plus .pcard', cs => cs.map(c => [...c.querySelectorAll('.prow2 b')].map(b => b.textContent)));
-  verifier(JSON.stringify(lignes) === JSON.stringify([['Sauvegarde de secours', 'Restaurer une sauvegarde'],
+  verifier(JSON.stringify(lignes) === JSON.stringify([['Sauvegarde de secours', 'Restaurer une sauvegarde', 'Copie sur le NAS', 'Restaurer depuis le NAS'],
     ['Carnet officiel (PDF EASA)', 'Tableur (CSV)', 'Titulaire du carnet'],
     ['Mes avions', "Types d'avion", 'Heures affichées en haut', 'Pastilles des missions', 'Libellés missions', 'Personnes', 'Cartes de vol'],
     ['Importer FlyLog', 'Contrôle import'], ['Stockage']]), 'toutes les entrées, rangées dans leur section');
@@ -103,7 +104,7 @@ try {
   }));
   verifier(forme.every(x => x.ok), 'chaque ligne : icône dessinée, titre, sous-titre EN DESSOUS (non coupé), chevron ›');
   verifier(new Set(forme.map(x => x.fond)).size >= 5, 'carrés d\'icône de couleurs différentes selon le bloc');
-  verifier((await p.textContent('.pver')).includes('v0.9'), 'version de l\'app en bas : ' + (await p.textContent('.pver')));
+  verifier((await p.textContent('.pver')).includes('v' + VERSION), 'version de l\'app en bas : ' + (await p.textContent('.pver')));
   verifier((await p.textContent('#pl-cartes-s')).startsWith('Mot de passe à saisir'), 'Cartes de vol : sous-titre « Mot de passe à saisir » (pas encore de mot de passe)');
   await p.screenshot({ path: join(CAPT, 'v09-02-plus-clair.png'), fullPage: true });
   await p.emulateMedia({ colorScheme: 'dark' });

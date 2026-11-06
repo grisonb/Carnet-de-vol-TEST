@@ -16,7 +16,7 @@ const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/cs
   '.webmanifest': 'application/manifest+json', '.png': 'image/png', '.woff2': 'font/woff2' };
 const tmp = await mkdtemp(join(tmpdir(), 'carnet-maj-'));
 const ancienne = commit => { const d = join(tmp, commit); execSync(`mkdir -p "${d}" && git -C "${RACINE}" archive ${commit} | tar -x -C "${d}"`); return d; };
-const suivante = String((Number(VERSION) + 0.1).toFixed(1));
+const suivante = VERSION.replace(/\d+$/, n => String(Number(n) + 1)); // 0.9 -> 0.10, 0.10 -> 0.11 (jamais un calcul décimal)
 const dSuivante = join(tmp, 'suivante');
 await cp(RACINE, dSuivante, { recursive: true, filter: s => !/node_modules|\.git$|\/\.git\//.test(s) });
 await writeFile(join(dSuivante, 'js/numero-version.js'), `globalThis.VERSION_CARNET = '${suivante}';\n`);

@@ -11,6 +11,7 @@ import { initPlus, majPlus, verifierRappel, demanderStockagePersistant, applique
 import { initRegles } from './ui/regles.js';
 import { initTerrainPerso } from './ui/terrain-perso.js';
 import { initCarte, lancerArrierePlan } from './ui/carte.js';
+import { initNas, carnetModifie } from './ui/nas.js';
 import { invaliderStats } from './ui/avions.js';
 import { VERSION } from './version.js';
 
@@ -59,6 +60,7 @@ async function demarrer() {
   }
   appliquerTypesPerso();
   surChangement(() => {
+    carnetModifie(); // copie automatique sur le NAS, quelques secondes plus tard
     invaliderStats();
     aRafraichir = new Set(['carnet', 'totaux', 'plus']);
     aRafraichir.delete(vue);
@@ -70,6 +72,7 @@ async function demarrer() {
   montrer('carnet');
   verifierRappel();
   demanderStockagePersistant().then(() => { if (vue === 'plus') majPlus(); });
+  initNas();
   document.body.dataset.pret = '1';
   setTimeout(lancerArrierePlan, 1500); // traces des 30 derniers jours, discrètement
 }

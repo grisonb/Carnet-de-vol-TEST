@@ -1,5 +1,31 @@
 # Journal des versions
 
+## v0.10 — 06/11/2026
+
+Deux remarques : R30 (types d'avion) et R31 (copie automatique sur le NAS).
+
+**Ce qui change**
+- R30 : Plus › Types d'avion ne montre que les types de mes avions (donc de mes vols), ceux ajoutés ou modifiés à la
+  main, et une ligne SIM s'il y a des simulateurs. Les 4 types « exemples » de la table de la v0.1 (A320, AT72, C150,
+  DA42) sont retirés ; les vols et les types réglés à la main ne changent pas.
+- R31 : copie automatique du carnet sur le NAS. Quelques secondes après la dernière modification (modifications
+  rapprochées regroupées), la sauvegarde de secours complète, compressée (gzip) et avec son empreinte SHA-256, part en
+  arrière-plan. Pas de réseau, NAS éteint ou erreur : elle attend et repart toute seule (ouverture de l'app, retour du
+  réseau, essais espacés jusqu'à 30 min) ; une seule copie en attente (toujours la dernière version). Aucune fenêtre
+  ni message d'erreur : l'état se lit dans Plus.
+- Plus › Sauvegarde : « Copie sur le NAS » (adresse et mot de passe tapés sur le téléphone, Tester, Copie automatique,
+  Copier maintenant) et « Restaurer depuis le NAS » (versions gardées, confirmation, puis restauration comme un
+  fichier). L'encart du haut passe au vert « Copié sur le NAS il y a … » quand la copie marche.
+- L'adresse du NAS, son mot de passe et l'état de la copie restent sur le téléphone : ni dans le code, ni dans le CSV,
+  ni dans la sauvegarde de secours ; conservés lors d'une restauration (`REGLAGES_PRIVES`).
+- Côté NAS (dossier privé, installé à la main par une tâche DSM) : petit script PHP, copies rangées hors du dossier web.
+
+**Tests**
+- 84 tests unitaires (10 nouveaux : types, regroupement, file d'attente, essais espacés, mot de passe refusé, textes,
+  compression, mots de passe absents de la copie et du CSV) ; nouveau test `tests/navigateur/v010.mjs` avec un FAUX
+  NAS local (toute adresse non locale bloquée) ; tous les tests existants réussis ; contrôle local avec le vrai
+  fichier FlyLog (41 types, taille d'une copie ; non commité).
+
 ## v0.9 — 05/11/2026
 
 Cinq remarques faites sur le téléphone (R25 à R29), maquette v24.
