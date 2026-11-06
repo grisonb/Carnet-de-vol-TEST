@@ -26,6 +26,7 @@
     <div class="hstrip" id="h-strip" role="button" tabindex="0" aria-label="Choisir les heures affichées"></div>
     <div class="quick" id="h-quick"></div>
     <input class="search" id="q" type="search" hidden placeholder="Rechercher : date, terrain, immat., mission…" aria-label="Rechercher un vol">
+    <button type="button" class="list-debut" id="list-debut" hidden>↑ Vols plus récents</button>
     <div id="list"></div>
     <div id="list-fin" aria-hidden="true"></div>
   </section>
@@ -208,6 +209,7 @@
 </div>
 
 <button class="fab" id="fab" type="button">+ Nouveau vol</button>
+<button class="topbtn" id="top-btn" type="button" hidden aria-label="Revenir au dernier vol">↑ Dernier vol</button>
 <nav class="tabs" aria-label="Navigation"><div>
   <button type="button" data-v="carnet" aria-current="page">Carnet</button>
   <button type="button" data-v="totaux">Totaux</button>

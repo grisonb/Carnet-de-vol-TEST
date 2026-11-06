@@ -1,5 +1,22 @@
 # Journal des versions
 
+## v0.13 — 06/11/2026
+
+Retrouver un vol et consulter les vols voisins.
+
+**Ce qui change**
+- La liste du Carnet garde sa place quand on ouvre un vol puis qu'on revient (Annuler, Enregistrer, flèche retour
+  Android, autre onglet). Avant, on revenait toujours en haut, sur le dernier vol.
+- Recherche (date, terrain, immatriculation, mission…) : chaque vol trouvé a « Voir dans le carnet › ». La recherche se
+  ferme et la liste complète s'ouvre sur ce vol (surligné un instant), avec les vols des jours voisins au-dessus et en
+  dessous. En remontant, les vols plus récents se chargent au-dessus sans faire sauter l'écran.
+- « ↑ Dernier vol » (en bas à gauche, quand on est loin du haut) ramène en un geste au dernier vol ; toucher l'onglet
+  Carnet quand on y est déjà fait la même chose. Un nouveau vol enregistré ramène aussi en haut.
+
+**Tests**
+- Nouveau test `tests/navigateur/v013.mjs` (600 vols inventés) ; tous les tests existants, dont la fluidité ;
+  contrôle local avec le vrai fichier FlyLog (non commité).
+
 ## v0.12 — 06/11/2026
 
 Correction : « Copier maintenant » affichait « NAS injoignable » alors que « Tester » répondait OK.

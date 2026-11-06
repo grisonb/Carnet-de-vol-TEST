@@ -452,3 +452,12 @@ img{-webkit-user-drag:none}
 .fl-nm{font-size:16px;color:var(--av-ink)}
 .fl-reg{font-size:16px;color:var(--ink)}
 .fl-rem{margin-top:8px;font-size:16px;font-weight:700;line-height:1.3;color:var(--mi-ink);border-left:3px solid var(--mi-trait);padding-left:8px;overflow-wrap:anywhere}
+/* v0.13 : place gardée, « Voir dans le carnet », « ↑ Dernier vol » */
+.fl-voir{display:block;margin-top:10px;text-align:right;color:var(--primary);font-weight:700;font-size:15px;padding:4px 0}
+.flight.fl-vu{animation:flvu 1.8s ease-out}
+@keyframes flvu{0%,40%{box-shadow:0 0 0 3px var(--primary)}100%{box-shadow:0 0 0 3px transparent}}
+.list-debut{display:block;width:100%;margin:6px 0 4px;padding:10px;background:none;border:1px dashed var(--line);border-radius:12px;color:var(--primary);font-weight:600;font-size:15px}
+.list-debut[hidden]{display:none}
+.topbtn{position:fixed;left:max(16px,calc(env(safe-area-inset-left,0px) + 16px));bottom:calc(76px + env(safe-area-inset-bottom,0px));
+  background:var(--surface);color:var(--primary);border:1px solid var(--line);border-radius:16px;padding:14px 16px;font-weight:600;font-size:16px;box-shadow:0 6px 18px rgba(0,0,0,.18);z-index:6}
+.topbtn[hidden]{display:none}

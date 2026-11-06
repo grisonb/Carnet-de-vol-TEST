@@ -1,5 +1,8 @@
 // Écran Carnet (accueil) : TOTAL HdV, 3/7/30 jours, recherche, liste des vols par mois.
 // La liste s'affiche par paquets de 40 cartes au fil du défilement (fluide avec 4000+ vols).
+// v0.13 : la liste garde sa place quand on ouvre / referme un vol ; « Voir dans le carnet » sur un résultat de
+// recherche ouvre la liste complète SUR ce vol (fenêtre qui commence à ce vol : les vols plus récents se chargent
+// quand on remonte) ; bouton « ↑ Dernier vol » pour revenir en haut en un geste.
 
 import { $, esc, codeAvecDrapeau } from './commun.js';
 import { etat, avionDe, reglage, enregistrerReglage } from '../etat.js';
@@ -16,8 +19,11 @@ import { lireDate, filtreDate } from '../recherche.js';
 
 const PAQUET = 40;
 let resultats = [];
-let affiches = 0;
+let debut = 0;        // premier vol affiché (> 0 quand la liste est ouverte sur un vol plus ancien)
+let affiches = 0;     // fin (exclue) des vols affichés
 let moisCourant = '';
+let place = null;     // place dans la liste : { id du premier vol visible, sa position à l'écran, défilement }
+let enRecherche = false;
 let ouvrirVol = () => {};
 const index = new WeakMap();
 
@@ -51,7 +57,7 @@ export function dateAffichee(v) {
   return v.date;
 }
 
-export function carteVol(v) {
+export function carteVol(v, voir = false) {
   const a = avionDe(v);
   const esc0 = (v.escales || []).map(e => e.code);
   const taille = esc0.length > 2 ? ' xsmall' : esc0.length > 1 ? ' small' : '';
@@ -88,7 +94,7 @@ export function carteVol(v) {
     <div class="fl-id">${ligne}</div>
     <div class="fl-meta num">${esc(ligneHeures(v))}</div>
     <div class="chips">${puces.join('')}</div>
-    ${mission ? `<div class="fl-rem">${esc(mission)}</div>` : ''}</button></div>`;
+    ${mission ? `<div class="fl-rem">${esc(mission)}</div>` : ''}${voir ? `<span class="fl-voir" data-voir="${esc(v.id)}">Voir dans le carnet ›</span>` : ''}</button></div>`;
 }
 
 function afficherPaquet() {
@@ -101,10 +107,89 @@ function afficherPaquet() {
       moisCourant = m;
       html += `<h3 class="month lbl">${MOIS[Number(m.slice(5)) - 1] || ''} ${m.slice(0, 4)}</h3>`;
     }
-    html += carteVol(v);
+    html += carteVol(v, enRecherche);
   }
   $('#list').insertAdjacentHTML('beforeend', html);
   affiches = fin;
+}
+
+const enteteMois = m => `<h3 class="month lbl" data-mois="${m}">${MOIS[Number(m.slice(5)) - 1] || ''} ${m.slice(0, 4)}</h3>`;
+
+// Ajoute AU-DESSUS les vols plus récents (liste ouverte sur un vol ancien), sans faire bouger ce qu'on regarde
+function afficherAvant() {
+  if (debut <= 0) return;
+  const de = Math.max(0, debut - PAQUET);
+  let html = '', mois = '';
+  for (let i = de; i < debut; i++) {
+    const v = resultats[i], m = (v.date || '').slice(0, 7);
+    if (m !== mois) { mois = m; html += enteteMois(m); }
+    html += carteVol(v, enRecherche);
+  }
+  const liste = $('#list'), repere = liste.querySelector('.flrow');
+  const haut = repere ? repere.getBoundingClientRect().top : 0;
+  const tete = liste.firstElementChild;
+  if (tete && tete.matches('h3.month') && tete.dataset.mois === mois) tete.remove(); // même mois : un seul titre
+  liste.insertAdjacentHTML('afterbegin', html);
+  debut = de;
+  if (repere) window.scrollBy(0, repere.getBoundingClientRect().top - haut);
+  $('#list-debut').hidden = debut <= 0;
+}
+
+// Premier vol visible à l'écran (recherche par dichotomie : les cartes sont dans l'ordre)
+function lirePlace() {
+  const y = window.scrollY;
+  if (y < 5) return null;
+  const cartes = $('#list').querySelectorAll('.flight');
+  let a = 0, b = cartes.length - 1, trouve = -1;
+  while (a <= b) {
+    const m = (a + b) >> 1;
+    if (cartes[m].getBoundingClientRect().bottom > 0) { trouve = m; b = m - 1; } else a = m + 1;
+  }
+  if (trouve < 0) return { y };
+  return { id: cartes[trouve].dataset.id, haut: cartes[trouve].getBoundingClientRect().top, y };
+}
+
+// Fait défiler pour que le vol « id » soit à « haut » pixels du haut de l'écran
+function placerSur(id, haut) {
+  const el = $('#list').querySelector(`.flight[data-id="${CSS.escape(id)}"]`);
+  if (!el) return null;
+  window.scrollTo(0, Math.max(0, el.getBoundingClientRect().top + window.scrollY - haut));
+  return el;
+}
+
+// Remet la liste à la place mémorisée (retour d'un vol, d'un autre onglet)
+export function restaurerPlace() {
+  if (!place) { window.scrollTo(0, 0); majBoutonHaut(); return; }
+  if (!(place.id && placerSur(place.id, place.haut))) {
+    while (affiches < resultats.length && document.documentElement.scrollHeight < place.y + innerHeight) afficherPaquet();
+    window.scrollTo(0, place.y);
+  }
+  requestAnimationFrame(completer); requestAnimationFrame(completerAvant);
+  majBoutonHaut();
+}
+// Avant de quitter l'écran Carnet
+export function memoriserPlace() { if (!$('#v-carnet').hidden) place = lirePlace(); }
+export function oublierPlace() { place = null; }
+
+// Liste complète ouverte sur un vol (depuis un résultat de recherche)
+export function voirDansCarnet(id) {
+  $('#q').value = ''; $('#q').hidden = true; $('#q-open').setAttribute('aria-expanded', 'false');
+  rafraichirCarnet({ versVol: id });
+}
+
+// « ↑ Dernier vol » : visible quand on est loin du haut de la liste
+let bhEnAttente = false;
+function majBoutonHaut() {
+  const b = $('#top-btn');
+  if (!b) return;
+  const montrer = !$('#v-carnet').hidden && (debut > 0 || window.scrollY > innerHeight * 1.5);
+  if (b.hidden === montrer) b.hidden = !montrer;
+}
+export function allerAuDernierVol() {
+  place = null;
+  if (debut > 0) rafraichirCarnet({ haut: true });
+  window.scrollTo(0, 0);
+  majBoutonHaut();
 }
 
 // ---------- Bande d'heures (mêmes calculs que l'écran Totaux) ----------
@@ -144,8 +229,12 @@ function rendreChoixBande() {
 
 export function ouvrirChoixBande() { rendreChoixBande(); $('#hs-modal').hidden = false; }
 
-export function rafraichirCarnet() {
+// options : haut = repartir du haut (nouvelle recherche…) ; versVol = ouvrir la liste sur ce vol ;
+// retour = l'écran réapparaît (place mémorisée) ; sinon (modification pendant qu'on regarde) : on garde la place.
+export function rafraichirCarnet({ haut = false, versVol = null, retour = false } = {}) {
   const auj = aujourdhui();
+  if (haut) place = null;
+  else if (!versVol && !retour && !$('#v-carnet').hidden) place = lirePlace();
   rendreBande();
   $('#h-total').textContent = hm(totalHdV(etat.vols));
   $('#h-quick').innerHTML = [3, 7, 30].map(n =>
@@ -153,24 +242,40 @@ export function rafraichirCarnet() {
   // Une date (06/05/25, 05/2025, 2025…) : les vols de cette date (date affichée sur la carte) ; sinon recherche texte
   const brut = $('#q').value, parDate = filtreDate(lireDate(brut)), q = normaliser(brut);
   resultats = parDate ? etat.vols.filter(v => parDate(dateAffichee(v) || '')) : q ? etat.vols.filter(v => texteRecherche(v).includes(q)) : etat.vols;
-  affiches = 0; moisCourant = '';
+  enRecherche = resultats !== etat.vols;
+  // Fenêtre : commence au vol visé (ou au vol mémorisé) s'il est loin dans la liste, sinon au début
+  const cible = versVol || (place && place.id);
+  const i = cible ? resultats.findIndex(v => v.id === cible) : -1;
+  debut = i >= PAQUET ? i - 2 : 0;
+  affiches = debut; moisCourant = '';
   $('#list').innerHTML = resultats.length ? ''
     : `<p class="hint">${etat.vols.length ? 'Aucun vol ne correspond.' : 'Aucun vol pour l\'instant. Touche « + Nouveau vol », ou importe FlyLog depuis l\'écran Plus.'}</p>`;
+  $('#list-debut').hidden = debut <= 0;
   afficherPaquet();
+  if (!$('#v-carnet').hidden) {
+    if (versVol) {
+      place = null;
+      while (affiches < resultats.length && affiches < i + 6) afficherPaquet();
+      const el = placerSur(versVol, 76);
+      if (el) { el.classList.add('fl-vu'); setTimeout(() => el.classList.remove('fl-vu'), 1800); }
+      requestAnimationFrame(completerAvant);
+    } else if (!retour) restaurerPlace();
+  }
   requestAnimationFrame(completer);
+  majBoutonHaut();
 }
 
 export function initCarnet(ouvrir) {
   ouvrirVol = ouvrir;
   let attente = null;
-  $('#q').addEventListener('input', () => { clearTimeout(attente); attente = setTimeout(rafraichirCarnet, 120); });
+  $('#q').addEventListener('input', () => { clearTimeout(attente); attente = setTimeout(() => rafraichirCarnet({ haut: true }), 120); });
   // Loupe : ouvre la recherche ; la refermer efface la recherche
   $('#q-open').addEventListener('click', () => {
     const ouvrir = $('#q').hidden;
     $('#q').hidden = !ouvrir;
     $('#q-open').setAttribute('aria-expanded', String(ouvrir));
     if (ouvrir) $('#q').focus();
-    else if ($('#q').value) { $('#q').value = ''; rafraichirCarnet(); }
+    else if ($('#q').value) { $('#q').value = ''; rafraichirCarnet({ haut: true }); }
   });
   activerGlisser($('#list'), { largeur: 110, mode: 'decaler' });
   initSuppression();
@@ -182,6 +287,8 @@ export function initCarnet(ouvrir) {
       if (v) demanderSuppression(v, dateFr(dateAffichee(v)));
       return;
     }
+    const voir = e.target.closest('[data-voir]');
+    if (voir) return voirDansCarnet(voir.dataset.voir);
     const b = e.target.closest('.flight');
     if (b) ouvrirVol(etat.vols.find(v => v.id === b.dataset.id));
   });
@@ -206,6 +313,24 @@ export function initCarnet(ouvrir) {
   $('#hs-x').addEventListener('click', () => { $('#hs-modal').hidden = true; });
   new IntersectionObserver(es => { if (es.some(e => e.isIntersecting)) completer(); }, { rootMargin: '800px' })
     .observe($('#list-fin'));
+  new IntersectionObserver(es => { if (es.some(e => e.isIntersecting)) completerAvant(); }, { rootMargin: '600px' })
+    .observe($('#list-debut'));
+  $('#list-debut').addEventListener('click', afficherAvant);
+  $('#top-btn').addEventListener('click', allerAuDernierVol);
+  addEventListener('scroll', () => {
+    if (bhEnAttente) return;
+    bhEnAttente = true;
+    requestAnimationFrame(() => { bhEnAttente = false; majBoutonHaut(); });
+  }, { passive: true });
+}
+
+// Ajoute des vols plus récents tant que le haut de la fenêtre est proche de l'écran
+function completerAvant() {
+  if ($('#v-carnet').hidden || debut <= 0) return;
+  if ($('#list-debut').getBoundingClientRect().bottom > -600) {
+    afficherAvant();
+    requestAnimationFrame(completerAvant);
+  }
 }
 
 // Ajoute des paquets tant que la fin de la liste est proche de l'écran

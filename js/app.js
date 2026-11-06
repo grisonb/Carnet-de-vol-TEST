@@ -3,7 +3,7 @@
 import { $, $$, toast } from './ui/commun.js';
 import { charger, surChangement } from './etat.js';
 import { chargerTerrains } from './terrains.js';
-import { initCarnet, rafraichirCarnet } from './ui/carnet.js';
+import { initCarnet, rafraichirCarnet, memoriserPlace, restaurerPlace, oublierPlace, allerAuDernierVol } from './ui/carnet.js';
 import { initSaisie, ouvrirSaisie, saisieModifiee, abandonnerSaisie } from './ui/saisie.js';
 import { initRetour, majRetour } from './ui/retour.js';
 import { initTotaux, rafraichirTotaux } from './ui/totaux.js';
@@ -19,17 +19,19 @@ let vue = 'carnet';
 let aRafraichir = new Set(['carnet', 'totaux', 'plus']);
 
 function montrer(v) {
+  if (vue === 'carnet' && v !== 'carnet') memoriserPlace(); // la liste garde sa place (v0.13)
   vue = v;
   for (const k of ['carnet', 'saisie', 'totaux', 'plus']) $('#v-' + k).hidden = k !== v;
   $$('.tabs button').forEach(b => (b.dataset.v === v ? b.setAttribute('aria-current', 'page') : b.removeAttribute('aria-current')));
   $('#fab').hidden = v !== 'carnet';
+  if (v !== 'carnet') $('#top-btn').hidden = true;
   if (aRafraichir.has(v)) {
     aRafraichir.delete(v);
-    if (v === 'carnet') rafraichirCarnet();
+    if (v === 'carnet') rafraichirCarnet({ retour: true });
     if (v === 'totaux') rafraichirTotaux();
     if (v === 'plus') majPlus();
   }
-  window.scrollTo(0, 0);
+  if (v === 'carnet') restaurerPlace(); else window.scrollTo(0, 0);
   majRetour();
 }
 
@@ -39,6 +41,9 @@ function ouvrirVol(vol) {
 }
 
 async function demarrer() {
+  // La place dans la liste est gérée par l'app (v0.13) : le navigateur ne doit pas remettre son propre défilement
+  // quand la flèche retour revient dans l'historique (sinon retour en haut de la liste).
+  if ("scrollRestoration" in history) history.scrollRestoration = "manual";
   initCarnet(ouvrirVol);
   initSaisie({ fermer: () => montrer('carnet') });
   initTotaux();
@@ -49,8 +54,12 @@ async function demarrer() {
   initRetour({ vue: () => vue, montrer, saisieModifiee, abandonnerSaisie });
   // Appui long : pas de menu « copier / partager » hors des champs de saisie (R28)
   document.addEventListener('contextmenu', e => { if (!e.target.closest('input, textarea, select, [contenteditable]')) e.preventDefault(); });
-  $$('.tabs button').forEach(b => b.addEventListener('click', () => montrer(b.dataset.v)));
-  $('#fab').addEventListener('click', () => ouvrirVol(null));
+  // Onglet Carnet touché alors qu'on y est déjà : retour au dernier vol (en haut)
+  $$('.tabs button').forEach(b => b.addEventListener('click', () => {
+    if (b.dataset.v === 'carnet' && vue === 'carnet') return allerAuDernierVol();
+    montrer(b.dataset.v);
+  }));
+  $('#fab').addEventListener('click', () => { memoriserPlace(); oublierPlace(); ouvrirVol(null); }); // nouveau vol : retour en haut
 
   try {
     await Promise.all([charger(), chargerTerrains()]);
