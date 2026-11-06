@@ -43,6 +43,15 @@ export function horodater(objet, maintenant = new Date().toISOString()) {
   return objet;
 }
 
+// Carte de vol du Carnet (R32) : nom de l'avion (couleur Avion) puis immatriculation ; sans nom (ou nom identique
+// à l'immatriculation), l'immatriculation prend la place du nom.
+export function identiteAvion(a) {
+  if (!a) return { nom: '', immat: '' };
+  const immat = a.immat || '';
+  const nom = a.nom && a.nom.toUpperCase() !== immat.toUpperCase() ? a.nom : '';
+  return nom ? { nom, immat } : { nom: immat, immat: '' };
+}
+
 export function volVide() {
   return {
     id: null, creeLe: null, modifieLe: null, source: 'saisie', ordre: 0,

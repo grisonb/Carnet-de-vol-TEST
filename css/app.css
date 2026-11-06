@@ -442,3 +442,13 @@ img{-webkit-user-drag:none}
 /* Boutons posés sur la photo de la fiche avion : leur dessin n'hérite pas de l'icône grise de la photo */
 .fphoto .xbtn svg.ix{width:22px;height:22px;opacity:1;fill:none}
 .fphoto .fedit svg{opacity:1}
+/* v0.11 R32 : carte de vol plus lisible (date en gras, nom de l'avion en couleur Avion, mission en couleur Mission) */
+:root{--av-ink:#00796b;--mi-ink:#a04d00;--mi-trait:#e07b1a}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--av-ink:#4db6ac;--mi-ink:#ffa04d;--mi-trait:#ffa04d}}
+:root[data-theme="dark"]{--av-ink:#4db6ac;--mi-ink:#ffa04d;--mi-trait:#ffa04d}
+.fl-id{margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--muted);font-size:13px}
+.fl-id b{font-family:var(--f-num);font-weight:700;margin-right:8px}
+.fl-date{font-size:17px;color:var(--ink)}
+.fl-nm{font-size:16px;color:var(--av-ink)}
+.fl-reg{font-size:16px;color:var(--ink)}
+.fl-rem{margin-top:8px;font-size:16px;font-weight:700;line-height:1.3;color:var(--mi-ink);border-left:3px solid var(--mi-trait);padding-left:8px;overflow-wrap:anywhere}

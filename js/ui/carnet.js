@@ -9,7 +9,7 @@ import { BANDE_GENERAL, choixParType, valeurBande, basculerChoix, deplacerChoix 
 import { hm, heureH, dateFr, aujourdhui, MOIS, arriveeLendemain } from '../temps.js';
 import { heuresLocales } from '../fuseaux.js';
 import { fuseau } from '../terrains.js';
-import { FONCTIONS, COMPTEURS } from '../modele.js';
+import { FONCTIONS, COMPTEURS, identiteAvion } from '../modele.js';
 import { pastilleFeu, pastillesRegles, texteMissions, normaliser } from '../missions.js';
 import { heuresDerniersJours, totalHdV, calculerTotaux } from '../totaux.js';
 import { lireDate, filtreDate } from '../recherche.js';
@@ -59,8 +59,11 @@ export function carteVol(v) {
     ? `${codeAvecDrapeau(v.dep)} <span class="via">› ${esc0.map(codeAvecDrapeau).join(' › ')} ›</span> ${codeAvecDrapeau(v.arr)}`
     : `${codeAvecDrapeau(v.dep)} → ${codeAvecDrapeau(v.arr)}`;
   const modele = a ? (a.sim ? 'Simulateur' + (a.fstd ? ' ' + a.fstd : '') : (a.modele || a.typeOACI)) : '';
-  const nom = a && a.nom && a.nom.toUpperCase() !== a.immat.toUpperCase() ? a.nom : '';
-  const ligne = [dateFr(dateAffichee(v)), nom, a && a.immat, modele].filter(Boolean).map(esc).join(' - ');
+  // Date en gras, nom de l'avion (couleur Avion), immatriculation, modèle en petit gris coupé par « … » (R32)
+  const id = identiteAvion(a);
+  const ligne = `<b class="fl-date">${esc(dateFr(dateAffichee(v)))}</b>`
+    + (id.nom ? `<b class="fl-nm">${esc(id.nom)}</b>` : '') + (id.immat ? `<b class="fl-reg">${esc(id.immat)}</b>` : '')
+    + (modele ? `<span class="fl-mod">${esc(modele)}</span>` : '');
   const f = FONCTIONS[v.fonction] || FONCTIONS.cdb;
   const autre = v[f.champ];
   // Couleurs : fonction violet, missions orange, IFR bleu, nuit foncé, feu rouge, largages jaune
@@ -82,7 +85,7 @@ export function carteVol(v) {
   // la carte se glisse vers la gauche pour faire apparaître « Supprimer » (avec confirmation)
   return `<div class="swrow flrow"><button type="button" class="swdel" data-fdel="${esc(v.id)}" tabindex="-1">Supprimer</button><button type="button" class="flight swfront" data-id="${esc(v.id)}">
     <div class="fl-top"><span class="fl-route${taille}">${route}</span><span class="fl-bloc">${hm(duree)}</span></div>
-    <div class="fl-meta">${ligne}</div>
+    <div class="fl-id">${ligne}</div>
     <div class="fl-meta num">${esc(ligneHeures(v))}</div>
     <div class="chips">${puces.join('')}</div>
     ${mission ? `<div class="fl-rem">${esc(mission)}</div>` : ''}</button></div>`;

@@ -1,5 +1,22 @@
 # Journal des versions
 
+## v0.11 — 06/11/2026
+
+Une remarque : R32, carte de vol plus lisible dans la liste du Carnet (maquette v25, décrite dans le prompt).
+
+**Ce qui change**
+- Ligne sous le trajet : la date en gras, foncée, plus grande (police du trajet) ; le nom de l'avion en gras couleur
+  du bloc Avion, puis l'immatriculation en gras foncé (sans nom : l'immatriculation prend la place du nom) ; le modèle
+  en petit gris à la fin, coupé par « … ». Plus de tirets entre les éléments.
+- La ligne des heures (LOC / UTC) reste en petit gris.
+- La mission : en gras, 16 px, couleur du bloc Mission (orange foncé), petit trait vertical orange à gauche.
+- Lisible en mode sombre ; rien ne dépasse à 390 px.
+
+**Tests**
+- 87 tests unitaires (3 nouveaux) ; nouveau test `tests/navigateur/v011.mjs` (avec nom, sans nom, sans mission,
+  mission longue, clair / sombre) ; tous les tests existants (dont la fluidité) ; contrôle local avec le vrai
+  fichier FlyLog (non commité).
+
 ## v0.10 — 06/11/2026
 
 Deux remarques : R30 (types d'avion) et R31 (copie automatique sur le NAS).

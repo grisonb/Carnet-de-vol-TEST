@@ -116,6 +116,7 @@ BOMBING et TRANSPORT s'excluent sur un vol. Suggestions de missions masquées : 
 - `node tests/navigateur/v09.mjs` : boutons × rouges, menu Plus par sections, flèche retour, appui long, recherche par date.
 - `node tests/navigateur/v010.mjs` : types d'avion ; copie NAS avec un FAUX NAS local (regroupement, NAS injoignable,
   hors ligne, mot de passe refusé, restauration d'une version).
+- `node tests/navigateur/v011.mjs` : carte de vol du Carnet (date, nom / immatriculation, modèle coupé, mission), clair / sombre.
 - `node tests/navigateur/fluidite.mjs` : 4070 vols inventés, processeur ralenti ×6.
 - `node outils/controle-import.mjs ../donnees-privees/flylog-decode-v1.csv ../donnees-privees/totaux-flylog-reference.json` :
   contrôle avec le VRAI fichier, en local uniquement (rien n'est écrit dans le dépôt).
