@@ -1,5 +1,27 @@
 # Journal des versions
 
+## v0.12 — 06/11/2026
+
+Correction : « Copier maintenant » affichait « NAS injoignable » alors que « Tester » répondait OK.
+
+**Cause**
+- Le PHP du site web du NAS n'a pas l'extension zlib : le script du NAS plantait au moment de décompresser la copie.
+- Le serveur web du Synology remplace toute réponse d'erreur par sa propre page, sans les en-têtes qui permettent à
+  l'app de la lire : l'app ne voyait qu'un échec réseau (« NAS injoignable »), quelle que soit l'erreur.
+
+**Ce qui change**
+- L'app demande au NAS le « protocole 2 » (`&v=2`) : les erreurs lui reviennent sous une forme lisible (code 200 et
+  `{"erreur", "code"}`), elle affiche donc le vrai motif (mot de passe refusé, erreur sur le NAS, copie trop grosse…).
+  Les vrais codes HTTP restent compris (ancien script du NAS, faux NAS des tests).
+- L'app annonce le nombre de vols de la copie (`&vols=N`) : le NAS sans zlib range la copie sans la décompresser,
+  vérifiée par son empreinte SHA-256.
+- Restaurer depuis le NAS : une version disparue affiche « Cette copie n'est plus sur le NAS. ».
+- Le script du NAS (dossier privé, hors dépôt) est à mettre à jour par la même tâche DSM (guide).
+
+**Tests**
+- Nouveau test `tests/navigateur/v012.mjs` : faux NAS qui imite le serveur web du Synology (pages d'erreur sans CORS),
+  PHP sans zlib, mot de passe refusé, erreur 500, version disparue, ancien script ; tous les tests existants.
+
 ## v0.11 — 06/11/2026
 
 Une remarque : R32, carte de vol plus lisible dans la liste du Carnet (maquette v25, décrite dans le prompt).

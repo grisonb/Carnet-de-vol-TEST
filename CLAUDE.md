@@ -35,7 +35,10 @@ IndexedDB v2 : magasin `traces` (hors sauvegarde). Le mot de passe (`cartesMotDe
 ## Copie automatique sur le NAS (v0.10)
 
 `js/copieur.js` (logique : regroupement 5 s, une seule copie en attente, essais espacés, textes) et `js/ui/nas.js`
-(envoi gzip + SHA-256 vers `<adresse>/carnet.php?action=envoyer|test|liste|lire`, en-tête `X-Carnet-Cle`, écrans Plus).
+(envoi gzip + SHA-256 vers `<adresse>/carnet.php?action=envoyer|test|liste|lire&v=2`, en-tête `X-Carnet-Cle`, écrans Plus).
+Protocole 2 (v0.12) : le serveur web du Synology remplace toute réponse 4xx/5xx par sa page (sans CORS, illisible) ;
+avec `&v=2` le NAS répond aux erreurs en 200 + `{"erreur","code"}` (`erreurDansReponse`). Le PHP web du NAS n'a pas
+zlib : l'app envoie `&vols=N`, le NAS vérifie la copie par son empreinte. Garder la compatibilité avec les vrais codes HTTP.
 L'adresse du NAS et son mot de passe sont TAPÉS sur le téléphone (réglages `nasAdresse`, `nasMotDePasse`, `nasAuto`,
 `nasEtat`, écrits avec `ecrireReglageDiscret` pour ne pas relancer une copie) : jamais dans le dépôt, exclus de la
 sauvegarde (`REGLAGES_PRIVES`). Script PHP, installation (tâche DSM root) et guide : dossier privé
@@ -117,6 +120,8 @@ BOMBING et TRANSPORT s'excluent sur un vol. Suggestions de missions masquées : 
 - `node tests/navigateur/v010.mjs` : types d'avion ; copie NAS avec un FAUX NAS local (regroupement, NAS injoignable,
   hors ligne, mot de passe refusé, restauration d'une version).
 - `node tests/navigateur/v011.mjs` : carte de vol du Carnet (date, nom / immatriculation, modèle coupé, mission), clair / sombre.
+- `node tests/navigateur/v012.mjs` : copie NAS avec un FAUX NAS qui imite le Synology (pages d'erreur sans CORS) :
+  protocole 2 (`&v=2`, erreurs lisibles), NAS sans zlib (`&vols=N`), ancien script.
 - `node tests/navigateur/fluidite.mjs` : 4070 vols inventés, processeur ralenti ×6.
 - `node outils/controle-import.mjs ../donnees-privees/flylog-decode-v1.csv ../donnees-privees/totaux-flylog-reference.json` :
   contrôle avec le VRAI fichier, en local uniquement (rien n'est écrit dans le dépôt).

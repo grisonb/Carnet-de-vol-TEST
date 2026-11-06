@@ -18,18 +18,31 @@ export const etatNas = () => reglage('nasEtat') || {};
 export const resumeCopieNas = () => resumeNas(configNas(), etatNas(), Date.now(), enLigne());
 
 // ---------- Réseau ----------
-const STATUTS = { 401: 'refuse', 413: 'trop-gros', 400: 'abimee', 500: 'stockage', 403: 'origine', 404: 'injoignable' };
+const STATUTS = { 401: 'refuse', 413: 'trop-gros', 400: 'abimee', 500: 'stockage', 403: 'origine', 404: 'introuvable' };
+// Protocole 2 (v0.12) : « &v=2 » demande au NAS de répondre aux erreurs avec le code HTTP 200 et {"erreur", "code"}.
+// Le serveur web du Synology remplace sinon toute réponse d'erreur par sa propre page, sans en-têtes CORS : le
+// navigateur ne la laisse pas lire et l'app ne voyait qu'un « NAS injoignable ». Les vrais codes HTTP restent compris.
+export async function erreurDansReponse(r) {
+  if (!/json/i.test(r.headers.get('content-type') || '')) return null;
+  let j = null;
+  try { j = await r.clone().json(); } catch { return null; }
+  if (!j || typeof j !== 'object' || !j.erreur) return null;
+  const code = Number(j.code) || 400;
+  return { statut: STATUTS[code] || 'injoignable', code, erreur: String(j.erreur) };
+}
 async function requete(action, { url = configNas().url, motDePasse = configNas().motDePasse, corps = null, entetes = {}, extra = '', delai = 30000 } = {}) {
   if (!url) return { statut: 'adresse' };
   if (!enLigne()) return { statut: 'horsLigne' };
   const arret = new AbortController();
   const minuterie = setTimeout(() => arret.abort(), delai);
   try {
-    const r = await fetch(`${url}?action=${action}${extra}`, {
+    const r = await fetch(`${url}?action=${action}&v=2${extra}`, {
       method: 'POST', body: corps, signal: arret.signal, cache: 'no-store',
       headers: { 'X-Carnet-Cle': motDePasse, ...entetes },
     });
     if (!r.ok) return { statut: STATUTS[r.status] || 'injoignable', code: r.status };
+    const err = await erreurDansReponse(r);
+    if (err) return err;
     return { statut: 'ok', reponse: r };
   } catch { return { statut: 'injoignable' }; } finally { clearTimeout(minuterie); }
 }
@@ -38,7 +51,7 @@ async function requete(action, { url = configNas().url, motDePasse = configNas()
 async function envoyerCopie() {
   const s = creerSauvegarde(await contenuComplet());
   const octets = await compresser(texteSauvegarde(s));
-  const r = await requete('envoyer', { corps: octets, delai: 120000,
+  const r = await requete('envoyer', { corps: octets, delai: 120000, extra: `&vols=${s.nombres.vols}`,
     entetes: { 'Content-Type': 'application/octet-stream', 'X-Carnet-Empreinte': await empreinteSha256(octets) } });
   if (r.statut !== 'ok') return r;
   return { statut: 'ok', taille: octets.length, vols: s.nombres.vols };
@@ -77,7 +90,7 @@ export function initNas() {
 const TEXTES = {
   ok: 'OK : le NAS répond.', refuse: 'Mot de passe refusé.', injoignable: 'NAS injoignable (éteint, pas de réseau ou mauvaise adresse).',
   horsLigne: 'Pas de réseau.', adresse: 'Adresse invalide : elle doit commencer par https://', stockage: 'Le NAS répond, mais le dossier des copies est inaccessible.',
-  origine: 'Le NAS refuse l\'app (origine).', 'trop-gros': 'Copie trop grosse pour le NAS.', abimee: 'Copie refusée par le NAS (arrivée incomplète).',
+  origine: 'Le NAS refuse l\'app (origine).', introuvable: 'Cette copie n\'est plus sur le NAS.', 'trop-gros': 'Copie trop grosse pour le NAS.', abimee: 'Copie refusée par le NAS (arrivée incomplète).',
 };
 
 function majEcranNas() {
