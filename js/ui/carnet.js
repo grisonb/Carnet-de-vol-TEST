@@ -269,6 +269,8 @@ export function initCarnet(ouvrir) {
   ouvrirVol = ouvrir;
   let attente = null;
   $('#q').addEventListener('input', () => { clearTimeout(attente); attente = setTimeout(() => rafraichirCarnet({ haut: true }), 120); });
+  // Touche loupe / Entrée du clavier : ferme le clavier pour laisser voir les résultats (le texte reste) (R39)
+  $('#q').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); $('#q').blur(); } });
   // Loupe : ouvre la recherche ; la refermer efface la recherche
   $('#q-open').addEventListener('click', () => {
     const ouvrir = $('#q').hidden;

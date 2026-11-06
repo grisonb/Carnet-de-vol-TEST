@@ -70,7 +70,9 @@ Pas d'étape de compilation : les fichiers du dépôt sont servis tels quels.
   - `modele.js` structure vol / avion / personne, colonnes EASA (SE / ME / multipilote), fonctions ;
   - `missions.js` lignes de mission, numéros de feu, pastilles par règles, « Remarque du carnet » ;
   - `flylog.js` import FlyLog (anti-doublon par quantités) ; `totaux.js` ; `controle.js` ;
-  - `pdf.js` carnet EASA (jsPDF, `vendor/jspdf.umd.min.js`, MIT) ; `sauvegarde.js` sauvegarde JSON + tableur CSV ;
+  - `pdf.js` carnet EASA (jsPDF, `vendor/jspdf.umd.min.js`, MIT ; cases centrées, tailles `TAILLES` / `MINI` : ne pas
+    changer colonnes, largeurs ni `LIGNES_PAR_PAGE`) ; `sauvegarde.js` sauvegarde JSON + tableur CSV
+    (`sansPhotos` pour la copie NAS, `garderPhotos` à la restauration depuis le NAS) ;
   - `csv.js` ; `db.js` IndexedDB ; `etat.js` données en mémoire + enregistrement ; `version.js` ;
   - `bande.js` bande d'heures de l'accueil (choix et valeurs, à partir de `calculerTotaux`) ;
   - `traces.js` traces ADS-B : découpe aux heures bloc, cas et textes de la « Carte du vol » (affichage seulement).
@@ -125,6 +127,9 @@ BOMBING et TRANSPORT s'excluent sur un vol. Suggestions de missions masquées : 
 - `node tests/navigateur/v012.mjs` : copie NAS avec un FAUX NAS qui imite le Synology (pages d'erreur sans CORS) :
   protocole 2 (`&v=2`, erreurs lisibles), NAS sans zlib (`&vols=N`), ancien script.
 - `node tests/navigateur/v013.mjs` : place gardée dans la liste, « Voir dans le carnet », « ↑ Dernier vol » (600 vols inventés).
+- `node tests/navigateur/v014.mjs` : copie NAS sans photos, sauvegarde avec photos, restauration qui garde les photos,
+  Entrée de la recherche, PDF depuis l'app. PDF sous Node : `tests/outils/pdf-noeud.js` (enregistreur : chaque case et
+  chaque texte, pour vérifier que rien ne déborde) et `tests/outils/vols-pdf.js` (vols inventés difficiles).
 - `node tests/navigateur/fluidite.mjs` : 4070 vols inventés, processeur ralenti ×6.
 - `node outils/controle-import.mjs ../donnees-privees/flylog-decode-v1.csv ../donnees-privees/totaux-flylog-reference.json` :
   contrôle avec le VRAI fichier, en local uniquement (rien n'est écrit dans le dépôt).

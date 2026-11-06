@@ -5,7 +5,7 @@
 
 import { $, esc, toast, ouvrirOutil, fermerOutil } from './commun.js';
 import { etat, reglage, ecrireReglageDiscret, contenuComplet, restaurer } from '../etat.js';
-import { creerSauvegarde, texteSauvegarde, lireSauvegarde } from '../sauvegarde.js';
+import { creerSauvegarde, texteSauvegarde, lireSauvegarde, sansPhotos, garderPhotos } from '../sauvegarde.js';
 import { creerCopieur, urlApi, resumeNas, compresser, decompresser, empreinteSha256, taillePropre, depuis } from '../copieur.js';
 
 const nombre = n => n.toLocaleString('fr-FR');
@@ -47,9 +47,9 @@ async function requete(action, { url = configNas().url, motDePasse = configNas()
   } catch { return { statut: 'injoignable' }; } finally { clearTimeout(minuterie); }
 }
 
-// La sauvegarde de secours complète (même contenu que le fichier), compressée, avec son empreinte
+// La sauvegarde de secours SANS les photos d'avion (v0.14), compressée, avec son empreinte
 async function envoyerCopie() {
-  const s = creerSauvegarde(await contenuComplet());
+  const s = sansPhotos(creerSauvegarde(await contenuComplet()));
   const octets = await compresser(texteSauvegarde(s));
   const r = await requete('envoyer', { corps: octets, delai: 120000, extra: `&vols=${s.nombres.vols}`,
     entetes: { 'Content-Type': 'application/octet-stream', 'X-Carnet-Empreinte': await empreinteSha256(octets) } });
@@ -105,7 +105,7 @@ document.addEventListener('nas-etat', majEcranNas);
 export function ecranNas() {
   const c = configNas();
   const o = ouvrirOutil('Copie sur le NAS', `
-    <p class="hint" style="font-size:15px">Après chaque modification, une copie complète de ton carnet (la sauvegarde de secours, compressée) part toute seule sur ton NAS, en arrière-plan. NAS éteint ou pas de réseau : elle attend et repart d'elle-même. Le NAS garde les 20 dernières copies et une par jour sur 30 jours.</p>
+    <p class="hint" style="font-size:15px">Après chaque modification, une copie de ton carnet (toutes les données, sans les photos d'avion, compressée) part toute seule sur ton NAS, en arrière-plan. NAS éteint ou pas de réseau : elle attend et repart d'elle-même. Le NAS garde les 20 dernières copies et une par jour sur 30 jours.</p>
     <div class="sec">
       <div class="field"><label for="nas-adr">Adresse de la copie</label><input id="nas-adr" type="url" inputmode="url" autocomplete="off" spellcheck="false" placeholder="https://…/carnet-api/" value="${esc(reglage('nasAdresse') || '')}"></div>
       <div class="field"><label for="nas-mdp">Mot de passe du NAS</label><input id="nas-mdp" type="password" autocomplete="off" value="${esc(c.motDePasse)}"></div>
@@ -197,6 +197,7 @@ export async function ecranRestaurerNas() {
       <div class="sec resume"><h3>Remplacer tout le carnet par cette version ?</h3>
         <p>Copie du <b>${esc(quand(c.date))}</b> · ${nombre(c.vols)} vols</p></div>
       <p class="koc">Tout le carnet actuel (${nombre(etat.vols.length)} vols) sera remplacé par cette version.</p>
+      <p class="hint" id="rn-photos">Les photos d'avion du téléphone sont gardées.</p>
       <button type="button" class="bigbtn" id="rn-ok" style="background:var(--feu)">Remplacer mon carnet</button>
       <button type="button" class="bigbtn second" id="rn-no">Annuler</button>
       <p class="prog" id="rn-res" role="status"></p>`);
@@ -209,7 +210,7 @@ export async function ecranRestaurerNas() {
       let lu;
       try { lu = lireSauvegarde(await decompresser(new Uint8Array(await r2.reponse.arrayBuffer()))); } catch { lu = { ok: false, message: 'Copie illisible.' }; }
       if (!lu.ok) { p.textContent = lu.message; ok.disabled = false; return; }
-      await restaurer(lu.donnees);
+      await restaurer(garderPhotos(lu.donnees, [...etat.avions.values()]).donnees);
       fermerOutil();
       toast('Carnet restauré depuis le NAS');
     });

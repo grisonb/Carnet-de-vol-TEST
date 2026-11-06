@@ -7,6 +7,13 @@ import { remarqueCarnet } from './missions.js';
 import { hmPoints } from './temps.js';
 
 export const LIGNES_PAR_PAGE = 18;
+// Tailles de police (pt). v0.14 (R37) : la plus grande taille qui tient dans les colonnes les plus étroites, sans couper :
+// titres (gras) limités par « APPR. » (7 mm) ; sous-titres par « PILOTE » (10 mm) ; saisies par les codes OACI larges
+// (« WMKK », 10 mm), la date (13 mm) et les heures « 10:00 » (9 mm). Avant : 5,4 / 5,4 / 6,4 / remarques 5,6.
+// Un texte plus large que sa case (modèle, nom, remarque longue) est d'abord écrit plus petit, jusqu'à l'ancienne taille
+// (MINI), puis seulement coupé par « ... » : rien de ce qui tenait en v0.13 n'est coupé.
+export const TAILLES = { titre: 5.6, sousTitre: 7.0, saisie: 8.0, remarque: 6.6, total: 6.2, libelleTotal: 6.2 };
+export const MINI = { saisie: 6.4, remarque: 5.6 };
 export const COLONNES_TOTAUX = ['se', 'me', 'mp', 'total', 'attJour', 'attNuit', 'approches', 'nuit', 'ifr',
   'cdb', 'copi', 'dc', 'inst', 'sim'];
 const NOMBRES = new Set(['attJour', 'attNuit', 'approches']);
@@ -91,7 +98,7 @@ function cellule(cle, v, val, avion) {
     case 'hdep': return s ? '' : (v.hDep || '');
     case 'arr': return s ? '' : v.arr;
     case 'harr': return s ? '' : (v.hArr || '');
-    case 'modele': return s || !avion ? '' : (avion.modele || avion.typeOACI);
+    case 'modele': return s || !avion ? '' : (avion.typeOACI || avion.modele); // code type OACI (v0.14), sinon le modèle
     case 'immat': return s || !avion ? '' : avion.immat;
     case 'nomcdb': return v.nomCdB || '';
     case 'simtype': return s && avion ? [avion.immat, avion.fstd].filter(Boolean).join(' ') : '';
@@ -103,6 +110,17 @@ function cellule(cle, v, val, avion) {
 }
 
 const celluleTotal = (cle, t) => (NOMBRES.has(cle) ? String(t[cle]) : (hmPoints(t[cle]) || '0:00'));
+// Plus grande taille (de max à min, par pas de 0,2 pt) à laquelle le texte tient dans la largeur ; sinon min
+function tailleQuiTient(doc, texte, largeur, max, min) {
+  for (let s = max; s > min; s = Math.round((s - 0.2) * 10) / 10) {
+    doc.setFontSize(s);
+    if (doc.getTextWidth(texte) <= largeur) return s;
+  }
+  doc.setFontSize(min);
+  return min;
+}
+// Texte centré horizontalement et verticalement dans la case (x, y, l, h) (v0.14, R36)
+const centrer = (doc, texte, x, y, l, h) => doc.text(texte, x + l / 2, y + h / 2, { align: 'center', baseline: 'middle' });
 
 function tronquer(doc, texte, largeur) {
   if (doc.getTextWidth(texte) <= largeur) return texte;
@@ -131,21 +149,21 @@ export async function dessinerPDF(jsPDF, pages, avions, { titulaire = '', period
     doc.text(T(`Heures en UTC · Page ${p.numero} / ${pages.length}`), largeurPage - marge, y + 4, { align: 'right' });
     y += 7;
 
-    doc.setLineWidth(0.2); doc.setFontSize(5.4); doc.setFont('helvetica', 'bold');
+    doc.setLineWidth(0.2); doc.setFontSize(TAILLES.titre); doc.setFont('helvetica', 'bold');
     let x = marge;
     for (let i = 0; i < cols.length;) {
       let j = i, w = 0;
       while (j < cols.length && cols[j][2] === cols[i][2]) { w += cols[j][1]; j++; }
       doc.rect(x, y, w, 5);
-      doc.text(T(cols[i][2]), x + w / 2, y + 3.4, { align: 'center', maxWidth: w - 0.6 });
+      centrer(doc, T(cols[i][2]), x, y, w, 5);
       x += w; i = j;
     }
     y += 5;
-    doc.setFont('helvetica', 'normal');
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(TAILLES.sousTitre);
     x = marge;
     for (const c of cols) {
       doc.rect(x, y, c[1], 4);
-      doc.text(T(c[3]), x + c[1] / 2, y + 2.9, { align: 'center' });
+      centrer(doc, T(c[3]), x, y, c[1], 4);
       x += c[1];
     }
     y += 4;
@@ -160,16 +178,24 @@ export async function dessinerPDF(jsPDF, pages, avions, { titulaire = '', period
         if (v) {
           const t = T(cellule(c[0], v, val, avion));
           if (t && c[0] === 'rem') {
-            doc.setFontSize(5.6);
-            const l = doc.splitTextToSize(t, c[1] - 1.2);
-            const l2 = l.length > 2 ? [l[0], tronquer(doc, l.slice(1).join(' '), c[1] - 1.2)] : l;
-            doc.text(l2, x + 0.6, y + 2.7);
-            doc.setFontSize(6.4);
+            // Remarques : centrées si elles tiennent sur une ligne ; sinon 2 lignes alignées à gauche (plus lisible
+            // pour un texte long), centrées verticalement ; au-delà, « ... ».
+            let taille = TAILLES.remarque, l;
+            for (;;) {
+              doc.setFontSize(taille);
+              l = doc.splitTextToSize(t, c[1] - 1.2);
+              if (l.length <= 2 || taille <= MINI.remarque) break;
+              taille = Math.round((taille - 0.2) * 10) / 10;
+            }
+            if (l.length === 1) centrer(doc, l[0], x, y, c[1], hLigne);
+            else {
+              const l2 = [l[0], tronquer(doc, l.slice(1).join(' '), c[1] - 1.2)];
+              const hl = taille * 0.3528 * 1.15;
+              l2.forEach((s, k) => doc.text(s, x + 0.6, y + hLigne / 2 + (k - 0.5) * hl, { baseline: 'middle' }));
+            }
           } else if (t) {
-            doc.setFontSize(6.4);
-            const txt = tronquer(doc, t, c[1] - 1);
-            if (TOTALISEES.has(c[0])) doc.text(txt, x + c[1] - 0.6, y + 4.4, { align: 'right' });
-            else doc.text(txt, x + 0.6, y + 4.4);
+            tailleQuiTient(doc, t, c[1] - 1, TAILLES.saisie, MINI.saisie);
+            centrer(doc, tronquer(doc, t, c[1] - 1), x, y, c[1], hLigne);
           }
         }
         x += c[1];
@@ -179,15 +205,15 @@ export async function dessinerPDF(jsPDF, pages, avions, { titulaire = '', period
 
     const largeurLibelle = cols.slice(0, 7).reduce((s, c) => s + c[1], 0);
     for (const [libelle, t] of [['TOTAL DE CETTE PAGE', p.totalPage], ['TOTAL DES PAGES PRÉCÉDENTES', p.report], ['TOTAL GÉNÉRAL', p.cumul]]) {
-      doc.setFont('helvetica', 'bold'); doc.setFontSize(6.2);
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(TAILLES.libelleTotal);
       doc.rect(marge, y, largeurLibelle, hTotal);
-      doc.text(T(libelle), marge + 1, y + 3.7);
-      doc.setFont('helvetica', 'normal');
+      doc.text(T(libelle), marge + 1, y + hTotal / 2, { baseline: 'middle' });
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(TAILLES.total);
       x = marge + largeurLibelle;
       for (const c of cols.slice(7)) {
         if (TOTALISEES.has(c[0])) {
           doc.rect(x, y, c[1], hTotal);
-          doc.text(celluleTotal(c[0], t), x + c[1] - 0.6, y + 3.7, { align: 'right' });
+          centrer(doc, tronquer(doc, celluleTotal(c[0], t), c[1] - 1), x, y, c[1], hTotal);
         }
         x += c[1];
       }

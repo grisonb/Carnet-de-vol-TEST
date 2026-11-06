@@ -1,5 +1,30 @@
 # Journal des versions
 
+## v0.14 — 06/11/2026
+
+Quatre remarques : R35 (copie NAS sans photos), R36 et R37 (PDF EASA), R39 (clavier de la recherche).
+
+**Ce qui change**
+- R35 : la copie automatique sur le NAS (et « Copier maintenant ») ne contient plus les photos d'avion, seulement les
+  données. La sauvegarde de secours manuelle garde les photos. Restaurer depuis le NAS garde les photos du téléphone
+  (même avion : même identifiant, sinon même immatriculation) ; la confirmation le dit. Le NAS ne change pas.
+- R36 : PDF, chaque case est centrée horizontalement et verticalement (titres, sous-titres, saisies, totaux). Remarques :
+  centrées si elles tiennent sur une ligne, sinon 2 lignes alignées à gauche (plus lisible pour un texte long).
+- R37 : PDF, polices plus grandes sans changer la mise en page (mêmes colonnes, 18 lignes par page) : titres 5,4 → 5,6 pt
+  (limite : « APPR. », 7 mm), sous-titres 5,4 → 7 pt (limite : « PILOTE », 10 mm), saisies 6,4 → 8 pt (limites : codes
+  OACI larges, date, heures « 10:00 »), remarques 5,6 → 6,6 pt. Un texte trop large pour sa case (modèle, nom long,
+  remarque longue) est écrit plus petit, jusqu'à l'ancienne taille, avant d'être coupé par « ... » : rien de ce qui tenait
+  avant n'est coupé.
+- PDF : la colonne « Modèle » affiche le code type OACI de l'avion (DH8D, DR40, CL2T…) au lieu du nom complet ; un
+  avion sans type OACI garde son modèle. L'écran de l'app, le CSV et les fiches avion ne changent pas.
+- R39 : recherche du Carnet, la touche loupe / Entrée du clavier ferme le clavier ; le texte et les résultats restent.
+
+**Tests**
+- Nouveaux tests unitaires `tests/unitaires/v014.test.js` (copie sans photo, photos gardées, PDF : pages, lignes, aucun
+  texte hors de sa case, centrage) avec `tests/outils/pdf-noeud.js` (enregistreur des cases et textes du PDF) et
+  `tests/outils/vols-pdf.js` (vols inventés difficiles) ; nouveau test `tests/navigateur/v014.mjs` ; tous les tests
+  existants ; contrôle local avec le vrai fichier FlyLog (non commité).
+
 ## v0.13 — 06/11/2026
 
 Retrouver un vol et consulter les vols voisins.

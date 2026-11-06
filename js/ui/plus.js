@@ -107,7 +107,7 @@ async function sauvegardeFaite() {
 function ecranSauvegarde() {
   const d = reglage('derniereSauvegarde');
   const c = ouvrirOutil('Sauvegarde de secours', `
-    <p class="hint" style="font-size:15px">Un seul fichier avec tout : vols, avions (photos comprises), personnes, missions, étiquettes, règles et réglages. L'app sait le réimporter à l'identique (Plus › Restaurer une sauvegarde).</p>
+    <p class="hint" style="font-size:15px">Un seul fichier avec tout : vols, avions (photos comprises), personnes, missions, étiquettes, règles et réglages. (La copie automatique sur le NAS, elle, ne contient pas les photos.) L'app sait le réimporter à l'identique (Plus › Restaurer une sauvegarde).</p>
     <p>Dernière sauvegarde : <b>${d ? dateFr(d.slice(0, 10)) : 'jamais'}</b></p>
     <button type="button" class="bigbtn" id="sv-dl">Enregistrer dans Téléchargements</button>
     <button type="button" class="bigbtn second" id="sv-sh">Partager (Google Drive…)</button>
