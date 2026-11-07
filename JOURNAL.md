@@ -1,5 +1,30 @@
 # Journal des versions
 
+## v0.15 — 06/11/2026
+
+Une remarque : R33, recevoir les vols exportés depuis NPF-Q400 TEST (iPad), en passant par le NAS.
+
+**Ce qui change**
+- NPF-Q400 TEST dépose un vol sur le NAS (format commun « carnet-vol-npf » version 1) ; à l'ouverture de l'app, au
+  retour du réseau et au retour dans l'app, si la copie NAS est configurée, le Carnet demande discrètement les vols en
+  attente (sans aucun message d'erreur). S'il y en a : bandeau « N vols à importer depuis NPF-Q400 › » en haut du Carnet.
+- Liste des vols en attente (date, avion, départ → arrivée, bloc, feux). Un vol s'ouvre en BROUILLON dans la saisie :
+  date et heures bloc (envoyées en UTC, affichées selon le mode du dernier vol), avion trouvé par son immatriculation
+  (sinon la recherche s'ouvre sur l'immatriculation avec « + Ajouter un avion »), départ / arrivée / escales, une ligne
+  « FEU n°NN COMMUNE » par feu (numéros suivants) et le compteur Feux. Rien n'entre dans le carnet sans « Enregistrer ».
+- Après Enregistrer, le vol est retiré du NAS (sans réseau : retiré discrètement à la vérification suivante, jamais
+  reproposé). « Ignorer ce vol » (avec confirmation) le retire sans l'enregistrer.
+- Un vol déjà enregistré (même id NPF) puis ré-exporté : « Ce qui change » puis « Mettre à jour ce vol » (pas de second vol).
+- Positions des feux gardées avec le vol (`feuxPositions`) : flamme rouge + commune sur la Carte du vol, même sans
+  trace ADS-B et sans réseau. Elles ne modifient jamais les heures. Rien ne change pour un vol saisi à la main.
+- NAS : carnet.php version 3 (vol-depot, vols-liste, vol-retirer ; 200 vols au plus, 90 jours), préparé dans le dossier
+  privé, à installer par la même tâche DSM (guide « Mise à jour v3 »). Avec l'ancien carnet.php, rien ne s'affiche.
+
+**Tests**
+- `tests/unitaires/v015.test.js` (format, avion par immatriculation, minuit UTC, 0 / 1 / 3 feux, mise à jour) ;
+  `tests/navigateur/v015.mjs` (faux NAS : bandeau, liste, brouillon, Enregistrer, Ignorer, mise à jour, retrait différé,
+  carte des feux hors ligne) ; test PHP local (dossier privé) ; tous les tests existants ; contrôle FlyLog local.
+
 ## v0.14 — 06/11/2026
 
 Quatre remarques : R35 (copie NAS sans photos), R36 et R37 (PDF EASA), R39 (clavier de la recherche).

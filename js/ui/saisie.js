@@ -18,6 +18,8 @@ import { plusGrandFeu, ajouterFeu, enleverFeu, lignesPourSaisie, estLigneFeu, no
 import { activerGlisser } from './glisser.js';
 import { initAvions } from './avions.js';
 import { ouvrirRegles } from './regles.js';
+import { brouillonNpf } from '../npf.js';
+import { ignorerVolNpf, volNpfEnregistre } from './npf.js';
 
 let F = null;          // brouillon du vol en cours
 let quitter = () => {};
@@ -353,14 +355,49 @@ function changerMode(m) {
   recalculer();
 }
 
+// ---------- Brouillon d'un vol envoyé par NPF-Q400 (v0.15) ----------
+// Les champs reçus remplacent ceux du formulaire (heures en UTC, converties ensuite selon le mode d'affichage).
+// Un vol déjà enregistré (même id NPF) est mis à jour : ses lignes de mission sont gardées, les feux en plus ajoutés.
+function appliquerNpf(n, vol) {
+  const b = brouillonNpf(n, { avions: [...etat.avions.values()], vols: vol ? etat.vols.filter(v => v.id !== vol.id) : etat.vols });
+  F.npf = { id: b.npf.id, exporteLe: b.npf.exporteLe, feux: b.npf.feux, vol: n, avionInconnu: b.avion ? '' : b.immat };
+  F.mode = 'utc';
+  $('#f-date').value = b.date; $('#f-t0').value = heureH(b.hDep); $('#f-t1').value = heureH(b.hArr);
+  F.heuresInconnues = false;
+  if (b.dep || !vol) $('#f-dep').value = b.dep;
+  if (b.arr || !vol) $('#f-arr').value = b.arr;
+  if (b.escales.length || !vol) F.escales = b.escales;
+  F.avionId = b.avion ? b.avion.id : null;
+  if (vol) {
+    const deja = F.lignes.filter(l => l.nouveauFeu).length;
+    let lignes = F.lignes;
+    for (const f of b.npf.feuxTous.slice(deja)) lignes = ajouterFeu(lignes, plusGrandFeu(etat.vols, vol.id), f.commune || f.nom).lignes;
+    F.lignes = lignes;
+  } else F.lignes = b.lignes;
+  if (b.remarques) $('#f-rem').value = b.remarques;
+  if (b.attJour !== null) F.s.attJour = b.attJour;
+  if (b.attNuit !== null) F.s.attNuit = b.attNuit;
+  if (b.copilote && F.fonction === 'cdb') $('#f-copi').value = b.copilote;
+  $('#f-title').textContent = vol ? 'Mettre à jour le vol' : 'Vol NPF-Q400 à vérifier';
+  $('#f-sub').textContent = 'Brouillon : rien n\'est enregistré tant que tu n\'appuies pas sur Enregistrer.';
+  $('#save').textContent = vol ? 'Enregistrer la mise à jour' : 'Enregistrer le vol';
+  $('#npf-zone').hidden = false;
+  $('#npf-txt').textContent = `Vol envoyé par NPF-Q400${b.npf.nbFeux ? ` · ${b.npf.nbFeux} feu${b.npf.nbFeux > 1 ? 'x' : ''}` : ''}`
+    + (b.avion ? '' : ` · avion ${b.immat} inconnu : ajoute-le ci-dessous`) + '. Complète ce qui manque (fonction, copilote, atterrissages…).';
+  return b;
+}
+
 // ---------- Ouverture ----------
-export function ouvrirSaisie(vol) {
+// opts.npf : vol reçu de NPF-Q400 (format « carnet-vol-npf ») à ouvrir en brouillon ; vol = le vol déjà enregistré
+// avec le même id NPF (mise à jour) ou null.
+export function ouvrirSaisie(vol, opts = {}) {
   const dernier = etat.vols[0];
   const v = vol ? structuredClone(vol) : volVide();
   F = { vol: vol || null, mode: vol ? (vol.mode || 'loc') : 'loc', escales: (v.escales || []).map(e => ({ ...e })),
     avionId: v.avionId, etiquettes: [...(v.etiquettes || [])], fonction: v.fonction || 'cdb',
     lignes: lignesPourSaisie(v), compteurs: { ...v.compteurs }, s: { approches: v.approches || 0, attJour: v.attJour, attNuit: v.attNuit },
-    ifr: !!v.regleIFR, bloc: v.tempsTotal || v.simTemps || 0, heuresInconnues: !!vol && !(vol.hDep && vol.hArr), charge: true };
+    ifr: !!v.regleIFR, bloc: v.tempsTotal || v.simTemps || 0, heuresInconnues: !!vol && !(vol.hDep && vol.hArr), charge: true, npf: null };
+  $('#npf-zone').hidden = true;
   $('#f-err').textContent = '';
   $('#ctr-panel').hidden = true; $('#ctr-open').setAttribute('aria-expanded', 'false');
   $('#p-res').hidden = true; $('#m-res').hidden = true; ouvrirChoixAvion(false);
@@ -397,6 +434,9 @@ export function ouvrirSaisie(vol) {
     $('#f-rem').value = '';
     F.s = { approches: 0, attJour: 1, attNuit: 0 };
   }
+  // Mode d'affichage voulu : celui du vol (mise à jour), sinon celui du dernier vol saisi, sinon LOC
+  const modeVoulu = vol ? (vol.mode || 'loc') : (dernier && dernier.mode) || 'loc';
+  const brouillon = opts.npf ? appliquerNpf(opts.npf, vol) : null;
   $$('#f-t0, #f-t1').forEach(el => el.classList.remove('bad'));
   const a = avion();
   afficherLigneAvion(a);
@@ -405,7 +445,7 @@ export function ouvrirSaisie(vol) {
   noms(); rendreEscales(); rendreEtiquettes(); rendreCompteurs(); rendreLignes();
   for (const k of ['approches', 'attJour', 'attNuit']) sortie(k);
   choisirIFR(F.ifr);
-  if (vol) {
+  if (vol && !brouillon) {
     // On montre exactement ce qui est enregistré (aucun recalcul tant qu'on ne touche à rien)
     $('#f-bloc').textContent = hm(F.bloc);
     $('#f-j1').hidden = !(vol.hDep && vol.hArr && minutesDuJour(vol.hArr) < minutesDuJour(vol.hDep));
@@ -414,10 +454,17 @@ export function ouvrirSaisie(vol) {
     $('#c-col').value = hm(a && a.sim ? vol.simTemps : (c.mp || c.se || c.me));
     $('#c-fn').value = hm(vol[FONCTIONS[F.fonction].temps]);
   } else recalculer();
+  if (brouillon) {
+    choisir('.seg.mini', 1);
+    if (modeVoulu === 'loc') changerMode('loc');
+    if (!a) { ouvrirChoixAvion(true); $('#ac-q').value = brouillon.immat; $('#ac-q').dispatchEvent(new Event('input')); }
+  }
   F.charge = false;
   recap(); apercu();
   F.empreinte = empreinte();
-  afficherCarteVol(vol || null); // carte du vol enregistré (sans jamais toucher aux heures)
+  // carte du vol enregistré (sans jamais toucher aux heures) ; brouillon NPF : positions des feux reçues
+  afficherCarteVol(brouillon ? { ...(vol || {}), date: brouillon.date, hDep: brouillon.hDep, hArr: brouillon.hArr, dep: brouillon.dep || (vol && vol.dep) || '',
+    arr: brouillon.arr || (vol && vol.arr) || '', escales: F.escales, avionId: F.avionId, feuxPositions: brouillon.npf.feux, brouillon: true } : (vol || null));
 }
 
 // ---------- Changements non enregistrés (flèche retour : « Abandonner la saisie ? ») ----------
@@ -484,14 +531,18 @@ async function enregistrer() {
   v.compteurs = { ...v.compteurs, ...F.compteurs };
   v.remarques = $('#f-rem').value.trim();
   if (!F.vol) v.source = 'saisie';
+  // Vol reçu de NPF-Q400 : son id (pas de doublon), la date de l'export et les positions des feux (Carte du vol)
+  const npf = F.npf;
+  if (npf) { v.npfId = npf.id; v.npfExporteLe = npf.exporteLe; v.feuxPositions = npf.feux.map(f => ({ ...f })); }
   await enregistrerVol(v);
+  if (npf) volNpfEnregistre(npf.id);
   // nouvelle personne tapée sans passer par « + » : on l'ajoute à la liste
   if (qui && !trouverPersonne(qui)) {
     const p = personneVide();
     if (/^[A-Z]{3}$/i.test(qui)) p.tri = qui.toUpperCase(); else p.nom = qui;
     await enregistrerPersonne(p);
   }
-  toast(F.vol ? 'Vol modifié' : 'Vol enregistré');
+  toast(npf ? (F.vol ? 'Vol mis à jour' : 'Vol NPF-Q400 enregistré') : F.vol ? 'Vol modifié' : 'Vol enregistré');
   F = null;
   quitter();
 }
@@ -506,6 +557,11 @@ export function initSaisie({ fermer }) {
   $('#tz-loc').addEventListener('click', () => changerMode('loc'));
   $('#tz-utc').addEventListener('click', () => changerMode('utc'));
   $('#cancel').addEventListener('click', () => { F = null; quitter(); });
+  // Brouillon NPF : « Ignorer ce vol » (confirmation) le retire du NAS sans rien enregistrer
+  $('#npf-ign').addEventListener('click', () => {
+    if (!F || !F.npf) return;
+    ignorerVolNpf(F.npf.vol, fait => { if (fait) { F = null; quitter(); } });
+  });
 
   // − / + (approches, atterrissages)
   $('#v-saisie').addEventListener('click', e => {

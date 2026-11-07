@@ -12,6 +12,7 @@ import { initRegles } from './ui/regles.js';
 import { initTerrainPerso } from './ui/terrain-perso.js';
 import { initCarte, lancerArrierePlan } from './ui/carte.js';
 import { initNas, carnetModifie } from './ui/nas.js';
+import { initNpf, verifierVolsNpf } from './ui/npf.js';
 import { invaliderStats } from './ui/avions.js';
 import { VERSION } from './version.js';
 
@@ -52,6 +53,8 @@ async function demarrer() {
   initTerrainPerso();
   initCarte();
   initRetour({ vue: () => vue, montrer, saisieModifiee, abandonnerSaisie });
+  // Vols envoyés par NPF-Q400 : brouillon dans la saisie (vol = vol déjà enregistré avec le même id, ou null)
+  initNpf({ ouvrir: (n, vol) => { memoriserPlace(); ouvrirSaisie(vol, { npf: n }); montrer('saisie'); } });
   // Appui long : pas de menu « copier / partager » hors des champs de saisie (R28)
   document.addEventListener('contextmenu', e => { if (!e.target.closest('input, textarea, select, [contenteditable]')) e.preventDefault(); });
   // Onglet Carnet touché alors qu'on y est déjà : retour au dernier vol (en haut)
@@ -82,6 +85,7 @@ async function demarrer() {
   verifierRappel();
   demanderStockagePersistant().then(() => { if (vue === 'plus') majPlus(); });
   initNas();
+  setTimeout(verifierVolsNpf, 1200); // vols envoyés par NPF-Q400, discrètement
   document.body.dataset.pret = '1';
   setTimeout(lancerArrierePlan, 1500); // traces des 30 derniers jours, discrètement
 }

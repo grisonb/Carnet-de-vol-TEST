@@ -44,6 +44,15 @@ L'adresse du NAS et son mot de passe sont TAPÉS sur le téléphone (réglages `
 sauvegarde (`REGLAGES_PRIVES`). Script PHP, installation (tâche DSM root) et guide : dossier privé
 `../donnees-privees/nas-carnet-sauvegarde/` (jamais dans le dépôt). Ne jamais toucher au NAS soi-même.
 
+## Vols envoyés par NPF-Q400 (v0.15)
+
+Format commun « carnet-vol-npf » version 1 (défini avec la session NPF-Q400 TEST : ne pas le changer seul). NAS :
+carnet.php version 3, actions `vol-depot`, `vols-liste`, `vol-retirer` (dossier privé `vols-npf/`). Logique :
+`js/npf.js` (validation, avion par immatriculation, brouillon, lignes « FEU n°NN », différences) ; écrans :
+`js/ui/npf.js` (bandeau `#npf-bandeau`, liste, Ignorer, mise à jour) et `ouvrirSaisie(vol, { npf })` (brouillon,
+zone `#npf-zone`). Un vol enregistré garde `npfId`, `npfExporteLe` et `feuxPositions` (Carte du vol : flammes).
+Jamais d'enregistrement automatique ; jamais de message d'erreur intrusif.
+
 ## Hébergement
 
 GitHub Pages, branche `main`, racine : https://grisonb.github.io/Carnet-de-vol-TEST/
@@ -130,6 +139,8 @@ BOMBING et TRANSPORT s'excluent sur un vol. Suggestions de missions masquées : 
 - `node tests/navigateur/v014.mjs` : copie NAS sans photos, sauvegarde avec photos, restauration qui garde les photos,
   Entrée de la recherche, PDF depuis l'app. PDF sous Node : `tests/outils/pdf-noeud.js` (enregistreur : chaque case et
   chaque texte, pour vérifier que rien ne déborde) et `tests/outils/vols-pdf.js` (vols inventés difficiles).
+- `node tests/navigateur/v015.mjs` : vols NPF-Q400 avec un FAUX NAS v3 (bandeau, liste, brouillon LOC / UTC, minuit UTC,
+  avion inconnu, 0 / 1 / 3 feux, Enregistrer -> retrait, Ignorer, mise à jour du même id, carte des feux hors ligne).
 - `node tests/navigateur/fluidite.mjs` : 4070 vols inventés, processeur ralenti ×6.
 - `node outils/controle-import.mjs ../donnees-privees/flylog-decode-v1.csv ../donnees-privees/totaux-flylog-reference.json` :
   contrôle avec le VRAI fichier, en local uniquement (rien n'est écrit dans le dépôt).

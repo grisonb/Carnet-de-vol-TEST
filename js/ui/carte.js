@@ -3,6 +3,8 @@
 // - La trace découpée aux heures bloc est rangée sur le téléphone : ensuite, elle s'affiche sans réseau.
 // - Fond OpenStreetMap avec du réseau ; sans réseau, fond neutre avec la trace et les terrains.
 // - Bibliothèque Leaflet incluse dans l'app (vendor/leaflet), chargée seulement à la première carte.
+// - v0.15 : positions des feux reçues de NPF-Q400 (vol.feuxPositions) : flamme rouge + commune, avec ou sans trace
+//   ADS-B (utile à La Réunion), sans réseau aussi. Elles ne modifient jamais les heures.
 
 import { $, esc, toast, ouvrirOutil, fermerOutil } from './commun.js';
 import { etat, reglage, enregistrerReglage, enregistrerAvions, lireTrace, ecrireTrace, avionDe } from '../etat.js';
@@ -133,6 +135,10 @@ function terrainsDuVol(vol) {
   return [...new Set(codes)].map(c => terrain(c)).filter(t => t && t.lat != null);
 }
 
+// Flamme rouge (dessin de l'app, pas d'image à télécharger)
+const FLAMME = '<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path fill="#d32f2f" stroke="#fff" stroke-width="1.2" d="M12 2c1 3.2-.6 4.9-2 6.6C8.6 10.3 7 12 7 14.8 7 18.2 9.3 21 12 21s5-2.6 5-6c0-2.4-1.2-4.1-2.4-5.4-.2 1.6-.8 2.8-1.8 3.4.3-3.6-.5-7.6-.8-10z"/></svg>';
+const feuxDuVol = vol => ((vol && vol.feuxPositions) || []).filter(f => typeof f.lat === 'number' && typeof f.lon === 'number');
+
 async function dessiner(conteneur, vol, points, interactif) {
   const L = await chargerLeaflet();
   if (conteneur._carte) { conteneur._carte.remove(); conteneur._carte = null; }
@@ -147,14 +153,21 @@ async function dessiner(conteneur, vol, points, interactif) {
   if (avecFond) {
     L.tileLayer(TUILES(), { maxZoom: 18, attribution: '© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>' }).addTo(carte);
   }
-  const ligne = L.polyline(points.map(p => [p[1], p[2]]), { color: '#1f6fd1', weight: interactif ? 4 : 3, opacity: 0.9 }).addTo(carte);
+  const bornes = L.latLngBounds([]);
+  if (points.length) bornes.extend(L.polyline(points.map(p => [p[1], p[2]]), { color: '#1f6fd1', weight: interactif ? 4 : 3, opacity: 0.9 }).addTo(carte).getBounds());
+  for (const f of feuxDuVol(vol)) {
+    const m = L.marker([f.lat, f.lon], { icon: L.divIcon({ className: 'carte-feu', html: FLAMME, iconSize: [24, 24], iconAnchor: [12, 22] }), keyboard: false });
+    const nom = f.commune || f.nom || 'Feu';
+    m.bindTooltip(nom, { permanent: true, direction: 'right', offset: [8, -10], className: 'carte-feu-nom' }).addTo(carte);
+    bornes.extend([f.lat, f.lon]);
+  }
   for (const t of terrainsDuVol(vol)) {
     L.circleMarker([t.lat, t.lon], { radius: 5, color: '#13202e', weight: 2, fillColor: '#ffffff', fillOpacity: 1 })
       .bindTooltip(t.code, { permanent: true, direction: 'top', offset: [0, -6], className: 'carte-terrain' }).addTo(carte);
   }
-  const bornes = ligne.getBounds();
   for (const t of terrainsDuVol(vol)) bornes.extend([t.lat, t.lon]);
-  carte.fitBounds(bornes, { padding: [18, 18], maxZoom: 13 });
+  if (bornes.isValid()) carte.fitBounds(bornes, { paddingTopLeft: [28, 48], paddingBottomRight: [110, 24], maxZoom: 12 });
+  else carte.setView([46.5, 2.5], 5);
   return carte;
 }
 
@@ -166,27 +179,43 @@ export async function afficherCarteVol(vol) {
   mini.hidden = true; txt.textContent = '';
   $('#carte-source').textContent = SOURCE;
   if (!vol) { txt.textContent = (await etatDuVol(null)).texte; return; }
+  const feux = feuxDuVol(vol);
+  // Brouillon NPF pas encore enregistré : seulement les positions des feux reçues
+  if (vol.brouillon && !vol.id) {
+    if (!feux.length) { txt.textContent = (await etatDuVol(null)).texte; return; }
+    return dessinerFeux(vol, 'Positions des feux envoyées par NPF-Q400.');
+  }
   // Texte immédiat (sans réseau), puis la suite quand la demande au serveur est finie
   let e = await etatDuVol(vol);
   if (volAffiche !== vol) return;
   if (e.code !== 'ok') txt.textContent = e.code === 'aTelecharger' || e.code === 'horsLigne' ? 'Recherche de la trace…' : e.texte;
+  if (e.code !== 'ok' && feux.length) await dessinerFeux(vol, 'Positions des feux (NPF-Q400) · ' + (e.code === 'aTelecharger' ? TEXTE_RESEAU : e.texte));
   if (e.code !== 'ok') e = await preparerVol(vol);
   if (volAffiche !== vol) return;
   if (e.code === 'ok') {
     txt.textContent = '';
     mini.hidden = false;
     try { await dessiner(mini, vol, e.stockee.points, false); } catch { mini.hidden = true; txt.textContent = 'Carte indisponible.'; }
-  } else txt.textContent = e.code === 'aTelecharger' ? TEXTE_RESEAU : e.texte;
+  } else if (feux.length) await dessinerFeux(vol, 'Positions des feux (NPF-Q400) · ' + (e.code === 'aTelecharger' ? TEXTE_RESEAU : e.texte));
+  else txt.textContent = e.code === 'aTelecharger' ? TEXTE_RESEAU : e.texte;
+}
+// Carte avec les seules positions des feux (pas de trace ADS-B)
+async function dessinerFeux(vol, texte) {
+  const mini = $('#carte-mini'), txt = $('#carte-txt');
+  if (volAffiche !== vol) return;
+  txt.textContent = texte;
+  mini.hidden = false;
+  try { await dessiner(mini, vol, [], false); } catch { mini.hidden = true; txt.textContent = 'Carte indisponible.'; }
 }
 const TEXTE_RESEAU = 'La carte s\'affichera quand le téléphone aura du réseau.';
 
 async function pleinEcran() {
   if (!volAffiche || $('#carte-mini').hidden) return;
-  const e = await etatDuVol(volAffiche);
-  if (e.code !== 'ok') return;
+  const e = volAffiche.brouillon && !volAffiche.id ? { code: 'brouillon' } : await etatDuVol(volAffiche);
+  if (e.code !== 'ok' && !feuxDuVol(volAffiche).length) return;
   $('#carte-plein').hidden = false;
-  $('#cp-t').textContent = `${dateFr(volAffiche.date)} · ${[volAffiche.dep, ...(volAffiche.escales || []).map(x => x.code), volAffiche.arr].join(' → ')}`;
-  await dessiner($('#carte-grande'), volAffiche, e.stockee.points, true);
+  $('#cp-t').textContent = `${dateFr(volAffiche.date)} · ${[volAffiche.dep, ...(volAffiche.escales || []).map(x => x.code), volAffiche.arr].filter(Boolean).join(' → ')}`;
+  await dessiner($('#carte-grande'), volAffiche, e.code === 'ok' ? e.stockee.points : [], true);
 }
 
 // ---------- Plus › Cartes de vol ----------

@@ -30,7 +30,7 @@ export async function erreurDansReponse(r) {
   const code = Number(j.code) || 400;
   return { statut: STATUTS[code] || 'injoignable', code, erreur: String(j.erreur) };
 }
-async function requete(action, { url = configNas().url, motDePasse = configNas().motDePasse, corps = null, entetes = {}, extra = '', delai = 30000 } = {}) {
+export async function requete(action, { url = configNas().url, motDePasse = configNas().motDePasse, corps = null, entetes = {}, extra = '', delai = 30000 } = {}) {
   if (!url) return { statut: 'adresse' };
   if (!enLigne()) return { statut: 'horsLigne' };
   const arret = new AbortController();
