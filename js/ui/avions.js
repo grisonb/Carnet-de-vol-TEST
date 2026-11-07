@@ -2,7 +2,7 @@
 
 import { $, esc, segs, choisir, toast, PLUS, CRAYON, CROIX } from './commun.js';
 import { etat, enregistrerAvion, reglage } from '../etat.js';
-import { avionVide, formaterImmat, texteColonneAvion, etiquettesParDefaut, etiquettesPourTrain } from '../modele.js';
+import { avionVide, formaterImmat, texteColonneAvion, etiquettesParDefaut, etiquettesPourTrain, classerParTypeEtImmat, comparerImmat, typeDeLAvion } from '../modele.js';
 import { TYPES, indexTypes, caracteristiquesDuType, MOTEUR, SURFACE } from '../types-avion.js';
 import { normaliser } from '../missions.js';
 import { hm, dateFr } from '../temps.js';
@@ -69,7 +69,8 @@ function avionsTries() {
 export function rechercheRapide() {
   const q = normaliser($('#ac-q').value), r = $('#ac-res');
   if (!q) { r.hidden = true; r.innerHTML = ''; return; }
-  const m = avionsTries().filter(a => meule(a).includes(q));
+  // Types dans l'ordre du dernier vol (comme avant) ; dans un même type, par immatriculation (R52)
+  const m = classerParTypeEtImmat(avionsTries().filter(a => meule(a).includes(q)));
   r.innerHTML = m.slice(0, 6).map(itemAvion).join('')
     + (m.length > 6 ? `<button type="button" class="linkbtn" data-all="1">${m.length - 6} autre${m.length > 7 ? 's' : ''} : voir la liste complète ›</button>` : '')
     + (m.length ? '' : '<p class="hint">Aucun avion trouvé. <button type="button" class="linkbtn" data-new="1">+ Ajouter un avion</button></p>');
@@ -81,12 +82,12 @@ function rendreFlotte() {
   const q = normaliser($('#fl-q').value);
   const m = avionsTries().filter(a => !q || meule(a).includes(q));
   const g = {};
-  for (const a of m) { const k = a.sim ? 'SIMULATEURS' : (a.typeOACI || '?'); (g[k] = g[k] || []).push(a); }
+  for (const a of m) { const k = typeDeLAvion(a); (g[k] = g[k] || []).push(a); }
   const cles = Object.keys(g).sort((x, y) => (x === 'SIMULATEURS' ? 1 : y === 'SIMULATEURS' ? -1 : x.localeCompare(y)));
   $('#fl-n').textContent = `${m.length} avion${m.length > 1 ? 's' : ''}` + (q ? ` trouvé${m.length > 1 ? 's' : ''}` : ` · ${cles.length} type${cles.length > 1 ? 's' : ''}`);
   const min = a => (stats[a.id] && stats[a.id].minutes) || 0;
   $('#fl-list').innerHTML = cles.map(k => {
-    const L = g[k].sort((x, y) => min(y) - min(x));
+    const L = g[k].sort(comparerImmat); // R52 : par immatriculation dans chaque type
     const tot = L.reduce((s, a) => s + min(a), 0);
     return `<div class="grp"><span>${esc(k)}</span><span>${hm(tot)}</span></div><div class="flist">${L.map(a => itemAvion(a, true)).join('')}</div>`;
   }).join('') || '<p class="hint">Aucun avion. Touche + pour en ajouter un.</p>';

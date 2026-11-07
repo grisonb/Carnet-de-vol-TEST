@@ -53,7 +53,9 @@ v2 = avion par `nomAvion` « M73 », escales = passages ordonnés { oaci, nom, l
 brouillon, lignes « FEU n°NN », différences ; la table des terrains est passée en paramètre) ; écrans :
 `js/ui/npf.js` (bandeau `#npf-bandeau`, liste, Ignorer, mise à jour) et `ouvrirSaisie(vol, { npf })` (brouillon,
 zone `#npf-zone`). Un vol enregistré garde `npfId`, `npfExporteLe` et `feuxPositions` (Carte du vol : flammes).
-Une escale peut n'avoir qu'un `nom` (pélicandrome sans code OACI) et sa position `lat` / `lon` ; jamais de personne
+Une escale peut n'avoir qu'un `nom` (pélicandrome sans code OACI) et sa position `lat` / `lon` ; `arriveePosition`
+(v0.17) = position GPS d'une arrivée sans code : dernier atterrissage et nuit calculés à cette position tant qu'aucun
+terrain connu n'est tapé (`F.arrPos`), gardée avec le vol pour la Carte du vol ; jamais de personne
 créée sans accord pour un copilote NPF inconnu.
 Jamais d'enregistrement automatique ; jamais de message d'erreur intrusif.
 
@@ -152,6 +154,8 @@ BOMBING et TRANSPORT s'excluent sur un vol. Suggestions de missions masquées : 
   jour / nuit, pélicandrome sans code, copilote trouvé / inconnu, ce qui change, format 1 toujours lu).
 - `node tests/navigateur/v016b.mjs` : terrains par défaut d'un nouveau vol (-> LFTW), sélection du code au toucher, bouton
   « LF » (2 lettres, hors LF, mémorisé), vol NPF non modifié, Plus › Importer des fiches avions (avions inventés).
+- `node tests/navigateur/v017.mjs` : `arriveePosition` (arrivée sans code OACI : jour / nuit, code tapé ensuite, carte).
+- `node tests/navigateur/v017b.mjs` : avions d'un même type classés par immatriculation (`classerParTypeEtImmat`, `modele.js`).
 - `node tests/navigateur/fluidite.mjs` : 4070 vols inventés, processeur ralenti ×6.
 - `node outils/controle-import.mjs ../donnees-privees/flylog-decode-v1.csv ../donnees-privees/totaux-flylog-reference.json` :
   contrôle avec le VRAI fichier, en local uniquement (rien n'est écrit dans le dépôt).

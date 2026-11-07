@@ -105,6 +105,14 @@ export function copiloteNpf(n, personnes = []) {
   return { tri, personne: p };
 }
 
+// Position de l'arrivée quand elle n'a pas de code OACI (format 2, `arriveePosition: { lat, lon }`), sinon null
+export function positionArrivee(n) {
+  const p = n && n.arriveePosition;
+  if (!p || typeof p !== 'object' || Array.isArray(p)) return null;
+  const lat = coord(p.lat, 90), lon = coord(p.lon, 180);
+  return lat === null || lon === null ? null : { lat, lon };
+}
+
 // Nombre entier >= 0 si NPF le donne de façon sûre, sinon null
 const entier = x => (Number.isInteger(x) && x >= 0 && x < 100 ? x : null);
 
@@ -122,7 +130,7 @@ export function brouillonNpf(n, { avions = [], vols = [], personnes = [], terrai
     version: n.version,
     npf: { id: n.id, exporteLe: texte(n.exporteLe), feux: positionsFeux(feux), nbFeux: feux.length, feuxTous: feux },
     date: n.date, hDep: n.blocDepart, hArr: n.blocArrivee, bloc: dureeBloc(n),
-    dep: codeOACI(n.depart), arr: codeOACI(n.arrivee), escales: escalesNpf(n, terrain),
+    dep: codeOACI(n.depart), arr: codeOACI(n.arrivee), escales: escalesNpf(n, terrain), arriveePosition: positionArrivee(n),
     immat: texte(n.immat).toUpperCase(), nomAvion: texte(n.nomAvion).toUpperCase(),
     avion: av.avion, rechercheAvion: av.recherche, avionsMemeNom: av.plusieurs,
     lignes, remarques: texte(n.remarques),

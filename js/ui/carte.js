@@ -132,12 +132,22 @@ function chargerLeaflet() {
 
 function terrainsDuVol(vol) {
   const codes = [vol.dep, ...(vol.escales || []).map(e => e.code), vol.arr].filter(Boolean);
-  return [...new Set(codes)].map(c => terrain(c)).filter(t => t && t.lat != null);
+  const connus = [...new Set(codes)].map(c => terrain(c)).filter(t => t && t.lat != null);
+  // v0.17 : pélicandrome sans code (position envoyée par NPF) et arrivée sans code (arriveePosition)
+  const sansCode = (vol.escales || []).filter(e => !terrain(e.code) && typeof e.lat === 'number' && typeof e.lon === 'number')
+    .map(e => ({ code: e.nom || e.code || 'Escale', lat: e.lat, lon: e.lon }));
+  const p = vol.arriveePosition;
+  if (p && typeof p.lat === 'number' && typeof p.lon === 'number' && !terrain(vol.arr)) sansCode.push({ code: vol.arr || 'Arrivée', lat: p.lat, lon: p.lon });
+  return [...connus, ...sansCode];
 }
 
 // Flamme rouge (dessin de l'app, pas d'image à télécharger)
 const FLAMME = '<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path fill="#d32f2f" stroke="#fff" stroke-width="1.2" d="M12 2c1 3.2-.6 4.9-2 6.6C8.6 10.3 7 12 7 14.8 7 18.2 9.3 21 12 21s5-2.6 5-6c0-2.4-1.2-4.1-2.4-5.4-.2 1.6-.8 2.8-1.8 3.4.3-3.6-.5-7.6-.8-10z"/></svg>';
 const feuxDuVol = vol => ((vol && vol.feuxPositions) || []).filter(f => typeof f.lat === 'number' && typeof f.lon === 'number');
+// Positions envoyées par NPF-Q400 à montrer même sans trace ADS-B : feux, arrivée sans code, pélicandromes sans code
+const positionsNpf = vol => !!vol && (feuxDuVol(vol).length > 0
+  || (vol.arriveePosition && typeof vol.arriveePosition.lat === 'number' && !terrain(vol.arr))
+  || (vol.escales || []).some(e => !terrain(e.code) && typeof e.lat === 'number'));
 
 async function dessiner(conteneur, vol, points, interactif) {
   const L = await chargerLeaflet();
@@ -179,24 +189,25 @@ export async function afficherCarteVol(vol) {
   mini.hidden = true; txt.textContent = '';
   $('#carte-source').textContent = SOURCE;
   if (!vol) { txt.textContent = (await etatDuVol(null)).texte; return; }
-  const feux = feuxDuVol(vol);
-  // Brouillon NPF pas encore enregistré : seulement les positions des feux reçues
+  const feux = positionsNpf(vol) ? [1] : []; // v0.17 : feux, arrivée ou pélicandrome sans code (positions NPF)
+  // Brouillon NPF pas encore enregistré : seulement les positions reçues
   if (vol.brouillon && !vol.id) {
     if (!feux.length) { txt.textContent = (await etatDuVol(null)).texte; return; }
-    return dessinerFeux(vol, 'Positions des feux envoyées par NPF-Q400.');
+    return dessinerFeux(vol, feuxDuVol(vol).length ? 'Positions des feux envoyées par NPF-Q400.' : 'Positions envoyées par NPF-Q400.');
   }
   // Texte immédiat (sans réseau), puis la suite quand la demande au serveur est finie
   let e = await etatDuVol(vol);
   if (volAffiche !== vol) return;
   if (e.code !== 'ok') txt.textContent = e.code === 'aTelecharger' || e.code === 'horsLigne' ? 'Recherche de la trace…' : e.texte;
-  if (e.code !== 'ok' && feux.length) await dessinerFeux(vol, 'Positions des feux (NPF-Q400) · ' + (e.code === 'aTelecharger' ? TEXTE_RESEAU : e.texte));
+  const titreNpf = feuxDuVol(vol).length ? 'Positions des feux (NPF-Q400) · ' : 'Positions (NPF-Q400) · ';
+  if (e.code !== 'ok' && feux.length) await dessinerFeux(vol, titreNpf + (e.code === 'aTelecharger' ? TEXTE_RESEAU : e.texte));
   if (e.code !== 'ok') e = await preparerVol(vol);
   if (volAffiche !== vol) return;
   if (e.code === 'ok') {
     txt.textContent = '';
     mini.hidden = false;
     try { await dessiner(mini, vol, e.stockee.points, false); } catch { mini.hidden = true; txt.textContent = 'Carte indisponible.'; }
-  } else if (feux.length) await dessinerFeux(vol, 'Positions des feux (NPF-Q400) · ' + (e.code === 'aTelecharger' ? TEXTE_RESEAU : e.texte));
+  } else if (feux.length) await dessinerFeux(vol, titreNpf + (e.code === 'aTelecharger' ? TEXTE_RESEAU : e.texte));
   else txt.textContent = e.code === 'aTelecharger' ? TEXTE_RESEAU : e.texte;
 }
 // Carte avec les seules positions des feux (pas de trace ADS-B)
@@ -212,7 +223,7 @@ const TEXTE_RESEAU = 'La carte s\'affichera quand le téléphone aura du réseau
 async function pleinEcran() {
   if (!volAffiche || $('#carte-mini').hidden) return;
   const e = volAffiche.brouillon && !volAffiche.id ? { code: 'brouillon' } : await etatDuVol(volAffiche);
-  if (e.code !== 'ok' && !feuxDuVol(volAffiche).length) return;
+  if (e.code !== 'ok' && !positionsNpf(volAffiche)) return;
   $('#carte-plein').hidden = false;
   $('#cp-t').textContent = `${dateFr(volAffiche.date)} · ${[volAffiche.dep, ...(volAffiche.escales || []).map(x => x.code), volAffiche.arr].filter(Boolean).join(' → ')}`;
   await dessiner($('#carte-grande'), volAffiche, e.code === 'ok' ? e.stockee.points : [], true);

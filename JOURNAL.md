@@ -1,5 +1,27 @@
 # Journal des versions
 
+## v0.17 — 07/11/2026
+
+Vols NPF-Q400 (format « vol NPF » version 2) : nouveau champ facultatif `arriveePosition: { lat, lon }`, envoyé quand
+l'arrivée part sans code OACI (position GPS notée au dernier « Bloc arrivée »).
+
+**Ce qui change**
+- Arrivée sans code : la case Arrivée reste vide, à compléter ; le dernier atterrissage est classé jour / nuit à cette
+  position (et le temps de nuit la prend comme point d'arrivée). Dès qu'un code connu est tapé, le calcul reprend les
+  coordonnées du terrain ; code inconnu de la table : la position sert encore. Sans code ni position : comme avant.
+- Brouillon NPF dont un terrain manque : les heures restent affichées en UTC (le fuseau local serait inconnu).
+- Carte du vol : le point d'arrivée (et un pélicandrome sans code) s'affiche à sa position, même sans trace ADS-B et
+  sans réseau ; la position est gardée avec le vol si le code tapé n'est pas un terrain connu.
+- NAS : carnet.php v4 révisé : `arriveePosition` vérifiée (lat -90..90, lon -180..180, nombres), refusée si mal formée
+  (la première v4 l'acceptait sans la vérifier). À redéposer : carnet.php, SHA256SUMS, tache_dsm_installer.sh.
+- R52 : dans « Tous mes avions » et la recherche d'avion de la saisie, les avions d'un même type OACI sont classés par
+  ordre alphabétique d'immatriculation (quel que soit le modèle : « … MR » ou « … MRE ») ; l'ordre des types ne change
+  pas (Tous mes avions : types par ordre alphabétique, simulateurs à la fin ; recherche : type du dernier vol d'abord).
+
+**Tests**
+- `tests/unitaires/v017.test.js` ; `tests/navigateur/v017.mjs` (arrivée avec code, sans code avec position, sans code
+  ni position, minuit UTC, carte hors ligne) ; `tests/navigateur/v017b.mjs` (R52, avions inventés) ; test PHP local (127 vérifications) ; tous les tests existants ; FlyLog.
+
 ## v0.16 — 07/11/2026
 
 Vols NPF-Q400 au format « vol NPF » version 2 (le premier vrai envoi NPF-Q400 TEST v17.91 → NAS v3 → Carnet v0.15 a

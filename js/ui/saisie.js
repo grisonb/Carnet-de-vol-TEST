@@ -105,7 +105,8 @@ function instants() {
 // Points du trajet (départ, escales, arrivée) connus dans la table
 function points() {
   const pos = e => terrain(e.code) || (e.lat != null && e.lon != null ? { lat: e.lat, lon: e.lon } : null);
-  const p = [terrain($('#f-dep').value), ...F.escales.map(pos), terrain($('#f-arr').value)];
+  const arr = terrain($('#f-arr').value) || (F.arrPos ? { ...F.arrPos } : null); // v0.17 : arrivée sans code OACI
+  const p = [terrain($('#f-dep').value), ...F.escales.map(pos), arr];
   return p.every(t => t && t.lat != null && t.lon != null) ? p : null; // terrain sans coordonnées : nuit à la main
 }
 
@@ -390,6 +391,7 @@ function changerMode(m) {
 function appliquerNpf(n, vol) {
   const b = brouillonNpf(n, { avions: [...etat.avions.values()], vols: vol ? etat.vols.filter(v => v.id !== vol.id) : etat.vols,
     personnes: etat.personnes, terrain });
+  F.arrPos = b.arriveePosition && !b.arr ? b.arriveePosition : null; // arrivée sans code : position GPS envoyée par NPF
   F.npf = { id: b.npf.id, exporteLe: b.npf.exporteLe, feux: b.npf.feux, vol: n, avionInconnu: b.avion ? '' : b.rechercheAvion,
     copiInconnu: b.copilote && !b.copilotePersonne ? b.copilote : '' };
   F.mode = 'utc';
@@ -424,6 +426,7 @@ function appliquerNpf(n, vol) {
     + (sansCode ? ` · ${sansCode} pélicandrome${sansCode > 1 ? 's' : ''} sans code OACI : touche l'escale pour le compléter` : '')
     + (aVerifier ? ' · terrain sans position : vérifie jour / nuit de ses atterrissages' : '')
     + (F.npf.copiInconnu ? ` · copilote ${F.npf.copiInconnu} inconnu` : '')
+    + (!b.arr ? (F.arrPos ? ' · arrivée sans code OACI : complète-la (sa position GPS sert au jour / nuit en attendant)' : ' · arrivée à compléter') : '')
     + '. Complète ce qui manque (fonction, atterrissages…).';
   return b;
 }
@@ -437,7 +440,8 @@ export function ouvrirSaisie(vol, opts = {}) {
   F = { vol: vol || null, mode: vol ? (vol.mode || 'loc') : 'loc', escales: (v.escales || []).map(e => ({ ...e })),
     avionId: v.avionId, etiquettes: [...(v.etiquettes || [])], fonction: v.fonction || 'cdb',
     lignes: lignesPourSaisie(v), compteurs: { ...v.compteurs }, s: { approches: v.approches || 0, attJour: v.attJour, attNuit: v.attNuit },
-    ifr: !!v.regleIFR, bloc: v.tempsTotal || v.simTemps || 0, heuresInconnues: !!vol && !(vol.hDep && vol.hArr), charge: true, npf: null };
+    ifr: !!v.regleIFR, bloc: v.tempsTotal || v.simTemps || 0, heuresInconnues: !!vol && !(vol.hDep && vol.hArr), charge: true, npf: null,
+    arrPos: v.arriveePosition ? { ...v.arriveePosition } : null };
   $('#npf-zone').hidden = true;
   majBoutonLF();
   $('#f-err').textContent = '';
@@ -499,7 +503,8 @@ export function ouvrirSaisie(vol, opts = {}) {
   } else recalculer();
   if (brouillon) {
     choisir('.seg.mini', 1);
-    if (modeVoulu === 'loc') changerMode('loc');
+    // Heures en LOC seulement si les deux terrains sont connus (sinon le fuseau de l'heure locale serait inconnu)
+    if (modeVoulu === 'loc' && terrain($('#f-dep').value) && terrain($('#f-arr').value)) changerMode('loc');
     if (!a) { ouvrirChoixAvion(true); $('#ac-q').value = brouillon.rechercheAvion; $('#ac-q').dispatchEvent(new Event('input')); }
   }
   F.charge = false;
@@ -507,7 +512,8 @@ export function ouvrirSaisie(vol, opts = {}) {
   F.empreinte = empreinte();
   // carte du vol enregistré (sans jamais toucher aux heures) ; brouillon NPF : positions des feux reçues
   afficherCarteVol(brouillon ? { ...(vol || {}), date: brouillon.date, hDep: brouillon.hDep, hArr: brouillon.hArr, dep: brouillon.dep || (vol && vol.dep) || '',
-    arr: brouillon.arr || (vol && vol.arr) || '', escales: F.escales, avionId: F.avionId, feuxPositions: brouillon.npf.feux, brouillon: true } : (vol || null));
+    arr: brouillon.arr || (vol && vol.arr) || '', escales: F.escales, avionId: F.avionId, feuxPositions: brouillon.npf.feux,
+    arriveePosition: F.arrPos, brouillon: true } : (vol || null));
 }
 
 // ---------- Changements non enregistrés (flèche retour : « Abandonner la saisie ? ») ----------
@@ -577,6 +583,8 @@ async function enregistrer() {
   // Vol reçu de NPF-Q400 : son id (pas de doublon), la date de l'export et les positions des feux (Carte du vol)
   const npf = F.npf;
   if (npf) { v.npfId = npf.id; v.npfExporteLe = npf.exporteLe; v.feuxPositions = npf.feux.map(f => ({ ...f })); }
+  // Position GPS de l'arrivée (NPF) : gardée seulement si le code tapé n'est pas un terrain connu (Carte du vol)
+  if (F.arrPos && !terrain(arr)) v.arriveePosition = { ...F.arrPos }; else delete v.arriveePosition;
   await enregistrerVol(v);
   if (npf) volNpfEnregistre(npf.id);
   // nouvelle personne tapée sans passer par « + » : on l'ajoute à la liste

@@ -241,3 +241,15 @@ export function compteursAffiches(avion, vol = null) {
   }
   return { feux: visibles.has('feux'), compteurs: visibles, reglable: regle.length > 0 };
 }
+
+// ---------- v0.17 R52 : avions d'un même type classés par immatriculation ----------
+// Clé de type : le type OACI (les simulateurs ensemble). L'ordre des TYPES est celui de leur première apparition dans
+// la liste reçue (il ne change donc pas) ; dans chaque type, ordre alphabétique d'immatriculation (F-XZZA, F-XZZC…),
+// quel que soit le modèle (« Dash 8 Q400 MR » ou « MRE »).
+export const typeDeLAvion = a => (a.sim ? 'SIMULATEURS' : (a.typeOACI || '?'));
+export const comparerImmat = (x, y) => String(x.immat || '').localeCompare(String(y.immat || ''), 'fr', { numeric: true, sensitivity: 'base' });
+export function classerParTypeEtImmat(avions, cleType = typeDeLAvion) {
+  const rang = new Map();
+  for (const a of avions) { const k = cleType(a); if (!rang.has(k)) rang.set(k, rang.size); }
+  return [...avions].sort((x, y) => rang.get(cleType(x)) - rang.get(cleType(y)) || comparerImmat(x, y));
+}
