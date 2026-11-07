@@ -1,5 +1,41 @@
 # Journal des versions
 
+## v0.16 — 07/11/2026
+
+Vols NPF-Q400 au format « vol NPF » version 2 (le premier vrai envoi NPF-Q400 TEST v17.91 → NAS v3 → Carnet v0.15 a
+marché le 07/11). Le format version 1 reste lu comme avant.
+
+**Ce qui change**
+- Avion retrouvé par son NOM dans la flotte (« M73 » = « m73 », espaces ignorés) ; si l'immatriculation est aussi
+  envoyée, elle prime. Aucun ou plusieurs avions de ce nom : la recherche d'avion s'ouvre sur le nom, je choisis (ou
+  « + Ajouter un avion »). La liste des vols en attente montre le nom et l'immatriculation trouvée.
+- Escales : chaque passage devient un terrain intermédiaire, DANS L'ORDRE, avec Att. Jour / Att. Nuit calculés
+  atterrissage par atterrissage (règle de nuit EASA, à la position du terrain, ou à la position envoyée si le code est
+  inconnu). Pélicandrome sans code OACI : son nom s'affiche (pastille en pointillés), je complète le code en touchant
+  l'escale ; rien ne bloque. Le dernier atterrissage est classé comme avant ; les totaux sont les sommes.
+- Copilote : retrouvé par son trigramme dans mes personnes et placé comme Copi ; trigramme inconnu : « + Ajouter ZZZ à
+  mes personnes » (fiche pré-remplie) ; aucune personne n'est créée sans mon accord.
+- « Ce qui change » (même vol ré-exporté) compte aussi l'avion, les escales et le copilote.
+- NAS : carnet.php version 4 (dépôt des formats 1 et 2, vérifications du format 2), préparé dans le dossier privé, à
+  installer par la même tâche DSM (guide « Mise à jour v4 »).
+- R46 : terrains par défaut d'un NOUVEAU vol : départ = arrivée du dernier vol enregistré, arrivée = LFTW (la base) ;
+  premier vol ou dernier vol arrivé à LFTW : LFTW → LFTW. Toujours modifiable ; rien ne change pour un vol NPF-Q400
+  importé (ses terrains priment) ni pour un vol existant.
+- R47 : toucher une case terrain (départ, arrivée, terrain intermédiaire) sélectionne le code : on tape directement.
+- R48 : bouton « LF » entre la date et « LOC » (même style). Activé : les cases terrain gardent « LF » et on ne tape que
+  les 2 dernières lettres (passage automatique à la case suivante). Terrain hors LF : effacer le « LF » (retour
+  arrière) libère la case, ou désactiver le bouton. Réglage mémorisé (`prefixeLF`).
+- R49 : Plus › « Importer des fiches avions » : petit fichier texte « immatriculation, nom, indicatif radio, modèle » ;
+  aperçu de ce qui change, puis « Appliquer » ; ne remplit que Nom, Indicatif radio et Modèle des avions trouvés par
+  immatriculation (type OACI inchangé), ne crée aucun avion, ne touche à aucun vol ; avion introuvable signalé, ignoré.
+  Le fichier du pilote reste privé (jamais dans le dépôt).
+
+**Tests**
+- `tests/unitaires/v016.test.js` (avion par nom, deux avions du même nom, escales LFHO ×2 → LFLU → LFHO, nuit,
+  pélicandrome sans code, minuit UTC, copilote, ce qui change, format 1) ; `tests/navigateur/v016.mjs` (faux NAS,
+  390 px, captures) ; `tests/navigateur/v016b.mjs` (terrains par défaut, sélection au toucher, bouton LF, vol NPF,
+  import des fiches avions) ; test PHP local (118 vérifications) ; tous les tests existants ; contrôle FlyLog local.
+
 ## v0.15 — 06/11/2026
 
 Une remarque : R33, recevoir les vols exportés depuis NPF-Q400 TEST (iPad), en passant par le NAS.

@@ -31,7 +31,7 @@ export function plusGrandFeu(vols, exclureId = null) {
 
 // Route avec tirets s'il y a des escales (ex. LFTW-LFTH-LFMD), sinon vide
 export function texteRoute(vol) {
-  const esc = (vol.escales || []).map(e => e.code).filter(Boolean);
+  const esc = (vol.escales || []).map(e => e.code || e.nom).filter(Boolean);
   if (!esc.length) return '';
   return [vol.dep, ...esc, vol.arr].filter(Boolean).join('-');
 }

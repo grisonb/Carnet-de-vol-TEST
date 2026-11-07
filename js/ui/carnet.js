@@ -59,7 +59,7 @@ export function dateAffichee(v) {
 
 export function carteVol(v, voir = false) {
   const a = avionDe(v);
-  const esc0 = (v.escales || []).map(e => e.code);
+  const esc0 = (v.escales || []).map(e => e.code || e.nom || '?');
   const taille = esc0.length > 2 ? ' xsmall' : esc0.length > 1 ? ' small' : '';
   const route = esc0.length
     ? `${codeAvecDrapeau(v.dep)} <span class="via">› ${esc0.map(codeAvecDrapeau).join(' › ')} ›</span> ${codeAvecDrapeau(v.arr)}`

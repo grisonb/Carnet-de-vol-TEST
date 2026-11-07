@@ -1,7 +1,7 @@
 // Écran de saisie / modification d'un vol (comme la maquette, de haut en bas).
 
 import { $, $$, esc, segs, choisir, toast, toastAction, codeAvecDrapeau, PLUS, MOINS, CROIX } from './commun.js';
-import { etat, reglage, enregistrerReglage, enregistrerVol, supprimerVol, enregistrerPersonne, supprimerPersonne,
+import { etat, reglage, enregistrerReglage, ecrireReglageDiscret, enregistrerVol, supprimerVol, enregistrerPersonne, supprimerPersonne,
   listeMissions, trouverPersonne, enregistrerAvion } from '../etat.js';
 import { ouvrirAjoutTerrain } from './terrain-perso.js';
 import { volVide, FONCTIONS, TEMPS_FONCTION, COMPTEURS, colonnesAvion, personneVide, nomPersonne, ligneAvion,
@@ -22,6 +22,7 @@ import { brouillonNpf } from '../npf.js';
 import { ignorerVolNpf, volNpfEnregistre } from './npf.js';
 
 let F = null;          // brouillon du vol en cours
+const BASE = 'LFTW';   // base du pilote : arrivée par défaut d'un nouveau vol (R46)
 let quitter = () => {};
 
 // ---------- Terrains ----------
@@ -35,13 +36,41 @@ function noms() {
     $(`[data-ajt="${i}"]`).hidden = !inconnu;
   }
 }
-function champOACI(sel, suivant) {
+// R48 : bouton « LF » (réglage prefixeLF, mémorisé) : les cases terrain gardent « LF » et on ne tape que les 2 dernières
+// lettres. Pour un terrain hors LF : effacer le « LF » (retour arrière) libère la case, ou désactiver le bouton ; un
+// code complet de 4 caractères tapé ou collé est gardé tel quel.
+// R47 : toucher une case terrain sélectionne le code (avec LF : les 2 lettres après « LF ») : on tape directement.
+export const prefixeLF = () => reglage('prefixeLF') === true;
+function selectionnerCode(el) {
+  if (document.activeElement !== el) return;
+  if (prefixeLF() && !el.dataset.horsLf && /^LF/.test(el.value)) el.setSelectionRange(2, el.value.length);
+  else el.select();
+}
+function champOACI(sel, suivant, apres = () => {}) {
   const el = $(sel);
-  el.addEventListener('input', () => {
-    el.value = el.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 4);
+  el.addEventListener('input', e => {
+    let v = el.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+    if (prefixeLF() && !el.dataset.horsLf) {
+      const efface = String(e.inputType || '').startsWith('delete');
+      if (efface && v.length < 2) { v = ''; el.dataset.horsLf = '1'; } // « LF » effacé : saisie libre (terrain hors LF)
+      else if (!efface && v.length <= 2 && !v.startsWith('LF')) v = 'LF' + v;
+    }
+    el.value = v.slice(0, 4);
+    if (prefixeLF() && /^LF/.test(el.value) && !el.dataset.horsLf) el.setSelectionRange(el.value.length, el.value.length);
+    apres();
     if (el.value.length === 4 && suivant) $(suivant).focus();
   });
-  el.addEventListener('focus', () => el.select());
+  el.addEventListener('focus', () => {
+    delete el.dataset.horsLf;
+    if (prefixeLF() && !el.value) { el.value = 'LF'; apres(); }
+    setTimeout(() => selectionnerCode(el), 0);
+  });
+  // Au toucher, le navigateur du téléphone place le curseur après le focus : on resélectionne
+  el.addEventListener('pointerup', () => setTimeout(() => selectionnerCode(el), 0));
+  el.addEventListener('blur', () => { if (el.value === 'LF') { el.value = ''; apres(); } });
+}
+function majBoutonLF() {
+  $('#tz-lf').setAttribute('aria-pressed', String(prefixeLF()));
 }
 
 // ---------- Heures « 0942 » -> 09h42 ----------
@@ -75,8 +104,8 @@ function instants() {
 
 // Points du trajet (départ, escales, arrivée) connus dans la table
 function points() {
-  const codes = [$('#f-dep').value, ...F.escales.map(e => e.code), $('#f-arr').value];
-  const p = codes.map(terrain);
+  const pos = e => terrain(e.code) || (e.lat != null && e.lon != null ? { lat: e.lat, lon: e.lon } : null);
+  const p = [terrain($('#f-dep').value), ...F.escales.map(pos), terrain($('#f-arr').value)];
   return p.every(t => t && t.lat != null && t.lon != null) ? p : null; // terrain sans coordonnées : nuit à la main
 }
 
@@ -121,7 +150,7 @@ function colonneAuto() {
 let vmEdit = -1, VM = { attJour: 1, attNuit: 0 };
 function rendreEscales() {
   $('#via-list').innerHTML = F.escales.map((v, i) =>
-    `<button type="button" class="viachip" data-vi="${i}">${drapeau(terrain(v.code)?.pays)}<b>${esc(v.code)}</b> ${esc(terrain(v.code)?.nom || '')} · ${v.attJour + v.attNuit} att.</button>`).join('');
+    `<button type="button" class="viachip${v.code ? '' : ' sans-code'}" data-vi="${i}">${v.code ? drapeau(terrain(v.code)?.pays) : ''}<b>${esc(v.code || 'Code ?')}</b> ${esc(terrain(v.code)?.nom || v.nom || '')} · ${v.attJour + v.attNuit} att.${v.attNuit ? ` (${v.attNuit} nuit)` : ''}</button>`).join('');
 }
 function nomVM() {
   const c = $('#vm-icao').value.toUpperCase();
@@ -260,7 +289,7 @@ function rendreSuggestions() {
   r.hidden = false;
 }
 function routeTexte() {
-  const pts = [$('#f-dep').value, ...F.escales.map(v => v.code), $('#f-arr').value].filter(Boolean);
+  const pts = [$('#f-dep').value, ...F.escales.map(v => v.code || v.nom), $('#f-arr').value].filter(Boolean);
   return F.escales.length ? pts.join('-') : '';
 }
 function apercu() {
@@ -359,8 +388,10 @@ function changerMode(m) {
 // Les champs reçus remplacent ceux du formulaire (heures en UTC, converties ensuite selon le mode d'affichage).
 // Un vol déjà enregistré (même id NPF) est mis à jour : ses lignes de mission sont gardées, les feux en plus ajoutés.
 function appliquerNpf(n, vol) {
-  const b = brouillonNpf(n, { avions: [...etat.avions.values()], vols: vol ? etat.vols.filter(v => v.id !== vol.id) : etat.vols });
-  F.npf = { id: b.npf.id, exporteLe: b.npf.exporteLe, feux: b.npf.feux, vol: n, avionInconnu: b.avion ? '' : b.immat };
+  const b = brouillonNpf(n, { avions: [...etat.avions.values()], vols: vol ? etat.vols.filter(v => v.id !== vol.id) : etat.vols,
+    personnes: etat.personnes, terrain });
+  F.npf = { id: b.npf.id, exporteLe: b.npf.exporteLe, feux: b.npf.feux, vol: n, avionInconnu: b.avion ? '' : b.rechercheAvion,
+    copiInconnu: b.copilote && !b.copilotePersonne ? b.copilote : '' };
   F.mode = 'utc';
   $('#f-date').value = b.date; $('#f-t0').value = heureH(b.hDep); $('#f-t1').value = heureH(b.hArr);
   F.heuresInconnues = false;
@@ -377,13 +408,23 @@ function appliquerNpf(n, vol) {
   if (b.remarques) $('#f-rem').value = b.remarques;
   if (b.attJour !== null) F.s.attJour = b.attJour;
   if (b.attNuit !== null) F.s.attNuit = b.attNuit;
-  if (b.copilote && F.fonction === 'cdb') $('#f-copi').value = b.copilote;
+  // Copilote : la personne retrouvée par son trigramme ; trigramme inconnu : proposé à l'ajout (rien n'est créé seul)
+  if (b.copilote) { F.fonction = 'cdb'; $('#f-copi').value = b.copilotePersonne ? nomPersonne(b.copilotePersonne) : b.copilote; }
+  $('#npf-copi-add').hidden = !F.npf.copiInconnu;
+  $('#npf-copi-add').textContent = `+ Ajouter ${F.npf.copiInconnu} à mes personnes`;
   $('#f-title').textContent = vol ? 'Mettre à jour le vol' : 'Vol NPF-Q400 à vérifier';
   $('#f-sub').textContent = 'Brouillon : rien n\'est enregistré tant que tu n\'appuies pas sur Enregistrer.';
   $('#save').textContent = vol ? 'Enregistrer la mise à jour' : 'Enregistrer le vol';
   $('#npf-zone').hidden = false;
+  const sansCode = b.escales.filter(e => !e.code).length, aVerifier = b.escales.some(e => e.aVerifier);
   $('#npf-txt').textContent = `Vol envoyé par NPF-Q400${b.npf.nbFeux ? ` · ${b.npf.nbFeux} feu${b.npf.nbFeux > 1 ? 'x' : ''}` : ''}`
-    + (b.avion ? '' : ` · avion ${b.immat} inconnu : ajoute-le ci-dessous`) + '. Complète ce qui manque (fonction, copilote, atterrissages…).';
+    + (b.escales.length ? ` · ${b.escales.length} escale${b.escales.length > 1 ? 's' : ''}` : '')
+    + (b.avion ? '' : b.avionsMemeNom ? ` · ${b.avionsMemeNom} avions s'appellent ${b.rechercheAvion} : choisis le bon ci-dessous`
+      : ` · avion ${b.rechercheAvion} introuvable : choisis-le ou ajoute-le ci-dessous`)
+    + (sansCode ? ` · ${sansCode} pélicandrome${sansCode > 1 ? 's' : ''} sans code OACI : touche l'escale pour le compléter` : '')
+    + (aVerifier ? ' · terrain sans position : vérifie jour / nuit de ses atterrissages' : '')
+    + (F.npf.copiInconnu ? ` · copilote ${F.npf.copiInconnu} inconnu` : '')
+    + '. Complète ce qui manque (fonction, atterrissages…).';
   return b;
 }
 
@@ -398,6 +439,7 @@ export function ouvrirSaisie(vol, opts = {}) {
     lignes: lignesPourSaisie(v), compteurs: { ...v.compteurs }, s: { approches: v.approches || 0, attJour: v.attJour, attNuit: v.attNuit },
     ifr: !!v.regleIFR, bloc: v.tempsTotal || v.simTemps || 0, heuresInconnues: !!vol && !(vol.hDep && vol.hArr), charge: true, npf: null };
   $('#npf-zone').hidden = true;
+  majBoutonLF();
   $('#f-err').textContent = '';
   $('#ctr-panel').hidden = true; $('#ctr-open').setAttribute('aria-expanded', 'false');
   $('#p-res').hidden = true; $('#m-res').hidden = true; ouvrirChoixAvion(false);
@@ -426,7 +468,8 @@ export function ouvrirSaisie(vol, opts = {}) {
     $('#save').textContent = 'Enregistrer le vol';
     $('#del-zone').hidden = true;
     $('#f-date').value = aujourdhui();
-    $('#f-dep').value = dernier ? dernier.arr : ''; $('#f-arr').value = dernier ? dernier.arr : '';
+    // R46 : départ = arrivée du dernier vol enregistré (sinon la base), arrivée = la base LFTW ; toujours modifiable
+    $('#f-dep').value = (dernier && dernier.arr) || BASE; $('#f-arr').value = BASE;
     $('#f-t0').value = ''; $('#f-t1').value = '';
     F.avionId = dernier ? dernier.avionId : ([...etat.avions.values()][0]?.id || null);
     F.etiquettes = dernier ? [...(dernier.etiquettes || [])] : [];
@@ -457,7 +500,7 @@ export function ouvrirSaisie(vol, opts = {}) {
   if (brouillon) {
     choisir('.seg.mini', 1);
     if (modeVoulu === 'loc') changerMode('loc');
-    if (!a) { ouvrirChoixAvion(true); $('#ac-q').value = brouillon.immat; $('#ac-q').dispatchEvent(new Event('input')); }
+    if (!a) { ouvrirChoixAvion(true); $('#ac-q').value = brouillon.rechercheAvion; $('#ac-q').dispatchEvent(new Event('input')); }
   }
   F.charge = false;
   recap(); apercu();
@@ -537,7 +580,8 @@ async function enregistrer() {
   await enregistrerVol(v);
   if (npf) volNpfEnregistre(npf.id);
   // nouvelle personne tapée sans passer par « + » : on l'ajoute à la liste
-  if (qui && !trouverPersonne(qui)) {
+  const copiNpfRefuse = npf && npf.copiInconnu && qui.toUpperCase() === npf.copiInconnu;
+  if (qui && !trouverPersonne(qui) && !copiNpfRefuse) {
     const p = personneVide();
     if (/^[A-Z]{3}$/i.test(qui)) p.tri = qui.toUpperCase(); else p.nom = qui;
     await enregistrerPersonne(p);
@@ -558,6 +602,11 @@ export function initSaisie({ fermer }) {
   $('#tz-utc').addEventListener('click', () => changerMode('utc'));
   $('#cancel').addEventListener('click', () => { F = null; quitter(); });
   // Brouillon NPF : « Ignorer ce vol » (confirmation) le retire du NAS sans rien enregistrer
+  // Brouillon NPF : copilote inconnu -> « + Ajouter ZZY à mes personnes » (fiche pré-remplie avec le trigramme)
+  $('#npf-copi-add').addEventListener('click', () => { $('#f-copi').value = F.npf.copiInconnu; ouvrirPersonne(null); });
+  document.addEventListener('personnes-modifiees', () => {
+    if (F && F.npf && F.npf.copiInconnu && trouverPersonne(F.npf.copiInconnu)) { F.npf.copiInconnu = ''; $('#npf-copi-add').hidden = true; }
+  });
   $('#npf-ign').addEventListener('click', () => {
     if (!F || !F.npf) return;
     ignorerVolNpf(F.npf.vol, fait => { if (fait) { F = null; quitter(); } });
@@ -576,7 +625,8 @@ export function initSaisie({ fermer }) {
   // escales
   $('#via-add').addEventListener('click', () => ouvrirEscale(-1));
   $('#via-list').addEventListener('click', e => { const b = e.target.closest('[data-vi]'); if (b) ouvrirEscale(Number(b.dataset.vi)); });
-  $('#vm-icao').addEventListener('input', () => { $('#vm-icao').value = $('#vm-icao').value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 4); nomVM(); });
+  champOACI('#vm-icao', null, nomVM);
+  $('#tz-lf').addEventListener('click', async () => { await ecrireReglageDiscret('prefixeLF', !prefixeLF()); majBoutonLF(); });
   $('#via-modal').addEventListener('click', e => {
     const b = e.target.closest('[data-vm]');
     if (b) { const k = b.dataset.vm; VM[k] = Math.max(0, VM[k] + Number(b.dataset.d)); $('#vm-' + k).textContent = VM[k]; }
@@ -586,7 +636,8 @@ export function initSaisie({ fermer }) {
   $('#vm-ok').addEventListener('click', () => {
     const c = $('#vm-icao').value.toUpperCase();
     if (c.length !== 4) { nomVM(); return; }
-    const v = { code: c, attJour: VM.attJour, attNuit: VM.attNuit };
+    const v = { ...(vmEdit >= 0 ? F.escales[vmEdit] : {}), code: c, attJour: VM.attJour, attNuit: VM.attNuit };
+    delete v.aVerifier;
     if (vmEdit >= 0) F.escales[vmEdit] = v; else F.escales.push(v);
     $('#via-modal').hidden = true; rendreEscales(); recalculer();
   });

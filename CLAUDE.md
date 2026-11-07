@@ -46,11 +46,15 @@ sauvegarde (`REGLAGES_PRIVES`). Script PHP, installation (tâche DSM root) et gu
 
 ## Vols envoyés par NPF-Q400 (v0.15)
 
-Format commun « carnet-vol-npf » version 1 (défini avec la session NPF-Q400 TEST : ne pas le changer seul). NAS :
-carnet.php version 3, actions `vol-depot`, `vols-liste`, `vol-retirer` (dossier privé `vols-npf/`). Logique :
-`js/npf.js` (validation, avion par immatriculation, brouillon, lignes « FEU n°NN », différences) ; écrans :
+Format commun « carnet-vol-npf » versions 1 et 2 (défini avec la session NPF-Q400 TEST : ne pas le changer seul ;
+v2 = avion par `nomAvion` « M73 », escales = passages ordonnés { oaci, nom, lat, lon, atterrissages ISO UTC },
+`copilote` trigramme). NAS : carnet.php version 4, actions `vol-depot`, `vols-liste`, `vol-retirer` (dossier privé
+`vols-npf/`). Logique : `js/npf.js` (validation, avion par immatriculation / nom, escales jour / nuit, copilote,
+brouillon, lignes « FEU n°NN », différences ; la table des terrains est passée en paramètre) ; écrans :
 `js/ui/npf.js` (bandeau `#npf-bandeau`, liste, Ignorer, mise à jour) et `ouvrirSaisie(vol, { npf })` (brouillon,
 zone `#npf-zone`). Un vol enregistré garde `npfId`, `npfExporteLe` et `feuxPositions` (Carte du vol : flammes).
+Une escale peut n'avoir qu'un `nom` (pélicandrome sans code OACI) et sa position `lat` / `lon` ; jamais de personne
+créée sans accord pour un copilote NPF inconnu.
 Jamais d'enregistrement automatique ; jamais de message d'erreur intrusif.
 
 ## Hébergement
@@ -95,6 +99,9 @@ Pas d'étape de compilation : les fichiers du dépôt sont servis tels quels.
   `retour.js` (flèche retour Android : une entrée d'historique par niveau ouvert, fenêtres suivies par leur attribut
   `hidden` ; toute nouvelle fenêtre doit être ajoutée à sa liste COUCHES avec son bouton de fermeture).
 - `js/recherche.js` : recherche de vols par date (jour / mois / année, formats français).
+- `js/fiches-avions.js` : import de fiches avions (immat -> Nom, Indicatif radio, Modèle ; Plus › Importer des fiches
+  avions). Le fichier réel du pilote est dans `../donnees-privees/` (jamais dans le dépôt).
+- Saisie : nouveau vol = arrivée du dernier vol -> `BASE` (LFTW) ; bouton « LF » (réglage `prefixeLF`) dans `champOACI`.
 - Boutons × : constante `CROIX` (`commun.js`, croix dessinée) dans un bouton `.xbtn` ou `.x` (rond rouge).
 - Référence d'interface : maquette v19 (`../donnees-privees/maquette-carnet-v19.html`, contient de vraies données :
   jamais dans le dépôt) et remarques P1-P6, R1-R15.
@@ -141,6 +148,10 @@ BOMBING et TRANSPORT s'excluent sur un vol. Suggestions de missions masquées : 
   chaque texte, pour vérifier que rien ne déborde) et `tests/outils/vols-pdf.js` (vols inventés difficiles).
 - `node tests/navigateur/v015.mjs` : vols NPF-Q400 avec un FAUX NAS v3 (bandeau, liste, brouillon LOC / UTC, minuit UTC,
   avion inconnu, 0 / 1 / 3 feux, Enregistrer -> retrait, Ignorer, mise à jour du même id, carte des feux hors ligne).
+- `node tests/navigateur/v016.mjs` : vols NPF au format 2 (avion par nom, deux avions du même nom, escales ordonnées
+  jour / nuit, pélicandrome sans code, copilote trouvé / inconnu, ce qui change, format 1 toujours lu).
+- `node tests/navigateur/v016b.mjs` : terrains par défaut d'un nouveau vol (-> LFTW), sélection du code au toucher, bouton
+  « LF » (2 lettres, hors LF, mémorisé), vol NPF non modifié, Plus › Importer des fiches avions (avions inventés).
 - `node tests/navigateur/fluidite.mjs` : 4070 vols inventés, processeur ralenti ×6.
 - `node outils/controle-import.mjs ../donnees-privees/flylog-decode-v1.csv ../donnees-privees/totaux-flylog-reference.json` :
   contrôle avec le VRAI fichier, en local uniquement (rien n'est écrit dans le dépôt).

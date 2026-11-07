@@ -478,3 +478,16 @@ img{-webkit-user-drag:none}
 .npf-diff s{color:var(--muted)}
 .carte-feu{background:none;border:0}
 .carte-feu-nom{font-weight:700;color:#b71c1c;font-size:12px;padding:1px 5px}
+/* v0.16 : escale sans code OACI (pélicandrome) à compléter */
+.viachip.sans-code{border-style:dashed;border-color:var(--feu)}
+.viachip.sans-code b{color:var(--feu);white-space:nowrap}
+#npf-copi-add{display:block;margin:0 0 6px}
+#npf-copi-add[hidden]{display:none}
+/* v0.16 R48 : bouton « LF » (même style que LOC / UTC) */
+.tz-groupe{display:flex;align-items:center;gap:8px}
+.lfbtn{border:1px solid var(--line);background:var(--surface2);border-radius:999px;padding:5px 12px;font-size:14px;color:var(--ink)}
+.lfbtn[aria-pressed="true"]{background:var(--primary);color:var(--primary-ink);border-color:var(--primary);font-weight:600}
+/* v0.16 R49 : aperçu de l'import des fiches avions */
+.fa-avion{padding:8px 0;border-bottom:1px solid var(--line);font-size:15px;overflow-wrap:anywhere}
+.fa-ch{margin-top:3px}
+.fa-ch s{color:var(--muted)}

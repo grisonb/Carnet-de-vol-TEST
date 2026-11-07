@@ -94,7 +94,7 @@ try {
   const lignes = await p.$$eval('#npf-l .npfv', l => l.map(b => b.innerText.replace(/\s+/g, ' ')));
   verifier(lignes.length === 3 && lignes[0].includes('14/08/2025') && lignes[0].includes('F-XZZA') && lignes[0].includes('LFMN → LFKJ')
     && lignes[0].includes('13:05 → 15:40 UTC'), 'liste : date, avion, départ → arrivée, bloc : ' + lignes[0]);
-  verifier(lignes[1].includes('ZX9 F-XZZZ') && lignes[1].includes('(J+1)') && lignes[1].includes('3 feux') && lignes[1].includes('Avion à ajouter'),
+  verifier(lignes[1].includes('ZX9 F-XZZZ') && lignes[1].includes('(J+1)') && lignes[1].includes('3 feux') && lignes[1].includes('Avion à choisir ou à ajouter'),
     '  vol passant minuit UTC, 3 feux, avion inconnu : ' + lignes[1]);
   await p.screenshot({ path: join(CAPT, 'v015-02-liste.png') });
 
@@ -137,7 +137,7 @@ try {
   const enUtc = await p.evaluate(() => ({ v: [document.getElementById('f-date').value, document.getElementById('f-t0').value, document.getElementById('f-t1').value].join(' '),
     j1: !document.getElementById('f-j1').hidden, bloc: document.getElementById('f-bloc').textContent }));
   verifier(enUtc.v === '2025-08-15 23h30 01h10' && enUtc.j1 && enUtc.bloc === '1h40', `  en UTC : ${enUtc.v}, « Arrivée le lendemain (J+1) », bloc ${enUtc.bloc}`);
-  verifier(b.ac === 'F-XZZZ' && b.ajouter && b.txt.includes('F-XZZZ inconnu'), 'avion inconnu : recherche ouverte sur F-XZZZ avec « + Ajouter un avion »');
+  verifier(b.ac === 'F-XZZZ' && b.ajouter && b.txt.includes('F-XZZZ introuvable'), 'avion inconnu : recherche ouverte sur F-XZZZ avec « + Ajouter un avion »');
   await p.waitForSelector('#carte-mini:not([hidden]) .carte-feu', { timeout: 10000 });
   verifier((await p.$$('#carte-mini .carte-feu')).length === 3 && (await p.textContent('#carte-mini')).includes('COMMUNE-ESSAI-1'),
     'Carte du vol : 3 flammes avec la commune (sans trace ADS-B)');

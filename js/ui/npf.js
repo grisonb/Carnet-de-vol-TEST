@@ -6,6 +6,7 @@
 
 import { $, esc, toast, ouvrirOutil, fermerOutil } from './commun.js';
 import { etat, avionDe } from '../etat.js';
+import { terrain } from '../terrains.js';
 import { requete, configNas } from './nas.js';
 import { volNpfValide, resumeNpf, volDejaEnregistre, dejaAJour, brouillonNpf, differencesNpf } from '../npf.js';
 
@@ -92,7 +93,7 @@ export function ecranVolsNpf() {
         <b>${esc(r.date)} · ${esc(r.avion)}</b><span>${esc(r.trajet)}</span><span class="num">${esc(r.bloc)}</span>
         ${r.feux ? `<span class="npf-feux">${r.feux} feu${r.feux > 1 ? 'x' : ''}</span>` : ''}
         ${deja ? '<span class="npf-maj">Déjà dans le carnet : mise à jour</span>' : ''}
-        ${r.avionConnu ? '' : '<span class="npf-inc">Avion à ajouter</span>'}</button>
+        ${r.avionConnu ? '' : `<span class="npf-inc">${r.avionsMemeNom ? 'Plusieurs avions de ce nom : à choisir' : 'Avion à choisir ou à ajouter'}</span>`}</button>
       <button type="button" class="linkbtn npf-ign" data-ign="${esc(n.id)}">Ignorer</button></div>`;
   }).join('');
   const o = ouvrirOutil('Vols NPF-Q400', `<p class="hint" style="font-size:15px">Vols envoyés depuis NPF-Q400 (iPad). Touche un vol pour l'ouvrir en brouillon : rien n'entre dans le carnet tant que tu n'as pas appuyé sur Enregistrer.</p>
@@ -110,7 +111,7 @@ function choisir(n) {
   const deja = volDejaEnregistre(etat.vols, n.id);
   if (!deja) { fermerOutil(); ouvrirBrouillon(n, null); return; }
   // Même vol déjà enregistré : mettre à jour plutôt que créer un second vol
-  const b = brouillonNpf(n, { avions: avions(), vols: etat.vols.filter(v => v.id !== deja.id) });
+  const b = brouillonNpf(n, { avions: avions(), vols: etat.vols.filter(v => v.id !== deja.id), personnes: etat.personnes, terrain });
   const d = differencesNpf(deja, b, avionDe(deja));
   const o = ouvrirOutil('Vol déjà dans le carnet', `
     <div class="sec resume"><h3>Ce vol est déjà dans ton carnet</h3>

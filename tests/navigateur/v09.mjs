@@ -94,7 +94,7 @@ try {
   const lignes = await p.$$eval('#v-plus .pcard', cs => cs.map(c => [...c.querySelectorAll('.prow2 b')].map(b => b.textContent)));
   verifier(JSON.stringify(lignes) === JSON.stringify([['Sauvegarde de secours', 'Restaurer une sauvegarde', 'Copie sur le NAS', 'Restaurer depuis le NAS'],
     ['Carnet officiel (PDF EASA)', 'Tableur (CSV)', 'Titulaire du carnet'],
-    ['Mes avions', "Types d'avion", 'Heures affichées en haut', 'Pastilles des missions', 'Libellés missions', 'Personnes', 'Cartes de vol'],
+    ['Mes avions', "Types d'avion", 'Importer des fiches avions', 'Heures affichées en haut', 'Pastilles des missions', 'Libellés missions', 'Personnes', 'Cartes de vol'],
     ['Importer FlyLog', 'Contrôle import'], ['Stockage']]), 'toutes les entrées, rangées dans leur section');
   const forme = await p.$$eval('#v-plus .prow2', l => l.map(r => {
     const b = r.querySelector('.ptx b').getBoundingClientRect(), s = r.querySelector('.ptx small'), sr = s.getBoundingClientRect();
@@ -114,7 +114,7 @@ try {
   console.log('Chaque entrée ouvre le bon écran (puis flèche retour)');
   const titreOutil = () => p.textContent('#ou-t');
   const entrees = [['#pl-save', 'outil', 'Sauvegarde de secours'], ['#pl-pdf', 'outil', 'Carnet officiel (PDF EASA)'], ['#pl-csv', 'outil', 'Tableur (CSV)'],
-    ['#pl-tit', 'outil', 'Titulaire du carnet'], ['#pl-avions', 'fleet'], ['#pl-types', 'outil', "Types d'avion"], ['#pl-heures', 'hs-modal'],
+    ['#pl-tit', 'outil', 'Titulaire du carnet'], ['#pl-avions', 'fleet'], ['#pl-types', 'outil', "Types d'avion"], ['#pl-fiches', 'outil', 'Importer des fiches avions'], ['#pl-heures', 'hs-modal'],
     ['#rules-open', 'rules-modal'], ['#pl-libelles', 'ml-modal'], ['#pl-pers', 'outil', 'Personnes'], ['#pl-cartes', 'outil', 'Cartes de vol'],
     ['#pl-ctrl', 'outil', 'Contrôle import'], ['#pl-stockage', 'outil', 'Stockage']];
   for (const [b, fen, titre] of entrees) {

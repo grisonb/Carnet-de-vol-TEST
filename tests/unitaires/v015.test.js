@@ -16,7 +16,7 @@ const VOLS = [{ id: 'v1', missions: ['FEU n°41 VILLAGE-A'] }, { id: 'v2', missi
 test('format : champs obligatoires', () => {
   assert.equal(volNpfValide(volNpf()), true);
   for (const k of ['format', 'version', 'id', 'date', 'blocDepart', 'blocArrivee', 'immat']) assert.equal(volNpfValide(volNpf({ [k]: undefined })), false, k);
-  assert.equal(volNpfValide(volNpf({ version: 2 })), false);
+  assert.equal(volNpfValide(volNpf({ version: 3 })), false);
   assert.equal(volNpfValide(volNpf({ blocDepart: '24:00' })), false);
   assert.equal(volNpfValide(volNpf({ depart: undefined, arrivee: undefined, inconnu: 'ignoré' })), true, 'départ / arrivée facultatifs, champs inconnus ignorés');
 });
@@ -76,6 +76,6 @@ test('même id déjà enregistré : à jour (retrait discret) ou mise à jour av
 
 test('ligne de la liste : date, avion, trajet, bloc', () => {
   const r = resumeNpf(volNpf({ blocDepart: '23:30', blocArrivee: '01:10', escales: ['LFKB'], feux: [{ heure: '23:50', lat: 1, lon: 1 }] }), AVIONS);
-  assert.deepEqual(r, { date: '14/08/2025', avion: 'ZX2 F-XZZB', trajet: 'LFMN → LFKB → LFKJ', bloc: '23:30 → 01:10 UTC (J+1) · 1h40', feux: 1, avionConnu: true });
+  assert.deepEqual(r, { date: '14/08/2025', avion: 'ZX2 F-XZZB', trajet: 'LFMN → LFKB → LFKJ', bloc: '23:30 → 01:10 UTC (J+1) · 1h40', feux: 1, avionConnu: true, avionsMemeNom: 0 });
   assert.equal(resumeNpf(volNpf({ depart: undefined, arrivee: undefined, nomAvion: undefined, immat: 'F-XZZZ' }), AVIONS).trajet, 'Terrains à compléter');
 });

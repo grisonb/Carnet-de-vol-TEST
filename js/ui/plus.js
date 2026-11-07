@@ -1,7 +1,8 @@
 // Écran Plus : exports, sauvegarde, import FlyLog, contrôle import, types, avions, personnes, stockage.
 
 import { $, esc, toast, proposerFichier, lireFichierTexte, ouvrirOutil, fermerOutil, pause } from './commun.js';
-import { etat, reglage, enregistrerReglage, enregistrerImport, contenuComplet, restaurer } from '../etat.js';
+import { etat, reglage, enregistrerReglage, enregistrerImport, contenuComplet, restaurer, enregistrerAvions } from '../etat.js';
+import { lireFichesAvions, changementsFiches, appliquerFiches } from '../fiches-avions.js';
 import { analyserFlyLog } from '../flylog.js';
 import { calculerTotaux, filtrerPeriode, bornesPeriode } from '../totaux.js';
 import { comparerReference } from '../controle.js';
@@ -342,6 +343,7 @@ export function initPlus() {
   $('#file-ref').addEventListener('change', chargerReference);
   $('#rules-open').addEventListener('click', ouvrirRegles);
   $('#pl-types').addEventListener('click', ecranTypes);
+  $('#pl-fiches').addEventListener('click', ecranFichesAvions);
   $('#pl-avions').addEventListener('click', () => ouvrirFlotte(''));
   $('#pl-pers').addEventListener('click', ecranPersonnes);
   $('#pl-tit').addEventListener('click', ecranTitulaire);
@@ -356,3 +358,39 @@ export function initPlus() {
   $('#ou-x').addEventListener('click', fermerOutil);
 }
 
+// ---------- R49 : Importer des fiches avions (Nom, Indicatif radio, Modèle) ----------
+// Fichier choisi sur le téléphone (Téléchargements, Drive…) ; aperçu de ce qui change ; rien n'est modifié avant
+// « Appliquer ». Ne crée aucun avion, ne touche à aucun vol ni au type OACI.
+function ecranFichesAvions() {
+  const c = ouvrirOutil('Importer des fiches avions', `
+    <p class="hint" style="font-size:15px">Un petit fichier texte (.csv ou .txt), une ligne par avion :<br><b>immatriculation, nom, indicatif radio, modèle</b><br>Seuls le nom, l'indicatif et le modèle des avions déjà dans ta flotte sont remplis (une case vide ne change rien). Aucun avion n'est créé, aucun vol n'est modifié.</p>
+    <label class="bigbtn" for="fa-fichier" style="text-align:center">Choisir le fichier</label>
+    <input type="file" id="fa-fichier" accept=".csv,.txt,text/csv,text/plain" hidden>
+    <div id="fa-apercu"></div>`);
+  c.querySelector('#fa-fichier').addEventListener('change', async e => {
+    const f = e.target.files && e.target.files[0];
+    if (!f) return;
+    const { fiches, erreurs } = lireFichesAvions(await f.text());
+    const { modifs, introuvables, identiques } = changementsFiches(fiches, [...etat.avions.values()]);
+    const zone = c.querySelector('#fa-apercu');
+    zone.innerHTML = `<div class="sec"><h3>Ce qui va changer</h3>
+        ${modifs.length ? modifs.map(m => `<div class="fa-avion"><b>${esc(m.avion.immat)}</b>${m.changements.map(x =>
+          `<div class="fa-ch">${esc(x.libelle)} : <s>${esc(x.avant || 'vide')}</s> → <b>${esc(x.apres)}</b></div>`).join('')}</div>`).join('')
+          : '<p class="hint">Rien à changer.</p>'}
+        ${identiques.length ? `<p class="hint">Déjà à jour : ${esc(identiques.join(', '))}</p>` : ''}
+        ${introuvables.length ? `<p class="koc">Introuvable${introuvables.length > 1 ? 's' : ''} dans ta flotte (ignoré${introuvables.length > 1 ? 's' : ''}) : ${esc(introuvables.join(', '))}</p>` : ''}
+        ${erreurs.map(x => `<p class="koc">${esc(x)}</p>`).join('')}
+      </div>
+      ${modifs.length ? `<button type="button" class="bigbtn" id="fa-ok">Appliquer à ${modifs.length} avion${modifs.length > 1 ? 's' : ''}</button>` : ''}
+      <button type="button" class="bigbtn second" id="fa-no">Annuler</button>`;
+    zone.querySelector('#fa-no').addEventListener('click', fermerOutil);
+    const ok = zone.querySelector('#fa-ok');
+    if (ok) ok.addEventListener('click', async () => {
+      ok.disabled = true;
+      await enregistrerAvions(appliquerFiches(modifs));
+      fermerOutil();
+      toast(`${modifs.length} fiche${modifs.length > 1 ? 's' : ''} avion mise${modifs.length > 1 ? 's' : ''} à jour`);
+    });
+    e.target.value = '';
+  });
+}
