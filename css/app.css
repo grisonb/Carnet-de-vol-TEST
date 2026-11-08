@@ -527,3 +527,14 @@ body.consultation #pl-types,body.consultation #pl-fiches,body.consultation #pl-h
 body.consultation #pl-import,body.consultation #pl-ctrl,body.consultation #nas-go,body.consultation #nas-rest,body.consultation #fl-add,
 body.consultation #ac-add,body.consultation #fi-ed,body.consultation #fi-save,body.consultation #fi-web,body.consultation .cam{display:none!important}
 body.consultation #v-saisie .sec:not(.c-carte){pointer-events:none}
+
+/* v0.24 : bandeaux de la synchro dans les deux sens (conflits en orange, doublons, suppressions à confirmer) */
+.alerte-bandeau{display:block;width:calc(100% - 24px);margin:8px 12px 0;padding:12px 14px;border:0;border-radius:12px;
+  background:var(--surface2);color:var(--ink,inherit);font-size:15px;font-weight:700;text-align:left;border:1px solid var(--line)}
+.alerte-bandeau.orange{background:#a84300;color:#fff;border-color:#a84300}
+.alerte-bandeau[hidden]{display:none}
+.cf-diff{display:grid;gap:4px;font-size:14px;margin:6px 0 10px}
+.cf-diff>div{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1fr) minmax(0,1fr);gap:8px;padding:4px 0;border-bottom:1px solid var(--line)}
+.cf-diff>div span{overflow-wrap:anywhere}
+.cf-diff .cf-t b{font-size:13px}
+.dbl{display:grid;gap:3px;padding:8px 0;border-bottom:1px solid var(--line)}

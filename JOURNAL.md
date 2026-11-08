@@ -1,5 +1,37 @@
 # Journal des versions
 
+## v0.24 — 08/11/2026
+
+R50, étape 4 : synchro du carnet dans les DEUX sens (téléphone ↔ PC), par le NAS (carnet.php version 5, inchangé).
+
+**Ce qui change**
+- Le téléphone et le PC peuvent tous les deux ajouter, modifier et supprimer vols, avions, personnes, terrains,
+  étiquettes et missions ; les deux restent à jour (ouverture, quelques secondes après un enregistrement, retour du
+  réseau, toutes les 2 minutes, « Synchroniser maintenant »). Seul ce qui a changé voyage.
+- PC en consultation : Plus › Synchro du carnet › « Passer en modification » (expliqué ; le carnet n'est pas renvoyé :
+  le PC reprend la dernière version de chaque élément au NAS). Un nouveau PC peut aussi directement « recevoir le carnet
+  et le modifier aussi ».
+- Conflits : un élément changé des deux côtés (ou supprimé d'un côté, modifié de l'autre) n'est jamais écrasé ni
+  effacé ; bandeau orange « N éléments modifiés sur les deux appareils › Choisir », écran côte à côte : « Garder la
+  version du PC », « Garder la version du téléphone », « Garder les deux » (vols). Un vol ouvert dans la saisie n'est
+  jamais changé sous les yeux du pilote. Étiquettes, missions et terrains perso ajoutés des deux côtés : réunis sans
+  rien demander.
+- Doublons possibles (même vol saisi deux fois, ou même vol NPF), parmi les vols créés depuis la synchro dans les deux
+  sens : bandeau « Doublon possible › Voir » (supprimer l'un, ou garder les deux).
+- Vols NPF-Q400 : importés sur le téléphone seulement (le PC ne les propose pas) : un vol NPF ne peut pas être enregistré
+  une 2e fois sur l'autre appareil.
+- Plus de 20 suppressions d'un coup : rien ne part avant confirmation (bandeau « N suppressions à envoyer › Confirmer » ;
+  « Les remettre » les reprend au NAS).
+- « Annuler la dernière synchro » (Plus › Synchro du carnet) : ce que la synchro a remplacé est gardé 30 jours.
+- Hors ligne / NAS éteint : rien n'est perdu ; « N en attente d'envoi (pas de réseau) » dans Plus et en haut du Carnet.
+- Copies automatiques du carnet sur le NAS : du téléphone seulement. Photos d'avion : pas encore synchronisées (v0.25).
+- Mot de passe refusé : aucun appel automatique (synchro comprise).
+
+**Tests**
+- `tests/unitaires/v024.test.js` (deux appareils simulés, faux NAS en mémoire), `tests/navigateur/v024.mjs` (téléphone
+  390 px + PC 1280 px, faux NAS v5 local, captures) ; v0.23 adaptée (le téléphone envoie et reçoit) ; tous les tests
+  existants ; contrôle FlyLog local.
+
 ## v0.23 — 08/11/2026
 
 R50, étape 3 : synchro du carnet du téléphone vers le PC, par le NAS (carnet.php version 5). Sens unique : le PC

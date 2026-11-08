@@ -64,7 +64,8 @@ test('téléphone : premier envoi complet, puis seulement ce qui change ; suppre
   r = envoyer(nas, c, r.carte);
   assert.equal(r.envoyees, 3, 'modifié + ajouté + supprimé');
   assert.equal(nas.el.get('vols/v2').supprime, true);
-  assert.ok(!('vols/v2' in r.carte) && 'vols/v3' in r.carte);
+  assert.ok(r.carte['vols/v2'][1] === null && 'vols/v3' in r.carte, 'v0.24 : suppression gardée comme trace [rev, null]');
+  assert.equal(envoyer(nas, c, r.carte).envoyees, 0, 'trace de suppression : rien à renvoyer');
   c.avions[0] = { ...c.avions[0], photo: 'data:image/jpeg;base64,BBBB' };
   assert.equal(envoyer(nas, c, r.carte).envoyees, 0, 'seule la photo a changé : rien n\'est envoyé (elle reste sur le téléphone)');
 });
@@ -135,8 +136,11 @@ test('outils : lots, empreinte, résumé dans Plus', () => {
   assert.notEqual(empreinteTexte('abc'), empreinteTexte('abd'));
   const t = Date.parse('2026-11-08T12:00:00Z');
   assert.equal(resumeSynchro(undefined), 'Arrêtée');
-  assert.equal(resumeSynchro('reference', { derniere: '2026-11-08T11:58:00Z' }, t), 'Ce téléphone envoie le carnet · à jour il y a 2 min');
+  // v0.24 : le téléphone envoie ET reçoit (textes des deux sens)
+  assert.equal(resumeSynchro('reference', { derniere: '2026-11-08T11:58:00Z' }, t), 'Synchronisé il y a 2 min');
   assert.equal(resumeSynchro('reference', { attente: true, statut: 'horsLigne' }, t), 'Envoi en attente (pas de réseau)');
+  assert.equal(resumeSynchro('modification', { attente: 3, statut: 'horsLigne', conflits: 1 }, t), '3 en attente d\'envoi (pas de réseau) · 1 à choisir');
+  assert.equal(resumeSynchro('reference', { aConfirmer: 25 }, t), '25 suppressions à confirmer');
   assert.equal(resumeSynchro('consultation', { derniere: '2026-11-08T11:30:00Z' }, t), 'Consultation · à jour il y a 30 min');
   assert.equal(resumeSynchro('consultation', { derniere: '2026-11-08T11:30:00Z', statut: 'injoignable' }, t), 'Consultation · NAS injoignable · reçu il y a 30 min');
   assert.equal(resumeSynchro('consultation', { statut: 'refuse' }, t), 'Mot de passe refusé : à corriger');

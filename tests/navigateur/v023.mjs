@@ -119,15 +119,15 @@ try {
   await T.click('#sr-ok'); await fini(T, '#sr-res');
   const envoi = await T.textContent('#sr-res');
   const attendu = vols.length + listeAvions.length + 1;
-  verifier(envoi === `Envoyé : ${attendu.toLocaleString('fr-FR')} modifications. Le NAS a le carnet à jour (${vols.length.toLocaleString('fr-FR')} vols).`, `premier envoi : ${envoi}`);
+  verifier(envoi === `Synchronisé : rien de reçu, ${attendu.toLocaleString('fr-FR')} envoyés (${vols.length.toLocaleString('fr-FR')} vols).`, `premier envoi : ${envoi}`); // textes v0.24 (deux sens)
   verifier(nas.envois.length === Math.ceil(attendu / 500) && nas.envois.every(e => e.n <= 500 && e.appareil.startsWith('tel-')), `par paquets de 500 au plus : ${nas.envois.map(e => e.n).join(' + ')}`);
   verifier(vivants('vols').length === vols.length && vivants('avions').length === listeAvions.length, 'le NAS a tous les vols et tous les avions');
   const texteEnvoye = nas.envois.map(e => e.texte).join('');
   verifier(!texteEnvoye.includes('PHOTO-ESSAI') && texteEnvoye.includes('Jean Essai'), 'photo d\'avion jamais envoyée (son crédit oui)');
   verifier(!texteEnvoye.includes(MDP) && !texteEnvoye.includes(ADRESSE), 'ni le mot de passe ni l\'adresse du NAS dans ce qui est envoyé');
   await T.screenshot({ path: join(CAPT, 'v023-02-tel-envoye.png') });
-  await T.waitForSelector('#sy-etat', { timeout: 10000 });
-  verifier((await T.textContent('#sy-etat')).startsWith('Ce téléphone envoie le carnet · à jour'), `état : ${await T.textContent('#sy-etat')}`);
+  await T.click('#sr-no'); await T.waitForSelector('#sy-etat', { timeout: 10000 });
+  verifier((await T.textContent('#sy-etat')).startsWith('Synchronisé'), `état : ${await T.textContent('#sy-etat')}`);
   await T.click('#ou-x');
 
   console.log('PC : configuration du NAS, puis « consulter le carnet du téléphone »');
@@ -195,11 +195,11 @@ try {
   await attendre(T, 7000);
   verifier(!nas.el.has('vols/hors-ligne-1'), 'pas de réseau : rien ne part');
   await T.click('.tabs button[data-v="plus"]');
-  verifier(await T.textContent('#pl-sync-s') === 'Envoi en attente (pas de réseau)', `Plus : ${await T.textContent('#pl-sync-s')}`);
+  verifier(await T.textContent('#pl-sync-s') === '1 en attente d\'envoi (pas de réseau)', `Plus : ${await T.textContent('#pl-sync-s')}`);
   await T.screenshot({ path: join(CAPT, 'v023-07-tel-attente.png') });
   await tel.ctx.setOffline(false);
   await T.evaluate(() => dispatchEvent(new Event('online')));
-  await T.waitForFunction(() => document.getElementById('pl-sync-s').textContent.startsWith('Ce téléphone envoie le carnet · à jour'), null, { timeout: 20000 });
+  await T.waitForFunction(() => document.getElementById('pl-sync-s').textContent.startsWith('Synchronisé'), null, { timeout: 20000 });
   verifier(nas.el.get('vols/hors-ligne-1')?.donnees.remarques === 'SAISI HORS LIGNE', 'réseau revenu : le vol saisi hors ligne est parti tout seul');
   await P.click('#pl-sync'); await P.click('#sy-go'); await fini(P, '#sy-res');
   verifier((await P.textContent('#sy-res')).startsWith('À jour') && (await etatPage(P)).ids === (await etatPage(T)).ids, 'PC « Mettre à jour maintenant » : le vol est là');
@@ -210,7 +210,7 @@ try {
   verifier(await T.textContent('#pl-sync-s') === 'Arrêtée', 'envoi arrêté');
   const n1 = nas.envois.length;
   await T.click('#pl-sync'); await T.click('#sy-ref'); await T.click('#sr-ok'); await fini(T, '#sr-res');
-  verifier(await T.textContent('#sr-res') === `Rien de nouveau : le NAS a déjà le carnet à jour (${(await etatPage(T)).vols.toLocaleString('fr-FR')} vols).` && nas.envois.length === n1,
+  verifier(await T.textContent('#sr-res') === `Synchronisé : rien de reçu, rien à envoyer (${(await etatPage(T)).vols.toLocaleString('fr-FR')} vols).` && nas.envois.length === n1,
     `réactivation : ${await T.textContent('#sr-res')}`);
 
   verifier(!P.requetes.some(a => a === 'envoyer' || a === 'synchro-envoyer' || a === 'vol-retirer'), `le PC n'a JAMAIS rien envoyé au NAS (demandes : ${[...new Set(P.requetes)].join(', ')})`);

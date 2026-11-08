@@ -123,6 +123,14 @@ Pas d'étape de compilation : les fichiers du dépôt sont servis tels quels.
   Réglages qui voyagent : REGLAGES_PARTAGES. Photos d'avion : jamais envoyées (v0.25). Consultation : `enConsultation()`
   (etat.js) refuse toute écriture du carnet (événement consultation-refus), body.consultation cache les boutons de
   modification, pas de copie NAS ni de vols NPF sur cet appareil ; jamais de copie d'un carnet vide.
+- Synchro deux sens (v0.24, R50 étape 4) : rôles 'reference' (téléphone) et 'modification' (PC) envoient ET reçoivent.
+  Carte {clé: [rev, empreinte | null (trace de suppression)]} = dernière version commune ; `analyserRecus` : un élément
+  reçu ne remplace celui d'ici que s'il n'a pas changé ici depuis (sinon fusion pour REGLAGES_FUSIONNABLES, sinon
+  CONFLIT gardé dans synchroEtat.conflits, rien n'est envoyé pour lui avant le choix). Le rev n'avance QUE par la
+  réception (jamais par l'envoi). Vol ouvert dans la saisie (`cleVolOuvert`) : jamais changé, conflit. Plus de 20
+  suppressions : `aConfirmer` (bandeau), envoi après confirmation. `synchroHistorique` (privé) : « Annuler la dernière
+  synchro » (30 j). Opérations sur l'état de la synchro en file (`exclusif`). Vols NPF et copies NAS : téléphone seulement.
+  Doublons : `doublons()` parmi les vols créés depuis `deuxSensDepuis` ; `doublonsVus` partagé.
 - Photos d'Internet (v0.21, R34) : `js/photos-web.js` (Commons : catégorie « immat (aircraft) » puis titres ; Planespotters)
   et `js/ui/photo-web.js` (fenêtre #ph-modal). Commons : photo choisie gardée avec `photoCredit` {source, auteur, licence,
   licenceUrl, page, titre}, crédit affiché sous la photo (#fi-credit). Planespotters : AFFICHÉE seulement (ses règles
@@ -185,6 +193,7 @@ BOMBING et TRANSPORT s'excluent sur un vol. Suggestions de missions masquées : 
 - `node tests/navigateur/v021.mjs` : photos d'Internet (faux Commons / Planespotters : choix, crédit, jamais gardée pour Planespotters).
 - `node tests/navigateur/v022.mjs` : changer le mot de passe du NAS (faux NAS v5 : clé NPF, trop d'essais, NAS v4, réponse perdue).
 - `node tests/navigateur/v023.mjs` : synchro téléphone -> PC (deux appareils, faux NAS v5, 1 200 vols, consultation, hors ligne).
+- `node tests/navigateur/v024.mjs` : synchro dans les deux sens (passage en modification, conflits et 3 choix, doublon, NPF, hors ligne, >20 suppressions, annuler, mot de passe refusé).
 - `node tests/navigateur/fluidite.mjs` : 4070 vols inventés, processeur ralenti ×6.
 - `node outils/controle-import.mjs ../donnees-privees/flylog-decode-v1.csv ../donnees-privees/totaux-flylog-reference.json` :
   contrôle avec le VRAI fichier, en local uniquement (rien n'est écrit dans le dépôt).

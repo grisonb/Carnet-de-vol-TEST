@@ -5,7 +5,7 @@
 // jamais de message d'erreur intrusif (NAS éteint, pas de réseau, ancien carnet.php : rien ne s'affiche).
 
 import { $, esc, toast, ouvrirOutil, fermerOutil } from './commun.js';
-import { etat, avionDe, enConsultation } from '../etat.js';
+import { etat, avionDe, enConsultation, reglage } from '../etat.js';
 import { terrain } from '../terrains.js';
 import { requete, configNas, nasRefuse, noterRefus } from './nas.js';
 import { volNpfValide, resumeNpf, volDejaEnregistre, dejaAJour, brouillonNpf, differencesNpf } from '../npf.js';
@@ -28,8 +28,9 @@ function majBandeau() {
 // Demande discrète des vols en attente sur le NAS
 export async function verifierVolsNpf() {
   // v0.22 : mot de passe refusé -> on n'insiste pas (chaque essai raté compte sur le NAS)
-  // v0.23 : les vols NPF s'enregistrent sur le téléphone (pas sur l'appareil qui consulte)
-  if (!configNas().configuree || enCours || nasRefuse() || enConsultation()) return;
+  // v0.23 / v0.24 : les vols NPF s'enregistrent sur le TÉLÉPHONE seulement (ni PC qui consulte, ni PC qui modifie) :
+  // un vol NPF ne peut donc pas être enregistré deux fois (une fois sur chaque appareil)
+  if (!configNas().configuree || enCours || nasRefuse() || enConsultation() || reglage('synchroRole') === 'modification') return;
   enCours = true;
   try {
     const r = await requete('vols-liste', { delai: 20000 });

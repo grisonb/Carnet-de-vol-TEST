@@ -70,14 +70,15 @@ async function noterEtat(ev) {
 const copieur = creerCopieur({
   envoyer: envoyerCopie,
   // v0.23 : jamais depuis un appareil qui consulte (deux carnets mélangés sur le NAS), ni d'un carnet vide (nouvel appareil)
-  pret: forcer => configNas().configuree && (forcer || configNas().auto) && !enConsultation() && etat.vols.length > 0,
+  // v0.24 : un PC qui modifie aussi n'envoie pas de copie (une seule source : le téléphone)
+  pret: forcer => configNas().configuree && (forcer || configNas().auto) && !enConsultation() && reglage('synchroRole') !== 'modification' && etat.vols.length > 0,
   enLigne,
   surEtat: ev => { noterEtat(ev); },
 });
 
 // Appelé à chaque modification du carnet (vol, avion, personne, réglage…)
 export function carnetModifie() {
-  if (configNas().configuree && !enConsultation() && etat.vols.length > 0) copieur.modification();
+  if (configNas().configuree && !enConsultation() && reglage('synchroRole') !== 'modification' && etat.vols.length > 0) copieur.modification();
 }
 
 // v0.22 : mot de passe refusé -> plus AUCUN appel automatique au NAS (copie, vols NPF) tant qu'il n'est pas corrigé.
@@ -175,7 +176,8 @@ export function ecranNas() {
     const r = await copieur.maintenant();
     b.disabled = false;
     if (r.statut === 'ok') res('#nas-go-res', 'ok', `Copie faite : ${nombre(r.vols)} vols, ${taillePropre(r.taille)}.`);
-    else if (r.statut === 'pasConfiguree') res('#nas-go-res', 'x', !etat.vols.length ? 'Carnet vide sur cet appareil : rien à copier.' : 'Enregistre d\'abord l\'adresse et le mot de passe.');
+    else if (r.statut === 'pasConfiguree') res('#nas-go-res', 'x', !etat.vols.length ? 'Carnet vide sur cet appareil : rien à copier.'
+      : reglage('synchroRole') === 'modification' ? 'Les copies du carnet partent du téléphone (ce PC est synchronisé avec lui).' : 'Enregistre d\'abord l\'adresse et le mot de passe.');
     else if (r.statut === 'enCours') res('#nas-go-res', 'x', 'Une copie est déjà en cours…');
     else res('#nas-go-res', r.statut, texteResultat(r) + (r.statut === 'refuse' ? '' : ' La copie repartira toute seule plus tard.'));
     majEcranNas();

@@ -13,7 +13,7 @@ import { initTerrainPerso } from './ui/terrain-perso.js';
 import { initCarte, lancerArrierePlan } from './ui/carte.js';
 import { initNas, carnetModifie } from './ui/nas.js';
 import { initNpf, verifierVolsNpf } from './ui/npf.js';
-import { initSynchro, synchroModifiee } from './ui/synchro.js';
+import { initSynchro, synchroModifiee, majBandeaux } from './ui/synchro.js';
 import { invaliderStats } from './ui/avions.js';
 import { VERSION } from './version.js';
 
@@ -74,7 +74,8 @@ async function demarrer() {
   appliquerTypesPerso();
   surChangement(() => {
     carnetModifie(); // copie automatique sur le NAS, quelques secondes plus tard
-    synchroModifiee(); // v0.23 : téléphone de référence -> ce qui a changé part sur le NAS
+    synchroModifiee(); // v0.23 / v0.24 : ce qui a changé part sur le NAS (et ce qui a changé ailleurs arrive)
+    majBandeaux();     // v0.24 : conflits, doublons possibles
     invaliderStats();
     aRafraichir = new Set(['carnet', 'totaux', 'plus']);
     aRafraichir.delete(vue);

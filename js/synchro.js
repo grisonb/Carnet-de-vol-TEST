@@ -1,6 +1,7 @@
 // Synchro du carnet par le NAS (v0.23, R50 étape 3) : logique sans interface, testée sous Node.
-// Sens unique pour l'instant : le TÉLÉPHONE (appareil de référence) envoie ses modifications, le PC (consultation) les
-// reçoit et ne modifie rien.
+// v0.23 : sens unique (le TÉLÉPHONE envoie, le PC consulte). v0.24 : DEUX SENS : le téléphone (« reference ») et le PC
+// (« modification ») envoient ET reçoivent ; un élément changé des deux côtés n'est jamais écrasé : c'est un CONFLIT,
+// montré au pilote qui choisit. La consultation (PC qui ne modifie rien) reste possible.
 // Sur le NAS (carnet.php v5), le carnet est rangé élément par élément (« vols/<id> », « avions/<id> »…), chacun avec un
 // numéro de version (rev) donné par le NAS. Le téléphone garde, pour chaque élément envoyé, son numéro et l'empreinte de
 // son contenu (la « carte ») : à chaque synchro, il n'envoie que ce qui a changé depuis, et les suppressions (élément
@@ -10,7 +11,8 @@ export const MAGASINS = ['vols', 'avions', 'personnes', 'reglages'];
 // Réglages qui appartiennent au carnet (envoyés) ; les autres sont propres à chaque appareil (mot de passe, adresse du
 // NAS, bouton « LF », état des copies…) et ne voyagent jamais.
 export const REGLAGES_PARTAGES = ['etiquettes', 'missionsAjoutees', 'missionsMasquees', 'terrainsPerso', 'regles', 'compteurs',
-  'bandeHeures', 'titulaire', 'typesPerso', 'reference'];
+  'bandeHeures', 'titulaire', 'typesPerso', 'reference',
+  'doublonsVus']; // v0.24 : paires « Garder les deux » (même choix sur les deux appareils)
 export const PAR_ENVOI = 500;      // modifications par envoi (≈ 500 Ko)
 export const PAR_PAGE = 1000;      // éléments par page reçue
 export const ELEMENT_MAX = 60000;  // le NAS refuse un élément de plus de 64 Ko (une photo laissée dans une fiche…)
@@ -48,13 +50,16 @@ export function elementsDuCarnet(contenu) {
 }
 
 // Ce qu'il faut envoyer : nouveaux éléments, éléments changés, suppressions.
-// carte : { "vols/<id>": [rev, empreinte] } (ce que le NAS a reçu de cet appareil).
+// carte : { "vols/<id>": [rev, empreinte] } : la dernière version connue en commun avec le NAS (empreinte null : élément
+// supprimé, gardé comme trace pour qu'un « Annuler » après la synchro ne crée pas de faux conflit).
+// exclure : clés en conflit (rien n'est envoyé tant que le pilote n'a pas choisi).
 // Renvoie { modifications, empreintes (clé -> empreinte envoyée, null pour une suppression), tropGros: [clés] }.
-export function preparerEnvoi(elements, carte = {}) {
+export function preparerEnvoi(elements, carte = {}, exclure = new Set()) {
   const modifications = [], empreintes = {}, tropGros = [], presents = new Set();
   for (const e of elements) {
     const cle = cleElement(e.magasin, e.id), texte = JSON.stringify(e.donnees);
     presents.add(cle);
+    if (exclure.has(cle)) continue;
     if (texte.length > ELEMENT_MAX) { tropGros.push(cle); continue; }
     const h = empreinteTexte(texte), connu = carte[cle];
     if (connu && connu[1] === h) continue; // inchangé depuis le dernier envoi
@@ -62,7 +67,7 @@ export function preparerEnvoi(elements, carte = {}) {
     empreintes[cle] = h;
   }
   for (const [cle, connu] of Object.entries(carte)) {
-    if (presents.has(cle)) continue;
+    if (presents.has(cle) || connu[1] === null || exclure.has(cle)) continue; // absent ici et déjà supprimé au NAS : rien
     const i = cle.indexOf('/');
     modifications.push({ magasin: cle.slice(0, i), id: cle.slice(i + 1), base: connu[0], supprime: true });
     empreintes[cle] = null;
@@ -78,7 +83,7 @@ export function majCarte(carte, empreintes, reponse) {
   for (const a of [...(reponse.acceptees || []), ...(reponse.deja || [])]) {
     const cle = cleElement(a.magasin, a.id);
     if (!(cle in empreintes)) continue;
-    if (empreintes[cle] === null) delete c[cle]; else c[cle] = [a.rev, empreintes[cle]];
+    c[cle] = [a.rev, empreintes[cle]]; // suppression : trace [rev, null]
   }
   return c;
 }
@@ -91,10 +96,7 @@ export function forcer(modifications, conflits) {
 // NAS (ce qui est identique n'est pas renvoyé ; ce que le téléphone n'a plus sera supprimé).
 export function carteDepuisNas(elementsNas) {
   const c = {};
-  for (const e of elementsNas) {
-    if (e.supprime) continue;
-    c[cleElement(e.magasin, e.id)] = [e.rev, empreinteTexte(JSON.stringify(e.donnees))];
-  }
+  for (const e of elementsNas) c[cleElement(e.magasin, e.id)] = [e.rev, e.supprime ? null : empreinteTexte(JSON.stringify(e.donnees))];
   return c;
 }
 
@@ -117,21 +119,28 @@ export function lots(liste, n) {
   return r;
 }
 
-// Sous-titre de Plus › Synchro du carnet
-// role : 'reference' | 'consultation' | undefined ; e : { derniere, statut, attente, vols }
+// Sous-titre de Plus › Synchro du carnet (et bandeau du Carnet)
+// role : 'reference' (téléphone) | 'modification' (PC) | 'consultation' | undefined
+// e : { derniere, statut, attente (nombre de modifications à envoyer), conflits (nombre), aConfirmer (suppressions) }
 export function resumeSynchro(role, e = {}, maintenant = Date.now(), enLigne = true) {
   if (!role) return 'Arrêtée';
   const quand = e.derniere ? depuisCourt(e.derniere, maintenant) : '';
   if (e.statut === 'refuse') return 'Mot de passe refusé : à corriger';
   if (e.statut === 'nas-ancien') return 'Le NAS n\'a pas encore carnet.php version 5';
-  if (role === 'reference') {
-    if (e.attente) return !enLigne || e.statut === 'horsLigne' ? 'Envoi en attente (pas de réseau)'
-      : e.statut === 'injoignable' ? 'Envoi en attente (NAS injoignable)' : 'Envoi dans quelques secondes';
-    return e.derniere ? `Ce téléphone envoie le carnet · à jour ${quand}` : 'Ce téléphone envoie le carnet';
+  if (role === 'consultation') {
+    if (!enLigne || e.statut === 'horsLigne') return `Consultation · pas de réseau${quand ? ` · reçu ${quand}` : ''}`;
+    if (e.statut === 'injoignable') return `Consultation · NAS injoignable${quand ? ` · reçu ${quand}` : ''}`;
+    return e.derniere ? `Consultation · à jour ${quand}` : 'Consultation';
   }
-  if (!enLigne || e.statut === 'horsLigne') return `Consultation · pas de réseau${quand ? ` · reçu ${quand}` : ''}`;
-  if (e.statut === 'injoignable') return `Consultation · NAS injoignable${quand ? ` · reçu ${quand}` : ''}`;
-  return e.derniere ? `Consultation · à jour ${quand}` : 'Consultation';
+  const n = typeof e.attente === 'number' ? e.attente : 0, enAttente = n ? `${n} en attente d'envoi` : 'Envoi en attente';
+  const conflits = e.conflits ? ` · ${e.conflits} à choisir` : '';
+  if (e.aConfirmer) return `${e.aConfirmer} suppressions à confirmer${conflits}`;
+  if (n || e.attente === true) {
+    if (!enLigne || e.statut === 'horsLigne') return `${enAttente} (pas de réseau)${conflits}`;
+    if (e.statut === 'injoignable') return `${enAttente} (NAS injoignable)${conflits}`;
+    return `${enAttente}${conflits}`;
+  }
+  return (e.derniere ? `Synchronisé ${quand}` : 'Synchro activée') + conflits;
 }
 function depuisCourt(iso, maintenant) {
   const m = Math.floor((maintenant - Date.parse(iso)) / 60000);
@@ -140,4 +149,101 @@ function depuisCourt(iso, maintenant) {
   if (m < 1440) return `il y a ${Math.floor(m / 60)} h`;
   const d = new Date(iso), p = n => String(n).padStart(2, '0');
   return `le ${p(d.getDate())}/${p(d.getMonth() + 1)} à ${p(d.getHours())}h${p(d.getMinutes())}`;
+}
+
+// ---------- v0.24 : deux sens ----------
+// Réglages que l'on peut FUSIONNER sans demander : listes (réunion) et terrains perso (réunion par code).
+export const REGLAGES_FUSIONNABLES = ['etiquettes', 'missionsAjoutees', 'missionsMasquees', 'terrainsPerso', 'doublonsVus'];
+export function fusionReglage(cle, local, distant) {
+  if (!REGLAGES_FUSIONNABLES.includes(cle)) return null;
+  if (cle === 'terrainsPerso') return { ...(distant || {}), ...(local || {}) };
+  const l = Array.isArray(local) ? local : [], d = Array.isArray(distant) ? distant : [];
+  return [...l, ...d.filter(x => !l.some(y => JSON.stringify(y) === JSON.stringify(x)))];
+}
+
+// Éléments reçus du NAS sur un appareil qui MODIFIE aussi.
+// locaux : Map clé -> { donnees, h } (le carnet de l'appareil) ; carte : versions communes ; ouvert : clé de l'élément
+// ouvert dans la saisie (jamais changé sous les yeux du pilote : conflit s'il diffère).
+// Renvoie { appliquer: [{ magasin, id, donnees | null }], conflits: [...], carte, fusions: n }.
+// Règle : un élément reçu remplace celui de l'appareil SEULEMENT si celui-ci n'a pas changé depuis la dernière version
+// commune ; sinon, même contenu -> rien ; réglage fusionnable -> fusion ; autrement -> CONFLIT (rien n'est écrasé).
+export function analyserRecus(recus, locaux, carte, ouvert = null) {
+  const c = { ...carte }, appliquer = [], conflits = [];
+  let fusions = 0;
+  for (const e of recus) {
+    if (!MAGASINS.includes(e.magasin) || (e.magasin === 'reglages' && !REGLAGES_PARTAGES.includes(e.id))) continue;
+    const cle = cleElement(e.magasin, e.id), b = c[cle];
+    if (b && e.rev <= b[0]) continue; // déjà connu (dont ses propres envois qui reviennent)
+    const hE = e.supprime || !e.donnees ? null : empreinteTexte(JSON.stringify(e.donnees));
+    const l = locaux.get(cle), hL = l ? l.h : null, hBase = b ? b[1] : null;
+    const modifieIci = hL !== hBase;
+    if (hL === hE) { c[cle] = [e.rev, hE]; continue; } // déjà pareil ici
+    if (!modifieIci && cle !== ouvert) {
+      appliquer.push({ magasin: e.magasin, id: e.id, donnees: hE === null ? null : e.donnees });
+      c[cle] = [e.rev, hE];
+      continue;
+    }
+    if (e.magasin === 'reglages' && hE !== null && l) {
+      const v = fusionReglage(e.id, l.donnees.valeur, e.donnees.valeur);
+      if (v !== null) { appliquer.push({ magasin: 'reglages', id: e.id, donnees: { cle: e.id, valeur: v } }); c[cle] = [e.rev, hE]; fusions++; continue; }
+    }
+    conflits.push({ magasin: e.magasin, id: e.id, cle, rev: e.rev, distant: hE === null ? null : e.donnees, appareil: e.appareil || '', le: e.le || '' });
+  }
+  return { appliquer, conflits, carte: c, fusions };
+}
+
+export const compterSuppressions = modifications => modifications.filter(m => m.supprime).length;
+export const SUPPRESSIONS_A_CONFIRMER = 20;
+
+// Nom d'un appareil d'après son identifiant (« tel-… » / « pc-… »)
+export const nomAppareil = id => (String(id).startsWith('pc-') ? 'PC' : String(id).startsWith('tel-') ? 'téléphone' : 'autre appareil');
+
+// Champs d'un élément à comparer, avec leur nom lisible (le reste : nom technique)
+const LIBELLES = {
+  date: 'Date', hDep: 'Bloc départ (UTC)', hArr: 'Bloc arrivée (UTC)', dep: 'Départ', arr: 'Arrivée', escales: 'Escales', avionId: 'Avion',
+  tempsTotal: 'Temps total', tempsNuit: 'Nuit', tempsIFR: 'IFR', fonction: 'Fonction', nomCdB: 'CdB', nomCopi: 'Copilote', remarques: 'Remarques',
+  missions: 'Missions', feux: 'Feux', attJour: 'Att. jour', attNuit: 'Att. nuit', approches: 'Approches', etiquettes: 'Étiquettes', compteurs: 'Compteurs',
+  immat: 'Immatriculation', typeOACI: 'Type OACI', modele: 'Modèle', nom: 'Nom', indicatif: 'Indicatif', tri: 'Trigramme', prenom: 'Prénom', valeur: 'Valeur',
+};
+const IGNORES = new Set(['modifieLe', 'creeLe', 'ordre', 'id']);
+const texteValeur = (k, v, avions) => {
+  if (v === undefined || v === null || v === '') return '—';
+  if (k === 'avionId') { const a = avions && avions.get(v); return a ? a.immat : String(v); }
+  if (['tempsTotal', 'tempsNuit', 'tempsIFR'].includes(k) && typeof v === 'number') return `${Math.floor(v / 60)}h${String(v % 60).padStart(2, '0')}`;
+  if (k === 'escales' && Array.isArray(v)) return v.map(x => x.code || x.nom || '?').join(', ') || '—';
+  if (typeof v === 'object') return JSON.stringify(v).slice(0, 80);
+  return String(v);
+};
+export function differences(local, distant, avions = null) {
+  const cles = [...new Set([...Object.keys(local || {}), ...Object.keys(distant || {})])].filter(k => !IGNORES.has(k));
+  const d = [];
+  for (const k of cles) {
+    const a = local ? local[k] : undefined, b = distant ? distant[k] : undefined;
+    if (JSON.stringify(a ?? null) === JSON.stringify(b ?? null)) continue;
+    d.push({ champ: LIBELLES[k] || k, ici: texteValeur(k, a, avions), autre: texteValeur(k, b, avions) });
+  }
+  return d;
+}
+
+// Doublons possibles : même vol (date, terrains, avion, heure, durée) ou même vol NPF-Q400 saisi deux fois, parmi les
+// vols créés depuis le passage aux deux sens (les doublons anciens du carnet ne sont pas signalés). vus : paires gardées.
+export function doublons(vols, cleDe, depuis, vus = []) {
+  const groupes = new Map(), paires = [], dejaVus = new Set(vus);
+  const recent = v => (v.creeLe || '') >= (depuis || '9999');
+  for (const v of vols) {
+    for (const k of [cleDe(v), v.npfId ? 'npf|' + v.npfId : null]) {
+      if (!k) continue;
+      if (!groupes.has(k)) groupes.set(k, []);
+      groupes.get(k).push(v);
+    }
+  }
+  const faites = new Set();
+  for (const l of groupes.values()) {
+    for (let i = 0; i < l.length; i++) for (let j = i + 1; j < l.length; j++) {
+      const a = l[i], b = l[j], cle = [a.id, b.id].sort().join('|');
+      if (faites.has(cle) || dejaVus.has(cle) || !(recent(a) || recent(b))) continue;
+      faites.add(cle); paires.push({ cle, a, b });
+    }
+  }
+  return paires;
 }

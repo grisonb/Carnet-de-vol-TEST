@@ -786,4 +786,6 @@ export function initSaisie({ fermer }) {
 }
 
 export const saisieEnCours = () => F !== null;
+// v0.24 : vol ouvert dans la saisie (la synchro ne le change jamais sous les yeux du pilote : conflit à la place)
+export const cleVolOuvert = () => (F && F.vol ? `vols/${F.vol.id}` : null);
 export { codeAvecDrapeau };
