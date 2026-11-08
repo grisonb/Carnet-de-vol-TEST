@@ -3,6 +3,10 @@
 // fenêtre ou feuille ouverte par-dessus. Une fenêtre fermée par son bouton (×, Annuler…) retire son entrée
 // (history.go) : pas d'entrée « fantôme » qui obligerait à appuyer deux fois sur retour.
 // Les fenêtres sont suivies par leur attribut « hidden » : rien à changer dans le code qui les ouvre.
+// v0.18 (R55) : un history.go() de l'app peut se terminer TARD (téléphone lent, démarrage) ; son popstate était alors
+// pris pour un appui sur retour et fermait la fenêtre du dessus (la liste des vols NPF se fermait toute seule).
+// Chaque entrée porte son niveau ({ carnet: n }) : un popstate qui arrive au niveau visé par l'app (cible) est le sien,
+// même en retard ; un retour de l'utilisateur arrive, lui, sous le niveau courant.
 
 import { $ } from './commun.js';
 
@@ -17,14 +21,18 @@ let opts = null;
 let ouvertes = [];   // fenêtres visibles, dans l'ordre d'ouverture (la dernière est au-dessus)
 let poussees = 0;    // entrées ajoutées à l'historique
 let enAttente = false; // un history.go() est en cours (son popstate ne compte pas comme un « retour »)
+let cible = null;      // niveau d'historique où ce history.go() doit arriver
 let minuterie = null;
-// history.go() sans effet (rare) : on ne reste pas bloqué en attente
+// history.go() sans effet (rare) : on ne reste pas bloqué en attente ; s'il arrive quand même plus tard, son
+// niveau (cible) le fait reconnaître
 function reculer(n) {
   enAttente = true;
+  cible = poussees;
   clearTimeout(minuterie);
-  minuterie = setTimeout(() => { if (enAttente) { enAttente = false; majRetour(); } }, 800);
+  minuterie = setTimeout(() => { if (enAttente) { enAttente = false; majRetour(); } }, 3000);
   history.go(-n);
 }
+const niveauActuel = () => (history.state && Number.isInteger(history.state.carnet) ? history.state.carnet : 0);
 
 function recompter() {
   ouvertes = ouvertes.filter(id => !document.getElementById(id).hidden);
@@ -76,8 +84,15 @@ export function initRetour(o) {
     if (e) obs.observe(e, { attributes: true, attributeFilter: ['hidden'] });
   }
   addEventListener('popstate', () => {
-    if (enAttente) { enAttente = false; clearTimeout(minuterie); majRetour(); return; }
-    poussees = Math.max(0, poussees - 1);
+    const niveau = niveauActuel();
+    // Fin d'un history.go() de l'app (même arrivé en retard) : ce n'est pas un « retour », rien ne se ferme
+    if (enAttente || niveau === cible) {
+      enAttente = false; cible = null; clearTimeout(minuterie);
+      poussees = niveau;
+      majRetour();
+      return;
+    }
+    poussees = Math.min(Math.max(0, poussees - 1), niveau);
     retour();
     majRetour();
   });

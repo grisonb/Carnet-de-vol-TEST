@@ -41,8 +41,9 @@ function noms() {
 // code complet de 4 caractères tapé ou collé est gardé tel quel.
 // R47 : toucher une case terrain sélectionne le code (avec LF : les 2 lettres après « LF ») : on tape directement.
 export const prefixeLF = () => reglage('prefixeLF') === true;
-function selectionnerCode(el) {
-  if (document.activeElement !== el) return;
+function selectionnerCode(el, valeur = el.value) {
+  // Rien n'a été tapé entre-temps (sinon la sélection effacerait les lettres déjà tapées)
+  if (document.activeElement !== el || el.value !== valeur) return;
   if (prefixeLF() && !el.dataset.horsLf && /^LF/.test(el.value)) el.setSelectionRange(2, el.value.length);
   else el.select();
 }
@@ -63,10 +64,11 @@ function champOACI(sel, suivant, apres = () => {}) {
   el.addEventListener('focus', () => {
     delete el.dataset.horsLf;
     if (prefixeLF() && !el.value) { el.value = 'LF'; apres(); }
-    setTimeout(() => selectionnerCode(el), 0);
+    const v = el.value;
+    setTimeout(() => selectionnerCode(el, v), 0);
   });
   // Au toucher, le navigateur du téléphone place le curseur après le focus : on resélectionne
-  el.addEventListener('pointerup', () => setTimeout(() => selectionnerCode(el), 0));
+  el.addEventListener('pointerup', () => { const v = el.value; setTimeout(() => selectionnerCode(el, v), 0); });
   el.addEventListener('blur', () => { if (el.value === 'LF') { el.value = ''; apres(); } });
 }
 function majBoutonLF() {

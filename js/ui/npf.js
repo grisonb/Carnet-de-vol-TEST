@@ -107,7 +107,8 @@ export function ecranVolsNpf() {
 }
 
 function choisir(n) {
-  if (!n) return;
+  // Un toucher = une seule ouverture : seulement depuis la liste encore affichée (jamais une 2e fois après sa fermeture)
+  if (!n || !document.getElementById('npf-l') || $('#outil').hidden) return;
   const deja = volDejaEnregistre(etat.vols, n.id);
   if (!deja) { fermerOutil(); ouvrirBrouillon(n, null); return; }
   // Même vol déjà enregistré : mettre à jour plutôt que créer un second vol

@@ -99,7 +99,9 @@ Pas d'étape de compilation : les fichiers du dépôt sont servis tels quels.
   `regles.js`, `commun.js`, `carte.js` (Carte du vol : serveur de traces, Leaflet, plein écran, Plus › Cartes de vol),
   `suppression.js` (suppression d'un vol avec confirmation + Annuler, partagée),
   `retour.js` (flèche retour Android : une entrée d'historique par niveau ouvert, fenêtres suivies par leur attribut
-  `hidden` ; toute nouvelle fenêtre doit être ajoutée à sa liste COUCHES avec son bouton de fermeture).
+  `hidden` ; toute nouvelle fenêtre doit être ajoutée à sa liste COUCHES avec son bouton de fermeture ; v0.18 : chaque
+  entrée porte son niveau `{ carnet: n }` et un `history.go()` de l'app est reconnu à son niveau d'arrivée (`cible`),
+  même en retard — ne jamais revenir à un simple délai).
 - `js/recherche.js` : recherche de vols par date (jour / mois / année, formats français).
 - `js/fiches-avions.js` : import de fiches avions (immat -> Nom, Indicatif radio, Modèle ; Plus › Importer des fiches
   avions). Le fichier réel du pilote est dans `../donnees-privees/` (jamais dans le dépôt).
@@ -156,6 +158,7 @@ BOMBING et TRANSPORT s'excluent sur un vol. Suggestions de missions masquées : 
   « LF » (2 lettres, hors LF, mémorisé), vol NPF non modifié, Plus › Importer des fiches avions (avions inventés).
 - `node tests/navigateur/v017.mjs` : `arriveePosition` (arrivée sans code OACI : jour / nuit, code tapé ensuite, carte).
 - `node tests/navigateur/v017b.mjs` : avions d'un même type classés par immatriculation (`classerParTypeEtImmat`, `modele.js`).
+- `node tests/navigateur/v018.mjs` : touchers simulés avec history.go() lent (comme le téléphone) : liste des vols NPF.
 - `node tests/navigateur/fluidite.mjs` : 4070 vols inventés, processeur ralenti ×6.
 - `node outils/controle-import.mjs ../donnees-privees/flylog-decode-v1.csv ../donnees-privees/totaux-flylog-reference.json` :
   contrôle avec le VRAI fichier, en local uniquement (rien n'est écrit dans le dépôt).

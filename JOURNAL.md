@@ -1,5 +1,30 @@
 # Journal des versions
 
+## v0.18 — 07/11/2026
+
+Une remarque : R55, la liste des vols NPF-Q400 se fermait au lieu d'ouvrir le brouillon (premier vrai vol au format 2
+reçu le 07/11 avec la v0.17 et le NAS v4).
+
+**Cause**
+- La flèche retour Android (v0.9) : quand l'app retire elle-même une entrée d'historique (`history.go`, par exemple au
+  démarrage pour effacer celles d'une session précédente, ou après la fermeture d'une fenêtre), elle n'attendait la fin
+  de ce recul que 800 ms. Sur le téléphone (démarrage, appareil chargé), il arrive plus tard : l'app le prenait alors
+  pour un appui sur retour et fermait la fenêtre du dessus, la liste des vols NPF. Le toucher n'y était pour rien
+  (pas de toucher qui traverse, pas de double déclenchement, la liste n'est pas redessinée par la vérification du NAS).
+
+**Ce qui change**
+- Chaque entrée d'historique porte son niveau ; un recul de l'app est reconnu au niveau où il arrive, même en retard :
+  il ne ferme plus rien. Un vrai retour de l'utilisateur ferme toujours la fenêtre du dessus.
+- Un toucher sur un vol ne peut ouvrir qu'un brouillon (protection contre un double déclenchement).
+- La liste se ferme par sa croix ou la flèche retour ; elle couvre tout l'écran (aucun toucher ne la ferme).
+- Cases terrain (R47, v0.16) : la sélection automatique au toucher n'efface plus des lettres déjà tapées (cas d'une
+  fenêtre d'escale qui se donne le focus pendant qu'on tape).
+
+**Tests**
+- `tests/navigateur/v018.mjs` : touchers simulés, history.go() rendu lent (1,5 s) comme sur le téléphone ; bandeau puis vol
+  du premier coup 10 fois de suite (dont après rechargement avec un historique ancien) ; vérification du NAS pendant le
+  toucher ; toucher hors des vols ; croix ; flèche retour. Le même test échoue sur la v0.17. Tous les tests existants.
+
 ## v0.17 — 07/11/2026
 
 Vols NPF-Q400 (format « vol NPF » version 2) : nouveau champ facultatif `arriveePosition: { lat, lon }`, envoyé quand
