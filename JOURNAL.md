@@ -1,5 +1,28 @@
 # Journal des versions
 
+## v0.20 — 08/11/2026
+
+Une remarque : R58, détachement à La Réunion (base FMEP).
+
+**Ce qui change**
+- Nouveau vol : si le départ est FMEP, l'arrivée par défaut est FMEP (sinon LFTW, comme avant). Le départ reste
+  l'arrivée du dernier vol.
+- Pendant la saisie, l'arrivée suit le départ (FMEP -> FMEP, autre -> LFTW) tant que le pilote n'a pas touché lui-même
+  à l'arrivée. Un vol déjà enregistré ou un brouillon NPF-Q400 n'est jamais concerné.
+- Règle dans `js/modele.js` (`arriveeParDefaut`, `BASE`).
+
+**Contrôles (rien à changer)**
+- Terrains de La Réunion : FMEP (Saint-Pierre Pierrefonds) et FMEE (Roland Garros) étaient déjà dans la table
+  (coordonnées publiques, fuseau Indian/Reunion = UTC+4) ; ce sont les deux seuls terrains OACI de l'île.
+- Nuit EASA à FMEP : fin du crépuscule civil identique à la minute au calcul de la NOAA (20/11/2026 : 15h05 UTC).
+- Vol NPF-Q400 format 2 FMEP -> FMEE -> FMEP : terrains et atterrissages jour / nuit lus correctement.
+- Bouton « LF » : pour un terrain FM.., un retour arrière libère la case (deux si la case contient un code LF), puis on
+  tape les 4 lettres.
+
+**Tests**
+- `tests/unitaires/v020.test.js`, `tests/navigateur/v020.mjs` (390 px, captures) ; tous les tests existants ; contrôle
+  FlyLog local.
+
 ## v0.19 — 08/11/2026
 
 Une remarque : R56, couleurs.

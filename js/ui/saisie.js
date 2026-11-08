@@ -5,7 +5,7 @@ import { etat, reglage, enregistrerReglage, ecrireReglageDiscret, enregistrerVol
   listeMissions, trouverPersonne, enregistrerAvion } from '../etat.js';
 import { ouvrirAjoutTerrain } from './terrain-perso.js';
 import { volVide, FONCTIONS, TEMPS_FONCTION, COMPTEURS, colonnesAvion, personneVide, nomPersonne, ligneAvion,
-  etiquettesDeLAvion, etiquettesPourAvion, basculerEtiquette, fonctionsPossibles, champPersonneVisible, compteursAffiches } from '../modele.js';
+  etiquettesDeLAvion, etiquettesPourAvion, basculerEtiquette, fonctionsPossibles, champPersonneVisible, compteursAffiches, BASE, arriveeParDefaut } from '../modele.js';
 import { supprimerVolAvecAnnuler } from './suppression.js';
 import { afficherCarteVol } from './carte.js';
 import { hm, lireDuree, lireHeure, minutesDuJour, ajouterJours, dateValide, aujourdhui, dateFr, heureH } from '../temps.js';
@@ -22,7 +22,6 @@ import { brouillonNpf } from '../npf.js';
 import { ignorerVolNpf, volNpfEnregistre } from './npf.js';
 
 let F = null;          // brouillon du vol en cours
-const BASE = 'LFTW';   // base du pilote : arrivée par défaut d'un nouveau vol (R46)
 let quitter = () => {};
 
 // ---------- Terrains ----------
@@ -397,6 +396,7 @@ function appliquerNpf(n, vol) {
   F.npf = { id: b.npf.id, exporteLe: b.npf.exporteLe, feux: b.npf.feux, vol: n, avionInconnu: b.avion ? '' : b.rechercheAvion,
     copiInconnu: b.copilote && !b.copilotePersonne ? b.copilote : '' };
   F.mode = 'utc';
+  F.arrAuto = false; // R58 : l'arrivée vient de NPF-Q400, elle ne suit pas le départ
   $('#f-date').value = b.date; $('#f-t0').value = heureH(b.hDep); $('#f-t1').value = heureH(b.hArr);
   F.heuresInconnues = false;
   if (b.dep || !vol) $('#f-dep').value = b.dep;
@@ -474,8 +474,10 @@ export function ouvrirSaisie(vol, opts = {}) {
     $('#save').textContent = 'Enregistrer le vol';
     $('#del-zone').hidden = true;
     $('#f-date').value = aujourdhui();
-    // R46 : départ = arrivée du dernier vol enregistré (sinon la base), arrivée = la base LFTW ; toujours modifiable
-    $('#f-dep').value = (dernier && dernier.arr) || BASE; $('#f-arr').value = BASE;
+    // R46 / R58 : départ = arrivée du dernier vol enregistré (sinon la base) ; arrivée = LFTW, ou FMEP si le départ
+    // est FMEP. Tant que le pilote n'a pas touché à l'arrivée, elle suit le départ (F.arrAuto) ; toujours modifiable
+    $('#f-dep').value = (dernier && dernier.arr) || BASE; $('#f-arr').value = arriveeParDefaut($('#f-dep').value);
+    F.arrAuto = true;
     $('#f-t0').value = ''; $('#f-t1').value = '';
     F.avionId = dernier ? dernier.avionId : ([...etat.avions.values()][0]?.id || null);
     F.etiquettes = dernier ? [...(dernier.etiquettes || [])] : [];
@@ -606,6 +608,16 @@ export function initSaisie({ fermer }) {
   quitter = fermer;
   champOACI('#f-dep', '#f-arr'); champOACI('#f-arr', '#f-t0');
   champHeure('#f-t0', '#f-t1'); champHeure('#f-t1', null);
+  // R58 : arrivée touchée par le pilote -> on ne la change plus ; départ changé -> l'arrivée par défaut suit (FMEP / LFTW)
+  $('#f-arr').addEventListener('input', () => { if (F) F.arrAuto = false; });
+  $('#f-dep').addEventListener('input', () => {
+    if (!F || !F.arrAuto) return;
+    const arr = $('#f-arr'), v = arriveeParDefaut($('#f-dep').value);
+    if (arr.value === v) return;
+    arr.value = v;
+    // Départ complet : le curseur est déjà passé sur l'arrivée -> son code reste sélectionné (on tape directement)
+    if (document.activeElement === arr) setTimeout(() => selectionnerCode(arr, v), 0);
+  });
   for (const s of ['#f-dep', '#f-arr']) $(s).addEventListener('input', () => { noms(); recalculer(); });
   for (const s of ['#f-t0', '#f-t1', '#f-date']) $(s).addEventListener('input', recalculer);
   $('#tz-loc').addEventListener('click', () => changerMode('loc'));

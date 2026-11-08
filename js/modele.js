@@ -124,6 +124,11 @@ export function cleDoublon(vol, immat) {
     vol.tempsTotal || vol.simTemps || 0].join('|');
 }
 
+// R46 / R58 : terrains proposés pour un nouveau vol. Départ = arrivée du dernier vol (sinon la base) ; arrivée = la base
+// LFTW, sauf si le départ est FMEP (détachement à La Réunion) : arrivée FMEP.
+export const BASE = 'LFTW';
+export const arriveeParDefaut = dep => (String(dep || '').trim().toUpperCase() === 'FMEP' ? 'FMEP' : BASE);
+
 // Du plus récent au plus ancien : date, heure de départ, puis ordre d'enregistrement
 export function comparerRecentDabord(a, b) {
   if (a.date !== b.date) return a.date < b.date ? 1 : -1;
