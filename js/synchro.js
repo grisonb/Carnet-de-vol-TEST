@@ -196,7 +196,15 @@ export const compterSuppressions = modifications => modifications.filter(m => m.
 export const SUPPRESSIONS_A_CONFIRMER = 20;
 
 // Nom d'un appareil d'après son identifiant (« tel-… » / « pc-… »)
-export const nomAppareil = id => (String(id).startsWith('pc-') ? 'PC' : String(id).startsWith('tel-') ? 'téléphone' : 'autre appareil');
+export const nomAppareil = id => (String(id).startsWith('pc-') ? 'PC' : String(id).startsWith('tel-') ? 'téléphone'
+  : String(id).startsWith('ipad-') ? 'iPad' : 'autre appareil');
+// v0.25 : « de l'iPad », « du PC »… ; « Cet iPad », « Ce PC »… (textes et boutons)
+export const duNom = n => ({ iPad: 'de l\'iPad', PC: 'du PC', 'téléphone': 'du téléphone' }[n] || 'de l\'autre appareil');
+export const ceNom = n => ({ iPad: 'Cet iPad', PC: 'Ce PC', 'téléphone': 'Ce téléphone' }[n] || 'Cet appareil');
+export const ceNomMin = n => ceNom(n).replace(/^C/, 'c');
+export const leNom = n => ({ iPad: 'l\'iPad', PC: 'le PC', 'téléphone': 'le téléphone' }[n] || 'l\'autre appareil');
+// iPad : iPadOS se présente souvent comme un Mac (Safari « version ordinateur »), mais avec un écran tactile
+export const estIPad = (ua, pointsTactiles = 0) => /iPad/.test(ua) || (/Macintosh/.test(ua) && pointsTactiles > 1);
 
 // Champs d'un élément à comparer, avec leur nom lisible (le reste : nom technique)
 const LIBELLES = {

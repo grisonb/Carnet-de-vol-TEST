@@ -538,3 +538,11 @@ body.consultation #v-saisie .sec:not(.c-carte){pointer-events:none}
 .cf-diff>div span{overflow-wrap:anywhere}
 .cf-diff .cf-t b{font-size:13px}
 .dbl{display:grid;gap:3px;padding:8px 0;border-bottom:1px solid var(--line)}
+
+/* v0.25 : iPad installé sur l'écran d'accueil (affichage plein écran) : la barre d'état (heure, batterie) ne cache pas le
+   haut des écrans. env(safe-area-inset-top) vaut 0 sur le téléphone Android et sur le PC : rien n'y change. */
+body{padding-top:env(safe-area-inset-top,0px)}
+.sheet{padding-top:env(safe-area-inset-top,0px)}
+/* v0.25 : tablette tactile (iPad, 768 px et plus) : onglets du bas assez hauts pour le doigt (48 px). Le téléphone
+   (écran étroit) et le PC (souris) ne changent pas. */
+@media (pointer:coarse) and (min-width:700px){.tabs button{min-height:48px}#cancel{min-height:44px}}

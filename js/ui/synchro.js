@@ -14,7 +14,7 @@ import { nouvelId, cleDoublon } from '../modele.js';
 import { hm, dateFr } from '../temps.js';
 import { elementsDuCarnet, preparerEnvoi, majCarte, carteDepuisNas, trierRecus, lots, resumeSynchro, REGLAGES_PARTAGES,
   PAR_ENVOI, PAR_PAGE, PERIODE_CONSULTATION, cleElement, empreinteTexte, analyserRecus, compterSuppressions, SUPPRESSIONS_A_CONFIRMER,
-  nomAppareil, differences, doublons } from '../synchro.js';
+  nomAppareil, differences, doublons, duNom, ceNom, ceNomMin as ceNomMinDe, leNom, estIPad } from '../synchro.js';
 
 const nombre = n => n.toLocaleString('fr-FR');
 const enLigne = () => navigator.onLine !== false;
@@ -31,13 +31,16 @@ async function noter(changements) {
   await ecrireReglageDiscret('synchroEtat', { ...etatSynchro(), ...changements });
   document.dispatchEvent(new CustomEvent('synchro-etat'));
 }
+// Sorte d'appareil : téléphone (référence), sinon iPad ou PC (v0.25 : l'iPad est un 3e appareil, en modification)
+const typeAppareil = () => (roleSynchro() === 'reference' ? 'téléphone' : estIPad(navigator.userAgent, navigator.maxTouchPoints) ? 'iPad' : 'PC');
 function appareil() {
   let a = reglage('synchroAppareil');
-  if (!a) { a = (roleSynchro() === 'reference' ? 'tel-' : 'pc-') + Math.random().toString(36).slice(2, 8); ecrireReglageDiscret('synchroAppareil', a); }
+  if (!a) { a = { 'téléphone': 'tel-', iPad: 'ipad-', PC: 'pc-' }[typeAppareil()] + Math.random().toString(36).slice(2, 8); ecrireReglageDiscret('synchroAppareil', a); }
   return a;
 }
-// Nom de cet appareil et de l'autre, pour les boutons « Garder la version du PC / du téléphone »
-const nomIci = () => (roleSynchro() === 'reference' ? 'téléphone' : 'PC');
+// Nom de cet appareil, pour les boutons « Garder la version du PC / de l'iPad / du téléphone »
+const nomIci = () => typeAppareil();
+const ceNomMin = () => ceNomMinDe(nomIci());
 
 // ---------- Réseau ----------
 async function demander(action, { corps = null, extra = '' } = {}) {
@@ -269,9 +272,9 @@ export function ecranSynchro() {
   const role = roleSynchro();
   if (!role) {
     const o = ouvrirOutil('Synchro du carnet', `
-      <p class="hint" style="font-size:15px">Le carnet passe par ton NAS. Le <b>téléphone</b> est l'appareil de référence ; le <b>PC</b> peut le modifier aussi, ou seulement le consulter.</p>
+      <p class="hint" style="font-size:15px">Le carnet passe par ton NAS. Le <b>téléphone</b> est l'appareil de référence ; le <b>PC</b> et l'<b>iPad</b> peuvent le modifier aussi, ou seulement le consulter.</p>
       <button type="button" class="bigbtn" id="sy-ref">Ce téléphone : envoyer et recevoir le carnet ›</button>
-      <button type="button" class="bigbtn second" id="sy-mod">Ce PC : recevoir le carnet et le modifier aussi ›</button>
+      <button type="button" class="bigbtn second" id="sy-mod">${ceNom(estIPad(navigator.userAgent, navigator.maxTouchPoints) ? 'iPad' : 'PC')} : recevoir le carnet et le modifier aussi ›</button>
       <button type="button" class="bigbtn second" id="sy-cons">Cet appareil consulte seulement ›</button>
       <p class="hint">Les photos d'avion ne voyagent pas encore. Les copies sur le NAS partent du téléphone seulement.</p>`);
     o.querySelector('#sy-ref').addEventListener('click', confirmerReference);
@@ -279,7 +282,7 @@ export function ecranSynchro() {
     o.querySelector('#sy-cons').addEventListener('click', () => confirmerRejoindre('consultation'));
     return;
   }
-  const titres = { reference: 'Ce téléphone envoie et reçoit le carnet', modification: 'Ce PC envoie et reçoit le carnet', consultation: 'Consultation du carnet du téléphone' };
+  const titres = { reference: 'Ce téléphone envoie et reçoit le carnet', modification: `${ceNom(nomIci())} envoie et reçoit le carnet`, consultation: 'Consultation du carnet du téléphone' };
   const h = reglage('synchroHistorique') || [], dernier = h[h.length - 1];
   const o = ouvrirOutil('Synchro du carnet', `
     <div class="sec"><h3>${titres[role]}</h3>
@@ -401,8 +404,8 @@ function confirmerRejoindre(role) {
 function confirmerPassage() {
   const o = ouvrirOutil('Synchro du carnet', `
     <div class="sec resume"><h3>Passer en modification</h3>
-      <p>Ce PC pourra ajouter, modifier et supprimer vols, avions, personnes, terrains, étiquettes et missions, comme le téléphone. Les deux restent à jour.</p></div>
-    <p class="hint">Le carnet n'est pas renvoyé : le PC reprend seulement la dernière version de chaque élément sur le NAS (téléchargement), puis n'envoie que ce que tu changeras. Si le même élément est changé des deux côtés avant la synchro, l'app te demandera lequel garder. Les copies sur le NAS continuent de partir du téléphone.</p>
+      <p>${ceNom(estIPad(navigator.userAgent, navigator.maxTouchPoints) ? 'iPad' : 'PC')} pourra ajouter, modifier et supprimer vols, avions, personnes, terrains, étiquettes et missions, comme le téléphone. Tous les appareils restent à jour.</p></div>
+    <p class="hint">Le carnet n'est pas renvoyé : cet appareil reprend seulement la dernière version de chaque élément sur le NAS (téléchargement), puis n'envoie que ce que tu changeras. Si le même élément est changé des deux côtés avant la synchro, l'app te demandera lequel garder. Les copies sur le NAS continuent de partir du téléphone.</p>
     <button type="button" class="bigbtn vert" id="sp-ok">Passer en modification</button>
     <button type="button" class="bigbtn second annuler" id="sp-no">Annuler</button>
     <p class="prog" id="sp-res" role="status"></p>`);
@@ -425,15 +428,15 @@ function confirmerPassage() {
     document.body.classList.remove('consultation');
     document.dispatchEvent(new CustomEvent('synchro-etat'));
     prevenir();
-    p.className = 'okc'; p.textContent = 'Ce PC peut maintenant modifier le carnet. Les deux appareils restent à jour.';
-    toast('PC en modification');
+    p.className = 'okc'; p.textContent = `${ceNom(nomIci())} peut maintenant modifier le carnet. Tous les appareils restent à jour.`;
+    toast('Modification activée');
   });
 }
 
 function confirmerArret(role) {
   const o = ouvrirOutil('Synchro du carnet', `<div class="sec resume"><h3>${role === 'consultation' ? 'Arrêter la consultation ?' : 'Arrêter la synchro ?'}</h3>
       <p>${role === 'consultation' ? 'Le carnet reste affiché sur cet appareil mais n\'est plus mis à jour. Sa copie automatique sur le NAS reste arrêtée (pour ne pas mélanger deux carnets).'
-        : role === 'modification' ? 'Le carnet reste sur ce PC mais n\'est plus mis à jour, et ce que tu y changes ne part plus. Sa copie automatique sur le NAS reste arrêtée.'
+        : role === 'modification' ? `Le carnet reste sur ${ceNomMin()} mais n'est plus mis à jour, et ce que tu y changes ne part plus. Sa copie automatique sur le NAS reste arrêtée.`
           : 'Le carnet de ce téléphone ne change pas. L\'autre appareil ne recevra plus les nouveautés.'}</p></div>
     <button type="button" class="bigbtn" id="sa-ok" style="background:var(--feu)">${role === 'consultation' ? 'Arrêter la consultation' : 'Arrêter la synchro'}</button>
     <button type="button" class="bigbtn second annuler" id="sa-no">Annuler</button>`);
@@ -479,13 +482,19 @@ function ecranSuppressions() {
   const n = etatSynchro().aConfirmer || 0;
   if (!n) return ecranSynchro();
   const o = ouvrirOutil('Suppressions à confirmer', `
-    <div class="sec resume"><h3>${n} éléments supprimés sur ce ${nomIci()}</h3>
+    <div class="sec resume"><h3>${n} éléments supprimés sur ${ceNomMin()}</h3>
       <p>Ils seront supprimés aussi sur l'autre appareil. Rien n'est envoyé avant ton accord (les autres modifications, elles, sont parties).</p></div>
     <button type="button" class="bigbtn" id="su-ok" style="background:var(--feu)">Confirmer : supprimer aussi sur l'autre appareil</button>
-    <button type="button" class="bigbtn vert" id="su-remettre">Les remettre sur ce ${nomIci()}</button>
+    <button type="button" class="bigbtn vert" id="su-remettre">Les remettre sur ${ceNomMin()}</button>
     <button type="button" class="bigbtn second annuler" id="su-no">Annuler</button>
     <p class="prog" id="su-res" role="status"></p>`);
   o.querySelector('#su-no').addEventListener('click', fermerOutil);
+  // v0.25 : carnet d'ici VIDE (effacé par Safari, par exemple) : pas de « Confirmer » (tout serait effacé partout)
+  if (!etat.vols.length) {
+    o.querySelector('#su-ok').hidden = true;
+    o.querySelector('#su-res').className = 'koc';
+    o.querySelector('#su-res').textContent = `Le carnet de ${ceNomMin()} est vide : il a sans doute été effacé (par Safari, par exemple). « Les remettre » récupère tout depuis le NAS.`;
+  }
   o.querySelector('#su-ok').addEventListener('click', async () => {
     await noter({ suppressionsConfirmees: true });
     o.querySelector('#su-res').textContent = 'Envoi…';
@@ -529,19 +538,20 @@ export async function ecranConflits() {
     const l = locaux.get(c.cle)?.donnees ?? null, autre = nomAppareil(c.appareil) === ici ? 'autre appareil' : nomAppareil(c.appareil);
     const titre = titreElement(c.magasin, l || c.distant, c.id);
     const lignes = l && c.distant ? differences(l, c.distant, etat.avions) : [];
-    const maj = s => s.charAt(0).toUpperCase() + s.slice(1);
+    const maj = s => (s === 'iPad' ? s : s.charAt(0).toUpperCase() + s.slice(1)); // « iPad » garde son i minuscule
     const corps = l && c.distant
       ? `<div class="cf-diff"><div class="cf-t"><span></span><b>${esc(maj(ici))}</b><b>${esc(maj(autre))}</b></div>
           ${lignes.map(d => `<div><span>${esc(d.champ)}</span><span>${esc(d.ici)}</span><span>${esc(d.autre)}</span></div>`).join('')}</div>`
-      : `<p class="koc">${!l ? `Supprimé sur ce ${esc(ici)}, modifié sur le ${esc(autre)}.` : `Modifié sur ce ${esc(ici)}, supprimé sur le ${esc(autre)}.`} Rien n'est effacé avant ton choix.</p>`;
-    // Boutons dans l'ordre demandé : PC, téléphone, les deux
-    const versionPc = ici === 'PC' ? 'ici' : 'autre', versionTel = ici === 'PC' ? 'autre' : 'ici';
+      : `<p class="koc">${!l ? `Supprimé sur ${esc(ceNomMinDe(ici))}, modifié sur ${esc(leNom(autre))}.` : `Modifié sur ${esc(ceNomMinDe(ici))}, supprimé sur ${esc(leNom(autre))}.`} Rien n'est effacé avant ton choix.</p>`;
+    // Boutons : PC, iPad, téléphone (toujours dans cet ordre), puis « les deux »
+    const RANG = { PC: 0, iPad: 1, 'téléphone': 2 };
+    const boutons = [['ici', ici], ['autre', autre]].sort((a, b) => (RANG[a[1]] ?? 3) - (RANG[b[1]] ?? 3))
+      .map(([choix, nom]) => `<button type="button" class="bigbtn second" data-choix="${choix}">Garder la version ${esc(duNom(nom))}</button>`).join('');
     return `<div class="sec cf" data-cf="${i}"><h3>${esc(titre)}</h3>${corps}
-      <button type="button" class="bigbtn second" data-choix="${versionPc}">Garder la version du PC</button>
-      <button type="button" class="bigbtn second" data-choix="${versionTel}">Garder la version du téléphone</button>
+      ${boutons}
       ${c.magasin === 'vols' && l && c.distant ? '<button type="button" class="bigbtn second" data-choix="deux">Garder les deux</button>' : ''}</div>`;
   }).join('');
-  const o = ouvrirOutil('Modifié sur les deux appareils', `<p class="hint" style="font-size:15px">Le même élément a été changé sur le PC et sur le téléphone avant la synchro. Choisis la version à garder : l'autre appareil la recevra.</p>${html}`);
+  const o = ouvrirOutil('Modifié sur les deux appareils', `<p class="hint" style="font-size:15px">Le même élément a été changé sur deux appareils avant la synchro. Choisis la version à garder : les autres appareils la recevront.</p>${html}`);
   o.querySelectorAll('[data-choix]').forEach(b => b.addEventListener('click', async () => {
     const c = liste[Number(b.closest('[data-cf]').dataset.cf)];
     await resoudre(c, b.dataset.choix);

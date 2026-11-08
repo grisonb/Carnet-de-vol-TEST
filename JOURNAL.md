@@ -1,5 +1,32 @@
 # Journal des versions
 
+## v0.25 — 08/11/2026
+
+L'iPad devient un 3e appareil du carnet (en modification, comme le PC). carnet.php v5 inchangé ; photos d'avion pas
+encore synchronisées.
+
+**Point vérifié avant de coder : NPF-Q400 sur le même iPad (même origine grisonb.github.io)**
+- Le Carnet n'efface que ses propres caches (nom commençant par « carnet-de-vol- », sw.js) et ne répond qu'aux
+  adresses sous /Carnet-de-vol-TEST/ ; sa base IndexedDB s'appelle « carnet-de-vol » ; il n'utilise pas localStorage.
+- NPF-Q400, NPF-Q400-TEST et NPF-Q400-RUN (lus sans rien modifier) n'effacent que leurs caches (préfixes npf-…) et
+  leurs bases de cartes (OfflineTilesDB…, OfflineMap_…, npf-q400-run-…) : jamais ce qui est au Carnet, et l'inverse.
+- Place prise par le Carnet : ≈ 2 Mo d'app + quelques Mo de données (sans photos), à côté des ≈ 1,5 Go de cartes NPF.
+
+**Ce qui change**
+- Plus › Synchro du carnet sur l'iPad : « Cet iPad : recevoir le carnet et le modifier aussi » ; ensuite comme le PC
+  (deux sens, conflits « Garder la version de l'iPad / du téléphone / les deux », doublons, « Annuler la dernière
+  synchro »). Vols NPF-Q400 et copies NAS : téléphone seulement.
+- Mise en page iPad (paysage et portrait) : colonne centrée comme sur le PC, onglets et « Annuler » de la saisie
+  agrandis au doigt sur tablette, haut des écrans dégagé de la barre d'état (app sur l'écran d'accueil), nom
+  « Carnet vol » sous l'icône. Téléphone et PC inchangés.
+- Carnet de l'appareil effacé (Safari peut effacer les données d'un site) : rien de vide n'est envoyé ; si l'état de
+  la synchro est resté, l'écran des suppressions ne propose plus « Confirmer » mais « Les remettre » (récupère tout
+  depuis le NAS).
+
+**Tests**
+- `tests/unitaires/v025.test.js` (trois appareils simulés), `tests/navigateur/v025.mjs` (téléphone et PC Chromium,
+  iPad WebKit 1080 × 810 puis 810 × 1080, faux NAS v5 local, captures) ; tous les tests existants ; contrôle FlyLog local.
+
 ## v0.24 — 08/11/2026
 
 R50, étape 4 : synchro du carnet dans les DEUX sens (téléphone ↔ PC), par le NAS (carnet.php version 5, inchangé).

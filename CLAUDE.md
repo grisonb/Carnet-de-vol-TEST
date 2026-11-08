@@ -131,6 +131,12 @@ Pas d'étape de compilation : les fichiers du dépôt sont servis tels quels.
   suppressions : `aConfirmer` (bandeau), envoi après confirmation. `synchroHistorique` (privé) : « Annuler la dernière
   synchro » (30 j). Opérations sur l'état de la synchro en file (`exclusif`). Vols NPF et copies NAS : téléphone seulement.
   Doublons : `doublons()` parmi les vols créés depuis `deuxSensDepuis` ; `doublonsVus` partagé.
+- iPad (v0.25) : 3e appareil, rôle 'modification' comme le PC ; reconnu par `estIPad` (UA iPad, ou Mac tactile :
+  iPadOS se présente comme un Mac) -> identifiant 'ipad-…', textes « Cet iPad », « Garder la version de l'iPad »
+  (`duNom`, `ceNom`, `leNom` dans synchro.js). Tablette tactile (pointer:coarse, ≥ 700 px) : onglets et « Annuler » ≥ 44 px.
+  Barre d'état : padding env(safe-area-inset-top). Carnet d'ici vide : pas de « Confirmer » des suppressions.
+  Même origine que NPF-Q400 (grisonb.github.io) : le Carnet ne touche qu'à ses caches (préfixe 'carnet-de-vol-',
+  sw.js) et à sa base IndexedDB 'carnet-de-vol' ; aucun localStorage.
 - Photos d'Internet (v0.21, R34) : `js/photos-web.js` (Commons : catégorie « immat (aircraft) » puis titres ; Planespotters)
   et `js/ui/photo-web.js` (fenêtre #ph-modal). Commons : photo choisie gardée avec `photoCredit` {source, auteur, licence,
   licenceUrl, page, titre}, crédit affiché sous la photo (#fi-credit). Planespotters : AFFICHÉE seulement (ses règles
@@ -193,6 +199,9 @@ BOMBING et TRANSPORT s'excluent sur un vol. Suggestions de missions masquées : 
 - `node tests/navigateur/v021.mjs` : photos d'Internet (faux Commons / Planespotters : choix, crédit, jamais gardée pour Planespotters).
 - `node tests/navigateur/v022.mjs` : changer le mot de passe du NAS (faux NAS v5 : clé NPF, trop d'essais, NAS v4, réponse perdue).
 - `node tests/navigateur/v023.mjs` : synchro téléphone -> PC (deux appareils, faux NAS v5, 1 200 vols, consultation, hors ligne).
+- `node tests/navigateur/v025.mjs` : iPad (WebKit, paysage / portrait) 3e appareil : rejoindre, modifier, conflit, hors ligne, carnet effacé.
+  WebKit sur ce PC (Ubuntu 26.04) : bibliothèques d'Ubuntu 24.04 décompressées dans ~/.cache/carnet-webkit-libs et
+  reliées dans ~/.cache/ms-playwright/webkit-2104/minibrowser-wpe/sys/lib ; le test met PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS=1.
 - `node tests/navigateur/v024.mjs` : synchro dans les deux sens (passage en modification, conflits et 3 choix, doublon, NPF, hors ligne, >20 suppressions, annuler, mot de passe refusé).
 - `node tests/navigateur/fluidite.mjs` : 4070 vols inventés, processeur ralenti ×6.
 - `node outils/controle-import.mjs ../donnees-privees/flylog-decode-v1.csv ../donnees-privees/totaux-flylog-reference.json` :

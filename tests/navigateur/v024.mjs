@@ -120,7 +120,7 @@ try {
   verifier((await P.textContent('#outil')).includes('Le carnet n\'est pas renvoyé'), 'explication : le carnet n\'est pas renvoyé');
   await P.screenshot({ path: join(CAPT, 'v024-01-pc-passer.png') });
   await P.click('#sp-ok'); await fini(P, '#sp-res');
-  verifier(await P.textContent('#sp-res') === 'Ce PC peut maintenant modifier le carnet. Les deux appareils restent à jour.', 'PC en modification');
+  verifier(await P.textContent('#sp-res') === 'Ce PC peut maintenant modifier le carnet. Tous les appareils restent à jour.', 'PC en modification'); // texte v0.25 (3 appareils)
   verifier(!(await P.evaluate(() => document.body.classList.contains('consultation'))), 'boutons de modification revenus');
   await P.click('#ou-x');
   verifier(await sync(P) === 'ok' && nas.envois.slice(envoisAvant).every(e => e.n === 0) , 'rien de renvoyé au NAS par le passage');
