@@ -1,5 +1,31 @@
 # Journal des versions
 
+## v0.22 — 08/11/2026
+
+Une remarque : R51, mot de passe du NAS personnalisé (après l'étude R50 + R51 du 08/11). Va avec carnet.php version 5
+(préparé à part, installé par le pilote avec la tâche DSM « Carnet NAS installer »).
+
+**Ce qui change**
+- Plus › Copie sur le NAS › « Changer le mot de passe › » : nouveau mot de passe tapé deux fois (12 caractères au
+  moins, lettres sans accent, chiffres et signes, sans espace, car il voyage dans un en-tête HTTP), « Afficher »,
+  « Changer le mot de passe » (vert) / « Annuler » (rouge). Le NAS ne garde que l'empreinte ; l'app garde le nouveau.
+- L'iPad (NPF-Q400) n'a rien à changer : l'ancien mot de passe reste sa clé, pour déposer des vols seulement.
+  « Tester » avec l'ancien mot de passe le dit.
+- Réponse perdue en route (ou demande renvoyée par le navigateur) : l'app vérifie avec le nouveau mot de passe et le
+  garde si le changement a été fait.
+- Mot de passe refusé : plus aucun appel automatique au NAS (copie, vols NPF) tant qu'il n'est pas corrigé, pour ne
+  pas déclencher le blocage des essais (qui bloquerait aussi l'iPad sur le même réseau).
+- « Trop d'essais » (NAS v5) : « réessaie dans 14 min » ; NAS encore en version 4 : message « installe d'abord la
+  mise à jour ».
+
+**carnet.php version 5** (dossier privé) : empreinte du mot de passe dans `acces/cle-carnet.json` (sinon celui
+d'origine), clé NPF séparée, 5 échecs / 15 min par adresse et 30 / h au total, synchro du carnet (pour les prochaines
+versions) et photos ; tâche DSM « mot de passe d'origine » en cas d'oubli.
+
+**Tests**
+- `tests/unitaires/v022.test.js`, `tests/navigateur/v022.mjs` (faux NAS v5 local, 390 px, captures) ; tous les tests
+  existants ; contrôle FlyLog local. carnet.php v5 : tests PHP locaux, contrôle PHP 7.3, installation simulée.
+
 ## v0.21 — 08/11/2026
 
 Une remarque : R34, photos d'avions trouvées sur Internet (après l'étude du 08/11 : Commons + lien Planespotters).

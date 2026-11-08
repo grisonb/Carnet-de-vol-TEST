@@ -110,6 +110,12 @@ Pas d'étape de compilation : les fichiers du dépôt sont servis tels quels.
 - Boutons × : constante `CROIX` (`commun.js`, croix dessinée) dans un bouton `.xbtn` ou `.x` (rond rouge).
 - Couleurs (v0.19) : classe `vert` (valider / continuer : bandeau NPF, #save, #ab-no) et `annuler` (tout bouton « Annuler »,
   y compris les nouveaux) ; jetons `--vert-fond`, `--rouge-fond`, texte blanc (contraste > 4,5:1).
+- Mot de passe du NAS (v0.22, R51, carnet.php v5) : Plus › Copie sur le NAS › Changer le mot de passe
+  (`ecranChangerMotDePasse`, js/ui/nas.js ; règles `problemeNouveauMotDePasse` dans js/copieur.js : 12 caractères,
+  ASCII sans espace car il voyage dans l'en-tête X-Carnet-Cle). Après un refus ou une réponse perdue, l'app vérifie
+  avec le nouveau (le navigateur peut renvoyer la demande). Mot de passe refusé -> `nasRefuse()` : AUCUN appel
+  automatique (copie, vols NPF) tant qu'il n'est pas corrigé (sinon blocage « trop d'essais » de l'adresse, iPad compris).
+  L'ancien mot de passe reste la clé de NPF-Q400 (test répond `cle: 'npf'`). 429 -> statut `bloque` (+ `attente`).
 - Photos d'Internet (v0.21, R34) : `js/photos-web.js` (Commons : catégorie « immat (aircraft) » puis titres ; Planespotters)
   et `js/ui/photo-web.js` (fenêtre #ph-modal). Commons : photo choisie gardée avec `photoCredit` {source, auteur, licence,
   licenceUrl, page, titre}, crédit affiché sous la photo (#fi-credit). Planespotters : AFFICHÉE seulement (ses règles
@@ -170,6 +176,7 @@ BOMBING et TRANSPORT s'excluent sur un vol. Suggestions de missions masquées : 
 - `node tests/navigateur/v019.mjs` : couleurs vert / rouge (contraste, même place et même taille, clair / sombre).
 - `node tests/navigateur/v020.mjs` : La Réunion (R58 arrivée FMEP, nuit FMEP, saisie FMEP / FMEE avec et sans « LF »).
 - `node tests/navigateur/v021.mjs` : photos d'Internet (faux Commons / Planespotters : choix, crédit, jamais gardée pour Planespotters).
+- `node tests/navigateur/v022.mjs` : changer le mot de passe du NAS (faux NAS v5 : clé NPF, trop d'essais, NAS v4, réponse perdue).
 - `node tests/navigateur/fluidite.mjs` : 4070 vols inventés, processeur ralenti ×6.
 - `node outils/controle-import.mjs ../donnees-privees/flylog-decode-v1.csv ../donnees-privees/totaux-flylog-reference.json` :
   contrôle avec le VRAI fichier, en local uniquement (rien n'est écrit dans le dépôt).

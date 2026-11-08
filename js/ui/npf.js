@@ -7,7 +7,7 @@
 import { $, esc, toast, ouvrirOutil, fermerOutil } from './commun.js';
 import { etat, avionDe } from '../etat.js';
 import { terrain } from '../terrains.js';
-import { requete, configNas } from './nas.js';
+import { requete, configNas, nasRefuse, noterRefus } from './nas.js';
 import { volNpfValide, resumeNpf, volDejaEnregistre, dejaAJour, brouillonNpf, differencesNpf } from '../npf.js';
 
 let attente = [];            // vols NPF en attente (valides, pas encore enregistrés à jour dans le carnet)
@@ -27,10 +27,12 @@ function majBandeau() {
 
 // Demande discrète des vols en attente sur le NAS
 export async function verifierVolsNpf() {
-  if (!configNas().configuree || enCours) return;
+  // v0.22 : mot de passe refusé -> on n'insiste pas (chaque essai raté compte sur le NAS)
+  if (!configNas().configuree || enCours || nasRefuse()) return;
   enCours = true;
   try {
     const r = await requete('vols-liste', { delai: 20000 });
+    if (r.statut === 'refuse') { await noterRefus(); return; }
     if (r.statut !== 'ok') return;
     let j = null;
     try { j = await r.reponse.json(); } catch { return; }

@@ -6,7 +6,7 @@
 import { $, esc, toast, ouvrirOutil, fermerOutil } from './commun.js';
 import { etat, reglage, ecrireReglageDiscret, contenuComplet, restaurer } from '../etat.js';
 import { creerSauvegarde, texteSauvegarde, lireSauvegarde, sansPhotos, garderPhotos } from '../sauvegarde.js';
-import { creerCopieur, urlApi, resumeNas, compresser, decompresser, empreinteSha256, taillePropre, depuis } from '../copieur.js';
+import { creerCopieur, urlApi, resumeNas, compresser, decompresser, empreinteSha256, taillePropre, depuis, problemeNouveauMotDePasse, texteAttente, MDP_MIN } from '../copieur.js';
 
 const nombre = n => n.toLocaleString('fr-FR');
 const enLigne = () => navigator.onLine !== false;
@@ -18,7 +18,7 @@ export const etatNas = () => reglage('nasEtat') || {};
 export const resumeCopieNas = () => resumeNas(configNas(), etatNas(), Date.now(), enLigne());
 
 // ---------- Réseau ----------
-const STATUTS = { 401: 'refuse', 413: 'trop-gros', 400: 'abimee', 500: 'stockage', 403: 'origine', 404: 'introuvable' };
+const STATUTS = { 401: 'refuse', 413: 'trop-gros', 400: 'abimee', 500: 'stockage', 403: 'origine', 404: 'introuvable', 429: 'bloque' };
 // Protocole 2 (v0.12) : « &v=2 » demande au NAS de répondre aux erreurs avec le code HTTP 200 et {"erreur", "code"}.
 // Le serveur web du Synology remplace sinon toute réponse d'erreur par sa propre page, sans en-têtes CORS : le
 // navigateur ne la laisse pas lire et l'app ne voyait qu'un « NAS injoignable ». Les vrais codes HTTP restent compris.
@@ -28,7 +28,7 @@ export async function erreurDansReponse(r) {
   try { j = await r.clone().json(); } catch { return null; }
   if (!j || typeof j !== 'object' || !j.erreur) return null;
   const code = Number(j.code) || 400;
-  return { statut: STATUTS[code] || 'injoignable', code, erreur: String(j.erreur) };
+  return { statut: STATUTS[code] || 'injoignable', code, erreur: String(j.erreur), attente: Number(j.attente) || 0, minimum: Number(j.minimum) || 0 };
 }
 export async function requete(action, { url = configNas().url, motDePasse = configNas().motDePasse, corps = null, entetes = {}, extra = '', delai = 30000 } = {}) {
   if (!url) return { statut: 'adresse' };
@@ -79,11 +79,20 @@ export function carnetModifie() {
   if (configNas().configuree) copieur.modification();
 }
 
+// v0.22 : mot de passe refusé -> plus AUCUN appel automatique au NAS (copie, vols NPF) tant qu'il n'est pas corrigé.
+// Sinon chaque ouverture de l'app ajouterait un essai raté et finirait par bloquer l'adresse de la maison (iPad compris).
+export const nasRefuse = () => etatNas().statut === 'refuse';
+export async function noterRefus() {
+  if (nasRefuse()) return;
+  await ecrireReglageDiscret('nasEtat', { ...etatNas(), statut: 'refuse', dernierEssai: new Date().toISOString() });
+  document.dispatchEvent(new CustomEvent('nas-etat'));
+}
+
 export function initNas() {
   copieur.restaurerAttente(!!etatNas().enAttente);
-  copieur.reprendre(3000); // copie restée en attente lors d'une session précédente
-  addEventListener('online', () => copieur.reprendre(1500));
-  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') copieur.reprendre(2000); });
+  if (!nasRefuse()) copieur.reprendre(3000); // copie restée en attente lors d'une session précédente
+  addEventListener('online', () => { if (!nasRefuse()) copieur.reprendre(1500); });
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && !nasRefuse()) copieur.reprendre(2000); });
 }
 
 // ---------- Plus › Copie sur le NAS ----------
@@ -91,7 +100,10 @@ const TEXTES = {
   ok: 'OK : le NAS répond.', refuse: 'Mot de passe refusé.', injoignable: 'NAS injoignable (éteint, pas de réseau ou mauvaise adresse).',
   horsLigne: 'Pas de réseau.', adresse: 'Adresse invalide : elle doit commencer par https://', stockage: 'Le NAS répond, mais le dossier des copies est inaccessible.',
   origine: 'Le NAS refuse l\'app (origine).', introuvable: 'Cette copie n\'est plus sur le NAS.', 'trop-gros': 'Copie trop grosse pour le NAS.', abimee: 'Copie refusée par le NAS (arrivée incomplète).',
+  bloque: 'Trop d\'essais de mot de passe : le NAS attend avant d\'accepter un nouvel essai.',
 };
+// Texte d'un résultat (avec l'attente pour « trop d'essais »)
+const texteResultat = r => (r.statut === 'bloque' && r.attente ? `Trop d'essais de mot de passe : réessaie dans ${texteAttente(r.attente)}.` : TEXTES[r.statut] || TEXTES.injoignable);
 
 function majEcranNas() {
   const el = $('#nas-etat');
@@ -111,6 +123,7 @@ export function ecranNas() {
       <div class="field"><label for="nas-mdp">Mot de passe du NAS</label><input id="nas-mdp" type="password" autocomplete="off" value="${esc(c.motDePasse)}"></div>
       <div class="row2"><button type="button" class="ghost" id="nas-test">Tester</button><button type="button" class="ghost primary" id="nas-ok">Enregistrer</button></div>
       <p id="nas-res" class="hint" role="status"></p>
+      <button type="button" class="linkbtn" id="nas-chg">Changer le mot de passe ›</button>
       <p class="hint">Gardés seulement sur ce téléphone : ni dans le tableur CSV, ni dans la sauvegarde de secours (à retaper sur un nouveau téléphone).</p>
     </div>
     <div class="sec"><h3>Copie</h3>
@@ -128,8 +141,11 @@ export function ecranNas() {
     if (!url) return res('#nas-res', 'adresse');
     o.querySelector('#nas-res').textContent = 'Test en cours…'; o.querySelector('#nas-res').className = 'hint';
     const r = await requete('test', { url, motDePasse: $('#nas-mdp').value, delai: 20000 });
-    if (r.statut !== 'ok') return res('#nas-res', r.statut);
-    let n = null; try { n = (await r.reponse.json()).copies; } catch { /* réponse sans détail */ }
+    if (r.statut !== 'ok') return res('#nas-res', r.statut, texteResultat(r));
+    let j = {}; try { j = await r.reponse.json(); } catch { /* réponse sans détail */ }
+    // v0.22 : l'ancien mot de passe n'est plus que la clé de NPF-Q400 (dépôt de vols seulement)
+    if (j.cle === 'npf') return res('#nas-res', 'x', 'Ce mot de passe n\'est plus que la clé de NPF-Q400 (iPad) : tape le mot de passe actuel du carnet.');
+    const n = typeof j.copies === 'number' ? j.copies : null;
     res('#nas-res', 'ok', `OK : le NAS répond${n !== null ? ` (${n} copie${n > 1 ? 's' : ''} gardée${n > 1 ? 's' : ''})` : ''}.`);
   });
   o.querySelector('#nas-ok').addEventListener('click', async () => {
@@ -160,10 +176,78 @@ export function ecranNas() {
     if (r.statut === 'ok') res('#nas-go-res', 'ok', `Copie faite : ${nombre(r.vols)} vols, ${taillePropre(r.taille)}.`);
     else if (r.statut === 'pasConfiguree') res('#nas-go-res', 'x', 'Enregistre d\'abord l\'adresse et le mot de passe.');
     else if (r.statut === 'enCours') res('#nas-go-res', 'x', 'Une copie est déjà en cours…');
-    else res('#nas-go-res', r.statut, TEXTES[r.statut] + ' La copie repartira toute seule plus tard.');
+    else res('#nas-go-res', r.statut, texteResultat(r) + (r.statut === 'refuse' ? '' : ' La copie repartira toute seule plus tard.'));
     majEcranNas();
   });
   o.querySelector('#nas-rest').addEventListener('click', ecranRestaurerNas);
+  o.querySelector('#nas-chg').addEventListener('click', ecranChangerMotDePasse);
+}
+
+// ---------- Plus › Copie sur le NAS › Changer le mot de passe (v0.22, R51) ----------
+// Le NAS (carnet.php version 5) vérifie le mot de passe actuel, garde l'EMPREINTE du nouveau (jamais le mot de passe),
+// et l'app garde le nouveau. NPF-Q400 (iPad) garde sa clé d'origine : rien à changer sur l'iPad.
+export function ecranChangerMotDePasse() {
+  const c = configNas();
+  if (!c.configuree) {
+    const o = ouvrirOutil('Changer le mot de passe', `<p class="hint" style="font-size:15px">Enregistre d'abord l'adresse et le mot de passe actuel du NAS.</p>
+      <button type="button" class="bigbtn" id="cm-conf">Copie sur le NAS ›</button>`);
+    o.querySelector('#cm-conf').addEventListener('click', ecranNas);
+    return;
+  }
+  const o = ouvrirOutil('Changer le mot de passe', `
+    <p class="hint" style="font-size:15px">Le NAS ne garde que l'empreinte du nouveau mot de passe. Il est gardé sur ce téléphone ; sur un autre appareil, tu le retaperas une fois. <b>L'iPad (NPF-Q400) n'a rien à changer.</b></p>
+    <div class="sec">
+      <div class="field"><label for="cm-n1">Nouveau mot de passe</label><input id="cm-n1" type="password" autocomplete="new-password" autocapitalize="off" spellcheck="false"></div>
+      <div class="field"><label for="cm-n2">Encore une fois</label><input id="cm-n2" type="password" autocomplete="new-password" autocapitalize="off" spellcheck="false"></div>
+      <div class="tline"><span>Afficher</span><button type="button" class="sw" id="cm-voir" role="switch" aria-checked="false" aria-label="Afficher le mot de passe"><span></span></button></div>
+      <p class="hint">Au moins ${MDP_MIN} caractères : lettres sans accent, chiffres et signes, sans espace. Note-le à l'abri.</p>
+    </div>
+    <button type="button" class="bigbtn vert" id="cm-ok">Changer le mot de passe</button>
+    <button type="button" class="bigbtn second annuler" id="cm-no">Annuler</button>
+    <p class="prog" id="cm-res" role="status"></p>`);
+  const msg = (t, ok = false) => { const p = o.querySelector('#cm-res'); p.textContent = t; p.className = ok ? 'okc' : t ? 'koc' : 'prog'; };
+  o.querySelector('#cm-voir').addEventListener('click', e => {
+    const on = e.currentTarget.getAttribute('aria-checked') !== 'true';
+    e.currentTarget.setAttribute('aria-checked', String(on));
+    for (const id of ['#cm-n1', '#cm-n2']) o.querySelector(id).type = on ? 'text' : 'password';
+  });
+  for (const id of ['#cm-n1', '#cm-n2']) o.querySelector(id).addEventListener('input', () => msg(''));
+  o.querySelector('#cm-no').addEventListener('click', ecranNas);
+  o.querySelector('#cm-ok').addEventListener('click', async () => {
+    const nouveau = o.querySelector('#cm-n1').value, ok = o.querySelector('#cm-ok');
+    const pb = problemeNouveauMotDePasse(nouveau, o.querySelector('#cm-n2').value, configNas().motDePasse);
+    if (pb) return msg(pb);
+    ok.disabled = true;
+    msg('');
+    o.querySelector('#cm-res').textContent = 'Changement en cours…';
+    const r = await requete('changer-mot-de-passe', { corps: JSON.stringify({ nouveau }), entetes: { 'Content-Type': 'application/json' }, delai: 30000 });
+    let fait = r.statut === 'ok';
+    if (r.statut === 'injoignable' || r.statut === 'refuse') {
+      // Réponse perdue en route : le changement a peut-être été fait (et le navigateur a pu renvoyer la demande toute
+      // seule, alors refusée puisque l'ancien mot de passe ne vaut plus). On regarde avec le nouveau mot de passe.
+      const t = await requete('test', { motDePasse: nouveau, delai: 20000 });
+      if (t.statut === 'ok') { let j = {}; try { j = await t.reponse.json(); } catch { /* */ } fait = j.cle === 'carnet'; }
+    }
+    if (fait) {
+      await ecrireReglageDiscret('nasMotDePasse', nouveau);
+      if (nasRefuse()) await ecrireReglageDiscret('nasEtat', { ...etatNas(), statut: 'attente' });
+      copieur.reprendre(1000);
+      document.dispatchEvent(new CustomEvent('nas-etat'));
+      o.querySelector('#cm-n1').value = ''; o.querySelector('#cm-n2').value = ''; ok.disabled = false;
+      msg('Mot de passe changé : il est gardé sur ce téléphone. Sur un autre appareil, tape-le dans « Mot de passe du NAS ». L\'iPad n\'a rien à changer.', true);
+      toast('Mot de passe changé');
+      return;
+    }
+    ok.disabled = false;
+    const textes = {
+      'mot-de-passe-trop-court': `Le NAS demande au moins ${r.minimum || MDP_MIN} caractères.`,
+      'mot-de-passe-invalide': 'Le NAS refuse ces caractères : lettres sans accent, chiffres et signes, sans espace.',
+      'mot-de-passe-identique': 'C\'est déjà le mot de passe actuel.',
+      action: 'Ton NAS n\'a pas encore la mise à jour (carnet.php version 5) : installe-la d\'abord (guide, « Mise à jour v5 »).',
+    };
+    if (r.statut === 'refuse') { await noterRefus(); return msg('Le mot de passe actuel enregistré dans l\'app est refusé par le NAS : corrige-le d\'abord (Copie sur le NAS › Mot de passe du NAS).'); }
+    msg(textes[r.erreur] || texteResultat(r));
+  });
 }
 
 // ---------- Plus › Restaurer depuis le NAS ----------

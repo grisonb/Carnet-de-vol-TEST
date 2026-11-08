@@ -96,6 +96,7 @@ export function resumeNas(conf, e = {}, maintenant = Date.now(), enLigne = true)
   if (e.enAttente) {
     if (!enLigne || e.statut === 'horsLigne') return 'En attente (pas de réseau)';
     if (e.statut === 'injoignable') return 'En attente (NAS injoignable)';
+    if (e.statut === 'bloque') return 'En attente (trop d\'essais de mot de passe sur le NAS)';
     if (e.statut === 'trop-gros') return 'En attente (copie trop grosse pour le NAS)';
     if (e.statut === 'stockage' || e.statut === 'abimee') return 'En attente (erreur sur le NAS)';
     return 'En attente (copie dans quelques secondes)';
@@ -123,3 +124,23 @@ export async function empreinteSha256(octets) {
   return [...h].map(b => b.toString(16).padStart(2, '0')).join('');
 }
 export const taillePropre = n => (n >= 1e6 ? `${(n / 1e6).toFixed(1).replace('.', ',')} Mo` : `${Math.max(1, Math.round(n / 1e3))} Ko`);
+
+// v0.22 (R51) : nouveau mot de passe du NAS. Il voyage dans un en-tête HTTP : lettres SANS accent, chiffres et signes,
+// sans espace (une lettre accentuée n'y arriverait pas sous la même forme). Renvoie '' s'il convient, sinon l'explication.
+export const MDP_MIN = 12;
+export function problemeNouveauMotDePasse(nouveau, confirmation, actuel) {
+  const n = String(nouveau || '');
+  if (!n) return 'Tape le nouveau mot de passe.';
+  if (!/^[\x21-\x7e]+$/.test(n)) return 'Lettres sans accent, chiffres et signes seulement (pas d\'espace, pas d\'accent).';
+  if (n.length < MDP_MIN) return `Au moins ${MDP_MIN} caractères (${n.length} pour l'instant).`;
+  if (n.length > 200) return 'Trop long (200 caractères au plus).';
+  if (n !== String(confirmation || '')) return 'Les deux mots de passe tapés ne sont pas identiques.';
+  if (n === String(actuel || '')) return 'C\'est déjà le mot de passe actuel.';
+  return '';
+}
+
+// « Trop d'essais » : attente donnée par le NAS (secondes) -> « 1 min », « 14 min », « 1 h 05 »
+export function texteAttente(secondes) {
+  const m = Math.max(1, Math.ceil((Number(secondes) || 0) / 60));
+  return m < 60 ? `${m} min` : `${Math.floor(m / 60)} h ${String(m % 60).padStart(2, '0')}`;
+}
