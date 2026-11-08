@@ -92,7 +92,7 @@ try {
   const groupes = await p.$$eval('#v-plus .pgrp', l => l.map(x => x.textContent));
   verifier(JSON.stringify(groupes) === '["Sauvegarde","Exporter","Mes réglages","Import FlyLog","Téléphone"]', 'sections : ' + groupes.join(', '));
   const lignes = await p.$$eval('#v-plus .pcard', cs => cs.map(c => [...c.querySelectorAll('.prow2 b')].map(b => b.textContent)));
-  verifier(JSON.stringify(lignes) === JSON.stringify([['Sauvegarde de secours', 'Restaurer une sauvegarde', 'Copie sur le NAS', 'Restaurer depuis le NAS'],
+  verifier(JSON.stringify(lignes) === JSON.stringify([['Sauvegarde de secours', 'Restaurer une sauvegarde', 'Copie sur le NAS', 'Restaurer depuis le NAS', 'Synchro du carnet'], // v0.23 : Synchro du carnet
     ['Carnet officiel (PDF EASA)', 'Tableur (CSV)', 'Titulaire du carnet'],
     ['Mes avions', "Types d'avion", 'Importer des fiches avions', 'Heures affichées en haut', 'Pastilles des missions', 'Libellés missions', 'Personnes', 'Cartes de vol'],
     ['Importer FlyLog', 'Contrôle import'], ['Stockage']]), 'toutes les entrées, rangées dans leur section');

@@ -83,6 +83,21 @@ export async function remplacerTout(contenu) {
   return fin(tx);
 }
 
+// Synchro (v0.23) : éléments reçus du NAS, écrits en une seule transaction. mettre / enlever : { vols, avions,
+// personnes : [objets | ids], reglages : [{ cle, valeur }] | [cles] }. Pas de trace de suppression (appareil qui consulte).
+export async function appliquerSynchro({ mettre, enlever }) {
+  const db = await ouvrir();
+  const noms = ['vols', 'avions', 'personnes', 'reglages'].filter(n => (mettre[n] && mettre[n].length) || (enlever[n] && enlever[n].length));
+  if (!noms.length) return;
+  const tx = db.transaction(noms, 'readwrite');
+  for (const n of noms) {
+    const st = tx.objectStore(n);
+    for (const o of mettre[n] || []) st.put(o);
+    for (const id of enlever[n] || []) st.delete(id);
+  }
+  return fin(tx);
+}
+
 export async function lire(magasin, id) {
   const db = await ouvrir();
   return new Promise((ok, ko) => {

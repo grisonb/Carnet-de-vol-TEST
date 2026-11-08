@@ -1,5 +1,30 @@
 # Journal des versions
 
+## v0.23 — 08/11/2026
+
+R50, étape 3 : synchro du carnet du téléphone vers le PC, par le NAS (carnet.php version 5). Sens unique : le PC
+consulte, il ne modifie rien.
+
+**Ce qui change**
+- Plus › Synchro du carnet : « Ce téléphone envoie le carnet » (appareil de référence) ou « Cet appareil consulte le
+  carnet du téléphone ».
+- Téléphone : premier envoi de tout le carnet (par paquets de 500), puis, quelques secondes après chaque
+  modification, seulement ce qui a changé (vols, avions, personnes, réglages du carnet ; suppressions comprises). Pas de
+  réseau ou NAS éteint : envoi en attente, puis tout seul (ouverture, retour du réseau, retour dans l'app). Les photos
+  d'avion restent sur le téléphone (leur crédit voyage). Mot de passe, adresse du NAS et réglages propres au téléphone
+  ne voyagent jamais. Réactivation : seul ce qui diffère du NAS est renvoyé.
+- PC (consultation) : son carnet est remplacé par celui du téléphone (avertissement avant), puis mis à jour à
+  l'ouverture, au retour dans l'app et toutes les 2 min ; bandeau « Consultation · à jour il y a … » en haut du Carnet.
+  Rien ne se modifie : pas de « + Nouveau vol », vol ouvert en consultation (sans Enregistrer ni Supprimer, cases
+  inactives), entrées de Plus qui modifient cachées, toute écriture refusée avec un message. Le PC n'envoie jamais de
+  copie au NAS et ne s'occupe pas des vols NPF.
+- Un appareil au carnet vide n'envoie plus jamais de copie sur le NAS (nouvel appareil).
+- Guide NAS : nom de la tâche « Carnet NAS mot de passe origine » (DSM refuse l'apostrophe).
+
+**Tests**
+- `tests/unitaires/v023.test.js` (faux NAS en mémoire), `tests/navigateur/v023.mjs` (deux appareils : téléphone 390 px
+  et PC 1280 px, faux NAS v5 local, 1 200 vols inventés, captures) ; tous les tests existants ; contrôle FlyLog local.
+
 ## v0.22 — 08/11/2026
 
 Une remarque : R51, mot de passe du NAS personnalisé (après l'étude R50 + R51 du 08/11). Va avec carnet.php version 5

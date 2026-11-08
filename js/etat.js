@@ -7,6 +7,7 @@ import { definirTerrainsPerso } from './terrains.js';
 import { BANDE_DEFAUT } from './bande.js';
 import { REGLES_DEFAUT, missionsConnues } from './missions.js';
 import { REGLAGES_PRIVES } from './sauvegarde.js';
+import { REGLAGES_PARTAGES } from './synchro.js';
 
 export const etat = {
   vols: [],            // du plus récent au plus ancien
@@ -51,9 +52,19 @@ async function migrer() {
 
 // Terrain ajouté à la main par le pilote (enregistré dans ses données, pas dans le code)
 export async function enregistrerTerrainPerso(code, t) {
+  if (refuseEnConsultation()) return false;
   const liste = { ...reglage('terrainsPerso'), [code.toUpperCase()]: t };
   definirTerrainsPerso(liste);
   await enregistrerReglage('terrainsPerso', liste);
+}
+
+// v0.23 : appareil en CONSULTATION (PC qui reçoit le carnet du téléphone) : rien ne se modifie ici.
+// Garde-fou au niveau des données (en plus des boutons cachés) : toute écriture du carnet est refusée et signalée.
+export const enConsultation = () => etat.reglages.synchroRole === 'consultation';
+function refuseEnConsultation() {
+  if (!enConsultation()) return false;
+  document.dispatchEvent(new CustomEvent('consultation-refus'));
+  return true;
 }
 
 export function prevenir() { etat.revision++; for (const f of etat.ecouteurs) f(); }
@@ -66,12 +77,14 @@ export async function ecrireReglageDiscret(cle, valeur) {
 }
 
 export async function enregistrerReglage(cle, valeur) {
+  if (REGLAGES_PARTAGES.includes(cle) && refuseEnConsultation()) return false; // réglage du carnet
   etat.reglages[cle] = valeur;
   await db.ecrireReglage(cle, valeur);
   prevenir();
 }
 
 export async function enregistrerVol(vol) {
+  if (refuseEnConsultation()) return false;
   horodater(vol);
   if (!vol.ordre) vol.ordre = Date.now();
   await db.enregistrer({ vols: [vol] });
@@ -86,6 +99,7 @@ export async function enregistrerVol(vol) {
 }
 
 export async function supprimerVol(id) {
+  if (refuseEnConsultation()) return false;
   await db.supprimer('vols', id);
   etat.vols = etat.vols.filter(v => v.id !== id);
   prevenir();
@@ -93,6 +107,7 @@ export async function supprimerVol(id) {
 
 // « Annuler » après une suppression : le vol revient exactement à l'identique (même id, mêmes dates)
 export async function restaurerVol(vol) {
+  if (refuseEnConsultation()) return false;
   await db.remettre('vols', vol);
   if (!etat.vols.some(v => v.id === vol.id)) etat.vols.push(vol);
   etat.vols.sort(comparerRecentDabord);
@@ -100,6 +115,7 @@ export async function restaurerVol(vol) {
 }
 
 export async function enregistrerAvion(a) {
+  if (refuseEnConsultation()) return false;
   horodater(a);
   await db.enregistrer({ avions: [a] });
   etat.avions.set(a.id, a);
@@ -108,7 +124,7 @@ export async function enregistrerAvion(a) {
 
 // Plusieurs avions d'un coup (ex. codes ADS-B reçus du serveur), un seul rafraîchissement
 export async function enregistrerAvions(liste) {
-  if (!liste.length) return;
+  if (!liste.length || enConsultation()) return; // (codes ADS-B reçus : sans message)
   for (const a of liste) horodater(a);
   await db.enregistrer({ avions: liste });
   for (const a of liste) etat.avions.set(a.id, a);
@@ -120,6 +136,7 @@ export const lireTrace = id => db.lire('traces', id);
 export const ecrireTrace = rec => db.enregistrer({ traces: [rec] });
 
 export async function enregistrerPersonne(p) {
+  if (refuseEnConsultation()) return false;
   horodater(p);
   await db.enregistrer({ personnes: [p] });
   const i = etat.personnes.findIndex(x => x.id === p.id);
@@ -128,6 +145,7 @@ export async function enregistrerPersonne(p) {
 }
 
 export async function supprimerPersonne(id) {
+  if (refuseEnConsultation()) return false;
   await db.supprimer('personnes', id);
   etat.personnes = etat.personnes.filter(p => p.id !== id);
   prevenir();
@@ -135,6 +153,7 @@ export async function supprimerPersonne(id) {
 
 // Import FlyLog : tout est écrit en une seule transaction
 export async function enregistrerImport(r) {
+  if (refuseEnConsultation()) return false;
   await db.enregistrer({ vols: r.aCreer, avions: r.avions, personnes: r.personnes });
   for (const a of r.avions) etat.avions.set(a.id, a);
   etat.personnes.push(...r.personnes);

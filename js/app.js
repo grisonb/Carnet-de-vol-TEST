@@ -13,6 +13,7 @@ import { initTerrainPerso } from './ui/terrain-perso.js';
 import { initCarte, lancerArrierePlan } from './ui/carte.js';
 import { initNas, carnetModifie } from './ui/nas.js';
 import { initNpf, verifierVolsNpf } from './ui/npf.js';
+import { initSynchro, synchroModifiee } from './ui/synchro.js';
 import { invaliderStats } from './ui/avions.js';
 import { VERSION } from './version.js';
 
@@ -73,6 +74,7 @@ async function demarrer() {
   appliquerTypesPerso();
   surChangement(() => {
     carnetModifie(); // copie automatique sur le NAS, quelques secondes plus tard
+    synchroModifiee(); // v0.23 : téléphone de référence -> ce qui a changé part sur le NAS
     invaliderStats();
     aRafraichir = new Set(['carnet', 'totaux', 'plus']);
     aRafraichir.delete(vue);
@@ -85,6 +87,7 @@ async function demarrer() {
   verifierRappel();
   demanderStockagePersistant().then(() => { if (vue === 'plus') majPlus(); });
   initNas();
+  initSynchro();
   setTimeout(verifierVolsNpf, 1200); // vols envoyés par NPF-Q400, discrètement
   document.body.dataset.pret = '1';
   setTimeout(lancerArrierePlan, 1500); // traces des 30 derniers jours, discrètement

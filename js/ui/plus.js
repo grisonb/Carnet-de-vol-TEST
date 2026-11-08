@@ -18,6 +18,7 @@ import { ouvrirPersonne, ouvrirLibelles } from './saisie.js';
 import { ouvrirChoixBande } from './carnet.js';
 import { resumeCartes } from './carte.js';
 import { ecranNas, ecranRestaurerNas, resumeCopieNas, configNas, etatNas } from './nas.js';
+import { ecranSynchro, resumeSynchroActuel } from './synchro.js';
 import { copieNasAJour, depuis } from '../copieur.js';
 
 const nombre = n => n.toLocaleString('fr-FR');
@@ -309,6 +310,7 @@ export async function majPlus() {
   $('#pl-tit-s').textContent = reglage('titulaire') || 'Nom imprimé sur le PDF';
   verifierRappel();
   $('#pl-nas-s').textContent = resumeCopieNas();
+  $('#pl-sync-s').textContent = resumeSynchroActuel();
   resumeCartes().then(t => { $('#pl-cartes-s').textContent = t; });
   const p = await persiste();
   $('#pl-stock-s').textContent = p === null ? 'Protection non disponible sur ce navigateur'
@@ -353,6 +355,8 @@ export function initPlus() {
   $('#pl-stockage').addEventListener('click', ecranStockage);
   $('#pl-nas').addEventListener('click', ecranNas);
   $('#pl-nas-rest').addEventListener('click', ecranRestaurerNas);
+  $('#pl-sync').addEventListener('click', ecranSynchro);
+  document.addEventListener('synchro-etat', () => { $('#pl-sync-s').textContent = resumeSynchroActuel(); });
   // État de la copie NAS changé (copie faite, NAS injoignable…) : sous-titre et encart à jour
   document.addEventListener('nas-etat', () => { $('#pl-nas-s').textContent = resumeCopieNas(); verifierRappel(); });
   $('#ou-x').addEventListener('click', fermerOutil);

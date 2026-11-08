@@ -516,3 +516,14 @@ img{-webkit-user-drag:none}
 .ph-avert{color:var(--rouge-fond);font-weight:600}
 #ph-choix{display:grid;gap:10px}
 #ph-choix[hidden]{display:none}
+
+/* v0.23 : synchro ; appareil en CONSULTATION (PC) : tout ce qui modifie le carnet est caché ou inactif */
+.sync-bandeau{display:block;width:calc(100% - 24px);margin:8px 12px 0;padding:10px 14px;border:1px solid var(--line);border-radius:12px;
+  background:var(--surface2);color:var(--muted);font-size:14px;font-weight:600;text-align:left}
+.sync-bandeau[hidden]{display:none}
+body.consultation #fab,body.consultation #save,body.consultation #del-zone,body.consultation #npf-zone,body.consultation #npf-bandeau,
+body.consultation .penbtn,body.consultation #pl-bk,body.consultation #pl-restore,body.consultation #pl-nas-rest,body.consultation #pl-tit,
+body.consultation #pl-types,body.consultation #pl-fiches,body.consultation #pl-heures,body.consultation #pl-libelles,body.consultation #pl-pers,
+body.consultation #pl-import,body.consultation #pl-ctrl,body.consultation #nas-go,body.consultation #nas-rest,body.consultation #fl-add,
+body.consultation #ac-add,body.consultation #fi-ed,body.consultation #fi-save,body.consultation #fi-web,body.consultation .cam{display:none!important}
+body.consultation #v-saisie .sec:not(.c-carte){pointer-events:none}

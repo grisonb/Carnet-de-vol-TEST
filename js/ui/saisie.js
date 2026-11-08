@@ -2,7 +2,7 @@
 
 import { $, $$, esc, segs, choisir, toast, toastAction, codeAvecDrapeau, PLUS, MOINS, CROIX } from './commun.js';
 import { etat, reglage, enregistrerReglage, ecrireReglageDiscret, enregistrerVol, supprimerVol, enregistrerPersonne, supprimerPersonne,
-  listeMissions, trouverPersonne, enregistrerAvion } from '../etat.js';
+  listeMissions, trouverPersonne, enregistrerAvion, enConsultation } from '../etat.js';
 import { ouvrirAjoutTerrain } from './terrain-perso.js';
 import { volVide, FONCTIONS, TEMPS_FONCTION, COMPTEURS, colonnesAvion, personneVide, nomPersonne, ligneAvion,
   etiquettesDeLAvion, etiquettesPourAvion, basculerEtiquette, fonctionsPossibles, champPersonneVisible, compteursAffiches, BASE, arriveeParDefaut } from '../modele.js';
@@ -453,8 +453,9 @@ export function ouvrirSaisie(vol, opts = {}) {
   choisir('.seg.mini', F.mode === 'loc' ? 0 : 1);
 
   if (vol) {
-    $('#f-title').textContent = 'Modifier le vol';
-    $('#f-sub').textContent = `du ${dateFr(vol.date)} · ${[vol.dep, ...F.escales.map(e => e.code), vol.arr].join(' › ')}`;
+    $('#f-title').textContent = enConsultation() ? 'Vol (consultation)' : 'Modifier le vol';
+    $('#f-sub').textContent = `du ${dateFr(vol.date)} · ${[vol.dep, ...F.escales.map(e => e.code), vol.arr].join(' › ')}`
+      + (enConsultation() ? ' · se modifie sur le téléphone' : '');
     $('#save').textContent = 'Enregistrer les modifications';
     $('#del-zone').hidden = false; $('#del-confirm').hidden = true;
     let date = vol.date, t0 = vol.hDep, t1 = vol.hArr;
