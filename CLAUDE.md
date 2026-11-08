@@ -110,6 +110,11 @@ Pas d'étape de compilation : les fichiers du dépôt sont servis tels quels.
 - Boutons × : constante `CROIX` (`commun.js`, croix dessinée) dans un bouton `.xbtn` ou `.x` (rond rouge).
 - Couleurs (v0.19) : classe `vert` (valider / continuer : bandeau NPF, #save, #ab-no) et `annuler` (tout bouton « Annuler »,
   y compris les nouveaux) ; jetons `--vert-fond`, `--rouge-fond`, texte blanc (contraste > 4,5:1).
+- Photos d'Internet (v0.21, R34) : `js/photos-web.js` (Commons : catégorie « immat (aircraft) » puis titres ; Planespotters)
+  et `js/ui/photo-web.js` (fenêtre #ph-modal). Commons : photo choisie gardée avec `photoCredit` {source, auteur, licence,
+  licenceUrl, page, titre}, crédit affiché sous la photo (#fi-credit). Planespotters : AFFICHÉE seulement (ses règles
+  interdisent de garder l'image), adresses inchangées, lien vers sa page sans nofollow. Tests : `CARNET_COMMONS`,
+  `CARNET_PLANESPOTTERS` (faux serveurs locaux). `photoCredit` suit `photo` (copie NAS, restauration).
 - Référence d'interface : maquette v19 (`../donnees-privees/maquette-carnet-v19.html`, contient de vraies données :
   jamais dans le dépôt) et remarques P1-P6, R1-R15.
 - `js/app.js` démarre l'app.
@@ -164,6 +169,7 @@ BOMBING et TRANSPORT s'excluent sur un vol. Suggestions de missions masquées : 
 - `node tests/navigateur/v018.mjs` : touchers simulés avec history.go() lent (comme le téléphone) : liste des vols NPF.
 - `node tests/navigateur/v019.mjs` : couleurs vert / rouge (contraste, même place et même taille, clair / sombre).
 - `node tests/navigateur/v020.mjs` : La Réunion (R58 arrivée FMEP, nuit FMEP, saisie FMEP / FMEE avec et sans « LF »).
+- `node tests/navigateur/v021.mjs` : photos d'Internet (faux Commons / Planespotters : choix, crédit, jamais gardée pour Planespotters).
 - `node tests/navigateur/fluidite.mjs` : 4070 vols inventés, processeur ralenti ×6.
 - `node outils/controle-import.mjs ../donnees-privees/flylog-decode-v1.csv ../donnees-privees/totaux-flylog-reference.json` :
   contrôle avec le VRAI fichier, en local uniquement (rien n'est écrit dans le dépôt).

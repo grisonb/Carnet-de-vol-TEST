@@ -1,5 +1,27 @@
 # Journal des versions
 
+## v0.21 — 08/11/2026
+
+Une remarque : R34, photos d'avions trouvées sur Internet (après l'étude du 08/11 : Commons + lien Planespotters).
+
+**Ce qui change**
+- Fiche avion (en modification) : lien « Chercher une photo › » sous la photo (pas pour un simulateur).
+- Wikimedia Commons : vignettes des photos libres de l'immatriculation (catégorie « immat (aircraft) », puis titres qui
+  la contiennent ; 24 au plus), auteur et licence sous chaque vignette, « À vérifier » si le titre ne cite pas le type.
+  Le pilote touche une photo, la voit en grand avec son crédit, puis « Utiliser cette photo » : la version 1280 px est
+  téléchargée et réduite comme une photo du téléphone (≈ 100 Ko). Elle n'est gardée qu'à « Enregistrer ».
+- Crédit sous la photo de la fiche : « Photo : auteur · licence · Wikimedia Commons » (liens vers la page de la photo et
+  la licence). Une photo prise au téléphone n'a pas de crédit.
+- Planespotters.net : sa photo est affichée dans la même fenêtre avec le nom du photographe ; elle et le nom mènent à
+  sa page. Jamais gardée (ses règles l'interdisent).
+- Sauvegarde manuelle : photo + crédit. Copie NAS : toujours sans photo (et sans crédit) ; à la restauration, la photo
+  du téléphone et son crédit sont remis ensemble.
+- Sans réseau : message ; aucune clé, aucun serveur intermédiaire (ni NAS ni VPS).
+
+**Tests**
+- `tests/unitaires/v021.test.js`, `tests/navigateur/v021.mjs` (faux Commons et faux Planespotters locaux, 390 px,
+  captures) ; tous les tests existants ; contrôle FlyLog local. Essai réel hors batterie sur une immatriculation publique.
+
 ## v0.20 — 08/11/2026
 
 Une remarque : R58, détachement à La Réunion (base FMEP).

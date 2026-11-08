@@ -7,6 +7,7 @@ import { TYPES, indexTypes, caracteristiquesDuType, MOTEUR, SURFACE } from '../t
 import { normaliser } from '../missions.js';
 import { hm, dateFr } from '../temps.js';
 import { calculerTotaux } from '../totaux.js';
+import { ouvrirRecherchePhoto, initPhotoWeb, htmlCredit } from './photo-web.js';
 
 export const SIL = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5z"/></svg>';
 export const SIMI = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h18v12H3zm2 2v8h14V6zm3 12h8v2H8zM10 8l5 2-5 2z"/></svg>';
@@ -168,6 +169,7 @@ function genreFiche() {
   $('#fi-oaci-f').hidden = sim; $('#fi-fstd-f').hidden = !sim; $('#fi-easa').hidden = sim;
   $('#fi-tl').hidden = sim; $('#fi-ind-z').hidden = sim; $('#fi-tgsec').hidden = sim; $('#fi-hex-z').hidden = sim;
   if (!FI.photo) $('#fi-img').innerHTML = sim ? SIMI : SIL;
+  $('#fi-web').hidden = sim;
   ligneType();
 }
 
@@ -191,7 +193,7 @@ export function ouvrirFiche(a, init = {}, mode = 'modif', origine = a ? 'saisie'
   fiAvion = a || null; fiOrigine = origine;
   const b = a ? { ...a } : Object.assign(avionVide(), init);
   FI = { sim: !!b.sim, equipage: b.equipage, moteurs: b.moteurs, moteur: b.moteur, surface: b.surface || 'L',
-    train: b.train || 'tricycle', photo: b.photo, fstd: b.fstd, constructeur: b.constructeur, _o: b.typeOACI,
+    train: b.train || 'tricycle', photo: b.photo, photoCredit: b.photo ? (b.photoCredit || null) : null, fstd: b.fstd, constructeur: b.constructeur, _o: b.typeOACI,
     etiquettes: [...(b.etiquettes || [])] };
   $('#fi-reg').value = b.immat; $('#fi-oaci').value = b.sim ? '' : (b.typeOACI || '');
   $('#fi-mod').value = b.modele || ''; $('#fi-ind').value = b.indicatif || ''; $('#fi-nm').value = b.nom || '';
@@ -199,6 +201,7 @@ export function ouvrirFiche(a, init = {}, mode = 'modif', origine = a ? 'saisie'
   $('#fi-rem').value = b.remarques || '';
   rendreEtiquettesFiche();
   $('#fi-img').innerHTML = b.photo ? `<img src="${b.photo}" alt="Photo de ${esc(b.immat)}">` : (b.sim ? SIMI : SIL);
+  afficherCredit();
   if (!stats) calculerStats();
   const s = a && stats[a.id];
   $('#fi-stat').textContent = s && s.vols ? `${hm(s.minutes)} sur cet ${a.sim ? 'simulateur' : 'avion'} · ${s.vols} vol${s.vols > 1 ? 's' : ''} · dernier vol ${dateFr(s.dernier)}` : '';
@@ -207,6 +210,12 @@ export function ouvrirFiche(a, init = {}, mode = 'modif', origine = a ? 'saisie'
   $('#fiche').hidden = false; $('#fiche').scrollTop = 0;
   modeFiche(mode === 'lecture' && !!a);
   if (!a && !b.immat) setTimeout(() => $('#fi-reg').focus(), 50);
+}
+// v0.21 : crédit d'une photo trouvée sur Internet, sous la photo (rien pour une photo prise au téléphone)
+function afficherCredit() {
+  const c = FI.photo ? FI.photoCredit : null;
+  $('#fi-credit').hidden = !c;
+  $('#fi-credit').innerHTML = htmlCredit(c);
 }
 function fermerFiche() { $('#fiche').hidden = true; $('#fi-save').hidden = true; }
 
@@ -243,7 +252,7 @@ async function enregistrerFiche() {
     immat, sim: FI.sim, typeOACI: FI.sim ? 'SIM' : o, constructeur: t ? t.constructeur : (FI.constructeur || ''),
     modele: FI.sim ? ($('#fi-mod').value.trim() || immat) : ($('#fi-mod').value.trim() || o),
     indicatif: $('#fi-ind').value.trim().toUpperCase(), nom: $('#fi-nm').value.trim().toUpperCase(), etiquettes,
-    remarques: $('#fi-rem').value.trim(), photo: FI.photo || null, hexAdsb: FI.sim ? '' : hex, hexAdsbManuel: hexManuel,
+    remarques: $('#fi-rem').value.trim(), photo: FI.photo || null, photoCredit: FI.photo ? (FI.photoCredit || null) : null, hexAdsb: FI.sim ? '' : hex, hexAdsbManuel: hexManuel,
     equipage: FI.sim ? null : FI.equipage, moteurs: FI.sim ? null : (FI.equipage === 'MP' ? 'ME' : FI.moteurs),
     moteur: FI.sim ? null : FI.moteur, surface: FI.surface, train: FI.train, fstd: FI.sim ? (FI.fstd || null) : null,
   });
@@ -317,11 +326,30 @@ export function initAvions({ choix, courant, modifie }) {
     if (!f) return;
     try {
       FI.photo = await reduirePhoto(f);
+      FI.photoCredit = null;
       $('#fi-img').innerHTML = `<img src="${FI.photo}" alt="">`;
+      afficherCredit();
     } catch { toast('Photo illisible'); }
     e.target.value = '';
   });
   $('#fi-save').addEventListener('click', enregistrerFiche);
+  // v0.21 (R34) : photo trouvée sur Internet, choisie par le pilote (gardée à « Enregistrer »)
+  initPhotoWeb();
+  $('#fi-web').addEventListener('click', () => {
+    const immat = formaterImmat($('#fi-reg').value);
+    if (!immat) { $('#fi-err').textContent = "Donne d'abord l'immatriculation."; return; }
+    $('#fi-err').textContent = '';
+    ouvrirRecherchePhoto({
+      immat, avion: { typeOACI: $('#fi-oaci').value.trim().toUpperCase(), modele: $('#fi-mod').value.trim(), constructeur: FI.constructeur || '' },
+      reduirePhoto,
+      choisir: (photo, credit) => {
+        FI.photo = photo; FI.photoCredit = credit;
+        $('#fi-img').innerHTML = `<img src="${photo}" alt="">`;
+        afficherCredit();
+        toast('Photo choisie : appuie sur Enregistrer pour la garder', 2600);
+      },
+    });
+  });
 }
 
 export const invaliderStats = () => { stats = null; };

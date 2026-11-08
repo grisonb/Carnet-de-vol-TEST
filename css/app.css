@@ -495,5 +495,24 @@ img{-webkit-user-drag:none}
    fond foncé (police inchangée), contraste supérieur à 4,5:1 (vert #2e7d32 : 5,1:1 ; rouge #c62828 : 5,6:1), lisible au soleil.
    Seuls le fond, le texte et la bordure changent (place, taille, texte et action identiques). */
 :root{--vert-fond:#2e7d32;--rouge-fond:#c62828;--sur-couleur:#ffffff}
-.save.vert,.ghost.vert,.npf-bandeau.vert{background:var(--vert-fond);color:var(--sur-couleur);border-color:var(--vert-fond)}
+.save.vert,.ghost.vert,.npf-bandeau.vert,.bigbtn.vert{background:var(--vert-fond);color:var(--sur-couleur);border-color:var(--vert-fond)}
 .ghost.annuler,.bigbtn.annuler,.tbtn.annuler{background:var(--rouge-fond);color:var(--sur-couleur);border-color:var(--rouge-fond)}
+
+/* v0.21 : photos trouvées sur Internet (crédit sous la photo, fenêtre de choix) */
+.fph-bas{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:4px 12px;margin:6px 0 0}
+.phcredit{font-size:12px;color:var(--muted);line-height:1.35;overflow-wrap:anywhere}
+.phcredit a{color:inherit;text-decoration:underline}
+#fiche.ro #fi-web{display:none}
+.ph-box{max-height:calc(100vh - 24px);overflow:auto}
+.ph-grille{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.phv{position:relative;display:grid;gap:2px;padding:0;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--surface2);text-align:left}
+.phv img{width:100%;aspect-ratio:3/2;object-fit:cover;display:block}
+.phv .phc{font-size:11px;color:var(--muted);padding:2px 6px 5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.phw{position:absolute;top:6px;left:6px;background:var(--rouge-fond);color:var(--sur-couleur);font-size:11px;font-weight:600;border-radius:8px;padding:2px 6px}
+.ph-ps{margin-top:14px;display:grid;gap:6px}
+.ph-ps h4{font-size:15px}
+.ph-psimg img{max-width:100%;max-height:280px;border-radius:12px;display:block;margin:0 auto}
+.ph-grand img{width:100%;border-radius:12px;display:block}
+.ph-avert{color:var(--rouge-fond);font-weight:600}
+#ph-choix{display:grid;gap:10px}
+#ph-choix[hidden]{display:none}
