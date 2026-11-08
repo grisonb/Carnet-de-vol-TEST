@@ -135,7 +135,7 @@ async function restaurerFichier() {
       <p>${nombre(d.vols.length)} vols · ${nombre(d.avions.length)} avions · ${nombre(d.personnes.length)} personnes</p></div>
     <p class="koc">Attention : tout le carnet actuel (${nombre(etat.vols.length)} vols) sera remplacé par ce fichier.</p>
     <button type="button" class="bigbtn" id="rs-ok" style="background:var(--feu)">Remplacer mon carnet</button>
-    <button type="button" class="bigbtn second" id="rs-no">Annuler</button>`);
+    <button type="button" class="bigbtn second annuler" id="rs-no">Annuler</button>`);
   c.querySelector('#rs-no').addEventListener('click', fermerOutil);
   c.querySelector('#rs-ok').addEventListener('click', async () => {
     await restaurer(d);
@@ -164,7 +164,7 @@ async function importer() {
       <div class="tline"><span>Temps bloc</span><b>${hm(t.tempsTotal)}</b></div>
       <div class="tline"><span>Atterrissages</span><b>${nombre(t.atterrissages)}</b></div></div>
     <button type="button" class="bigbtn" id="im-ok" ${r.aCreer.length ? '' : 'disabled'}>Enregistrer ${nombre(r.aCreer.length)} vols</button>
-    <button type="button" class="bigbtn second" id="im-no">Annuler</button>`;
+    <button type="button" class="bigbtn second annuler" id="im-no">Annuler</button>`;
   c.querySelector('#im-no').addEventListener('click', fermerOutil);
   c.querySelector('#im-ok').addEventListener('click', async () => {
     c.querySelector('#im-ok').disabled = true;
@@ -382,7 +382,7 @@ function ecranFichesAvions() {
         ${erreurs.map(x => `<p class="koc">${esc(x)}</p>`).join('')}
       </div>
       ${modifs.length ? `<button type="button" class="bigbtn" id="fa-ok">Appliquer à ${modifs.length} avion${modifs.length > 1 ? 's' : ''}</button>` : ''}
-      <button type="button" class="bigbtn second" id="fa-no">Annuler</button>`;
+      <button type="button" class="bigbtn second annuler" id="fa-no">Annuler</button>`;
     zone.querySelector('#fa-no').addEventListener('click', fermerOutil);
     const ok = zone.querySelector('#fa-ok');
     if (ok) ok.addEventListener('click', async () => {

@@ -491,3 +491,9 @@ img{-webkit-user-drag:none}
 .fa-avion{padding:8px 0;border-bottom:1px solid var(--line);font-size:15px;overflow-wrap:anywhere}
 .fa-ch{margin-top:3px}
 .fa-ch s{color:var(--muted)}
+/* v0.19 R56 : vert = valider / continuer, rouge = Annuler. Mêmes couleurs en clair et en sombre : texte blanc gras sur
+   fond foncé (police inchangée), contraste supérieur à 4,5:1 (vert #2e7d32 : 5,1:1 ; rouge #c62828 : 5,6:1), lisible au soleil.
+   Seuls le fond, le texte et la bordure changent (place, taille, texte et action identiques). */
+:root{--vert-fond:#2e7d32;--rouge-fond:#c62828;--sur-couleur:#ffffff}
+.save.vert,.ghost.vert,.npf-bandeau.vert{background:var(--vert-fond);color:var(--sur-couleur);border-color:var(--vert-fond)}
+.ghost.annuler,.bigbtn.annuler,.tbtn.annuler{background:var(--rouge-fond);color:var(--sur-couleur);border-color:var(--rouge-fond)}

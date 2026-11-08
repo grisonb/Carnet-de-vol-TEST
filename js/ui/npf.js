@@ -66,7 +66,7 @@ export function ignorerVolNpf(n, apres = () => {}) {
       <p><b>${esc(r.date)}</b> · ${esc(r.avion)}</p><p>${esc(r.trajet)} · ${esc(r.bloc)}</p></div>
     <p class="hint">Il est retiré du NAS et n'entre pas dans le carnet. Ton carnet ne change pas.</p>
     <button type="button" class="bigbtn" id="ni-ok" style="background:var(--feu)">Oui, ignorer ce vol</button>
-    <button type="button" class="bigbtn second" id="ni-no">Annuler</button>
+    <button type="button" class="bigbtn second annuler" id="ni-no">Annuler</button>
     <p class="prog" id="ni-res" role="status"></p>`);
   o.querySelector('#ni-no').addEventListener('click', () => { fermerOutil(); apres(false); });
   o.querySelector('#ni-ok').addEventListener('click', async () => {

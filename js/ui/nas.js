@@ -199,7 +199,7 @@ export async function ecranRestaurerNas() {
       <p class="koc">Tout le carnet actuel (${nombre(etat.vols.length)} vols) sera remplacé par cette version.</p>
       <p class="hint" id="rn-photos">Les photos d'avion du téléphone sont gardées.</p>
       <button type="button" class="bigbtn" id="rn-ok" style="background:var(--feu)">Remplacer mon carnet</button>
-      <button type="button" class="bigbtn second" id="rn-no">Annuler</button>
+      <button type="button" class="bigbtn second annuler" id="rn-no">Annuler</button>
       <p class="prog" id="rn-res" role="status"></p>`);
     o2.querySelector('#rn-no').addEventListener('click', ecranRestaurerNas);
     o2.querySelector('#rn-ok').addEventListener('click', async () => {

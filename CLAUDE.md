@@ -107,6 +107,8 @@ Pas d'étape de compilation : les fichiers du dépôt sont servis tels quels.
   avions). Le fichier réel du pilote est dans `../donnees-privees/` (jamais dans le dépôt).
 - Saisie : nouveau vol = arrivée du dernier vol -> `BASE` (LFTW) ; bouton « LF » (réglage `prefixeLF`) dans `champOACI`.
 - Boutons × : constante `CROIX` (`commun.js`, croix dessinée) dans un bouton `.xbtn` ou `.x` (rond rouge).
+- Couleurs (v0.19) : classe `vert` (valider / continuer : bandeau NPF, #save, #ab-no) et `annuler` (tout bouton « Annuler »,
+  y compris les nouveaux) ; jetons `--vert-fond`, `--rouge-fond`, texte blanc (contraste > 4,5:1).
 - Référence d'interface : maquette v19 (`../donnees-privees/maquette-carnet-v19.html`, contient de vraies données :
   jamais dans le dépôt) et remarques P1-P6, R1-R15.
 - `js/app.js` démarre l'app.
@@ -159,6 +161,7 @@ BOMBING et TRANSPORT s'excluent sur un vol. Suggestions de missions masquées : 
 - `node tests/navigateur/v017.mjs` : `arriveePosition` (arrivée sans code OACI : jour / nuit, code tapé ensuite, carte).
 - `node tests/navigateur/v017b.mjs` : avions d'un même type classés par immatriculation (`classerParTypeEtImmat`, `modele.js`).
 - `node tests/navigateur/v018.mjs` : touchers simulés avec history.go() lent (comme le téléphone) : liste des vols NPF.
+- `node tests/navigateur/v019.mjs` : couleurs vert / rouge (contraste, même place et même taille, clair / sombre).
 - `node tests/navigateur/fluidite.mjs` : 4070 vols inventés, processeur ralenti ×6.
 - `node outils/controle-import.mjs ../donnees-privees/flylog-decode-v1.csv ../donnees-privees/totaux-flylog-reference.json` :
   contrôle avec le VRAI fichier, en local uniquement (rien n'est écrit dans le dépôt).

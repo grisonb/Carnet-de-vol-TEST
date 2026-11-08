@@ -17,7 +17,7 @@
 
   <!-- ========== CARNET ========== -->
   <section id="v-carnet">
-    <button type="button" class="npf-bandeau" id="npf-bandeau" hidden></button>
+    <button type="button" class="npf-bandeau vert" id="npf-bandeau" hidden></button>
     <div class="hero hrow">
       <span class="ver" id="h-version" aria-label="Version de l'app"></span>
       <span class="lbl" style="text-transform:none">TOTAL HdV</span>
@@ -35,7 +35,7 @@
   <!-- ========== SAISIE ========== -->
   <section id="v-saisie" hidden>
     <div class="formhead">
-      <button class="ghost" id="cancel" type="button">Annuler</button>
+      <button class="ghost annuler" id="cancel" type="button">Annuler</button>
       <div style="text-align:center"><h2 id="f-title" style="font-size:18px">Nouveau vol</h2><div class="hint" id="f-sub"></div></div>
       <span style="width:72px"></span>
     </div>
@@ -139,7 +139,7 @@
     </div>
     <p class="apname bad" id="f-err" style="text-align:center;font-size:15px"></p>
     <div style="height:70px"></div>
-    <button class="save" id="save" type="button">Enregistrer le vol</button>
+    <button class="save vert" id="save" type="button">Enregistrer le vol</button>
   </section>
 
   <!-- ========== TOTAUX ========== -->
@@ -244,7 +244,7 @@
   <p class="hint" style="font-size:15px">Tape l'immatriculation. Tu choisiras ensuite le type (code OACI à 4 lettres) : l'app remplit le reste.</p>
   <input class="search big" id="a1-reg" autocapitalize="characters" autocomplete="off" placeholder="Immatriculation (ex. F-ABCD)" style="margin:0;font-family:var(--f-num);font-size:22px;font-weight:700;letter-spacing:.04em">
   <p class="apname" id="a1-msg"></p>
-  <div class="row2"><button type="button" class="ghost" id="a1-x">Annuler</button><button type="button" class="ghost primary" id="a1-go" disabled>Continuer</button></div>
+  <div class="row2"><button type="button" class="ghost annuler" id="a1-x">Annuler</button><button type="button" class="ghost primary" id="a1-go" disabled>Continuer</button></div>
 </div></div>
 
 <!-- Fiche avion -->
@@ -289,7 +289,7 @@
   <div class="row2"><div class="field"><label for="pm-pre">Prénom</label><input id="pm-pre" autocomplete="off"></div><div class="field"><label for="pm-nom">Nom</label><input id="pm-nom" autocomplete="off"></div></div>
   <div class="field"><label for="pm-tri">Trigramme</label><input class="big" id="pm-tri" maxlength="4" autocapitalize="characters" autocomplete="off"></div>
   <p class="hint">Un seul des trois suffit.</p>
-  <div class="row2"><button type="button" class="ghost" id="pm-x">Annuler</button><button type="button" class="ghost primary" id="pm-ok" disabled>Ajouter</button></div>
+  <div class="row2"><button type="button" class="ghost annuler" id="pm-x">Annuler</button><button type="button" class="ghost primary" id="pm-ok" disabled>Ajouter</button></div>
   <button type="button" class="ghost" id="pm-del" hidden style="color:var(--feu);border-color:var(--feu)">Supprimer cette personne</button>
 </div></div>
 
@@ -297,7 +297,7 @@
 <div class="modal" id="tg-modal" hidden role="dialog" aria-modal="true" aria-labelledby="tm-t"><div class="mbox">
   <h3 id="tm-t">Nouvelle étiquette</h3>
   <div class="field"><label for="pm2-v">Nom</label><input class="big" id="pm2-v" autocapitalize="characters" autocomplete="off" placeholder="ex. NUIT, MONTAGNE…"></div>
-  <div class="row2"><button type="button" class="ghost" id="pm2-x">Annuler</button><button type="button" class="ghost primary" id="pm2-ok" disabled>Ajouter</button></div>
+  <div class="row2"><button type="button" class="ghost annuler" id="pm2-x">Annuler</button><button type="button" class="ghost primary" id="pm2-ok" disabled>Ajouter</button></div>
 </div></div>
 
 <!-- Règles des pastilles -->
@@ -323,7 +323,7 @@
     <div class="mstep"><span class="mlbl">Att. Jour</span><span class="ctl"><button type="button" data-vm="attJour" data-d="-1" aria-label="moins"><svg class="ip" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10.75h16v2.5H4z"/></svg></button><output id="vm-attJour">1</output><button type="button" data-vm="attJour" data-d="1" aria-label="plus"><svg class="ip" viewBox="0 0 24 24" aria-hidden="true"><path d="M10.75 4h2.5v16h-2.5zM4 10.75h16v2.5H4z"/></svg></button></span></div>
     <div class="mstep"><span class="mlbl">Att. Nuit</span><span class="ctl"><button type="button" data-vm="attNuit" data-d="-1" aria-label="moins"><svg class="ip" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10.75h16v2.5H4z"/></svg></button><output id="vm-attNuit">0</output><button type="button" data-vm="attNuit" data-d="1" aria-label="plus"><svg class="ip" viewBox="0 0 24 24" aria-hidden="true"><path d="M10.75 4h2.5v16h-2.5zM4 10.75h16v2.5H4z"/></svg></button></span></div>
   </div>
-  <div class="row2"><button type="button" class="ghost" id="vm-cancel">Annuler</button><button type="button" class="ghost primary" id="vm-ok">Ajouter</button></div>
+  <div class="row2"><button type="button" class="ghost annuler" id="vm-cancel">Annuler</button><button type="button" class="ghost primary" id="vm-ok">Ajouter</button></div>
   <button type="button" class="ghost" id="vm-del" hidden style="color:var(--feu);border-color:var(--feu)">Retirer ce terrain</button>
 </div></div>
 
@@ -338,7 +338,7 @@
   <div class="field"><label for="ter-tz">Fuseau horaire</label><input id="ter-tz" list="ter-tzs" autocomplete="off" placeholder="Europe/Paris"><datalist id="ter-tzs"></datalist></div>
   <p class="hint">Latitude et longitude en degrés décimaux (sud et ouest en négatif) : elles servent au calcul du temps de nuit. Le fuseau sert au mode LOC.</p>
   <p class="apname bad" id="ter-err"></p>
-  <div class="row2"><button type="button" class="ghost" id="ter-x">Annuler</button><button type="button" class="ghost primary" id="ter-ok">Ajouter</button></div>
+  <div class="row2"><button type="button" class="ghost annuler" id="ter-x">Annuler</button><button type="button" class="ghost primary" id="ter-ok">Ajouter</button></div>
 </div></div>
 
 <!-- Heures affichées en haut de l'accueil -->
@@ -376,7 +376,7 @@
 <div class="modal" id="ab-modal" hidden role="dialog" aria-modal="true" aria-labelledby="ab-t" style="z-index:34"><div class="mbox">
   <h3 id="ab-t">Abandonner la saisie ?</h3>
   <p class="hint" style="font-size:15px">Ce que tu as tapé pour ce vol ne sera pas enregistré.</p>
-  <div class="row2"><button type="button" class="ghost" id="ab-no">Continuer la saisie</button><button type="button" class="ghost" id="ab-yes" style="background:var(--feu);color:#fff;border-color:var(--feu)">Abandonner</button></div>
+  <div class="row2"><button type="button" class="ghost vert" id="ab-no">Continuer la saisie</button><button type="button" class="ghost" id="ab-yes" style="background:var(--feu);color:#fff;border-color:var(--feu)">Abandonner</button></div>
 </div></div>
 
 <!-- Carte du vol en plein écran (zoom au doigt) -->

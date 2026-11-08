@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "test": "node --test \"tests/unitaires/*.test.js\"",
-    "test:navigateur": "node tests/navigateur/parcours.mjs && node tests/navigateur/installation.mjs && node tests/navigateur/mise-a-jour.mjs && node tests/navigateur/v04.mjs && node tests/navigateur/v05.mjs && node tests/navigateur/v06.mjs && node tests/navigateur/v07.mjs && node tests/navigateur/v08.mjs && node tests/navigateur/v09.mjs && node tests/navigateur/v010.mjs && node tests/navigateur/v011.mjs && node tests/navigateur/v012.mjs && node tests/navigateur/v013.mjs && node tests/navigateur/v014.mjs && node tests/navigateur/v015.mjs && node tests/navigateur/v016.mjs && node tests/navigateur/v016b.mjs && node tests/navigateur/v017.mjs && node tests/navigateur/v017b.mjs && node tests/navigateur/v018.mjs",
+    "test:navigateur": "node tests/navigateur/parcours.mjs && node tests/navigateur/installation.mjs && node tests/navigateur/mise-a-jour.mjs && node tests/navigateur/v04.mjs && node tests/navigateur/v05.mjs && node tests/navigateur/v06.mjs && node tests/navigateur/v07.mjs && node tests/navigateur/v08.mjs && node tests/navigateur/v09.mjs && node tests/navigateur/v010.mjs && node tests/navigateur/v011.mjs && node tests/navigateur/v012.mjs && node tests/navigateur/v013.mjs && node tests/navigateur/v014.mjs && node tests/navigateur/v015.mjs && node tests/navigateur/v016.mjs && node tests/navigateur/v016b.mjs && node tests/navigateur/v017.mjs && node tests/navigateur/v017b.mjs && node tests/navigateur/v018.mjs && node tests/navigateur/v019.mjs",
     "test:fluidite": "node tests/navigateur/fluidite.mjs"
   },
   "devDependencies": {

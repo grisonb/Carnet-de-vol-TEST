@@ -1,5 +1,22 @@
 # Journal des versions
 
+## v0.19 — 08/11/2026
+
+Une remarque : R56, couleurs.
+
+**Ce qui change**
+- Fond VERT : le bandeau « N vol(s) à importer depuis NPF-Q400 », « Enregistrer le vol » (et ses variantes
+  « Enregistrer les modifications » / « la mise à jour »), « Continuer la saisie » (fenêtre « Abandonner la saisie ? »).
+- Fond ROUGE : tous les boutons « Annuler » (12) : saisie d'un vol, terrain intermédiaire, ajouter un terrain, ajouter
+  une personne, ajouter une étiquette, ajouter un avion, ignorer un vol NPF, restaurer depuis le NAS, restaurer une
+  sauvegarde, import FlyLog, importer des fiches avions, et le « Annuler » du message « Vol supprimé ».
+- Texte blanc, mêmes couleurs en clair et en sombre : contraste 5,1:1 (vert #2e7d32) et 5,6:1 (rouge #c62828), au-dessus
+  du seuil de 4,5:1. Place, taille, texte et action des boutons inchangés (police inchangée).
+
+**Tests**
+- `tests/navigateur/v019.mjs` (390 px, clair / sombre : couleur, contraste, même place et même taille de chaque bouton,
+  captures) ; tous les tests existants ; contrôle FlyLog local.
+
 ## v0.18 — 07/11/2026
 
 Une remarque : R55, la liste des vols NPF-Q400 se fermait au lieu d'ouvrir le brouillon (premier vrai vol au format 2
