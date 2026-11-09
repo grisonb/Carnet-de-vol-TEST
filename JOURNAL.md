@@ -1,5 +1,29 @@
 # Journal des versions
 
+## v0.26 — 09/11/2026
+
+Remarques R59 à R62. carnet.php v5 inchangé ; NAS et VPS non touchés.
+
+**Ce qui change**
+- R60 majuscules par défaut sur les claviers du téléphone et de l'iPad : codes terrains, immatriculations, noms et
+  indicatifs d'avion, trigrammes, étiquettes, missions, copilote en MAJUSCULES ; noms et prénoms de personnes, noms de
+  terrains, titulaire avec une majuscule à chaque mot ; remarques et modèles avec une majuscule au début.
+- R61 bouton « Rafraîchir » en haut à gauche du Carnet (à l'opposé de la loupe, 44 px, icône dessinée) : synchronise
+  maintenant ; l'icône tourne pendant la synchro, puis « À jour » ou l'erreur (ex. « Pas de réseau, 2 en attente »).
+- R62 une modification part au NAS dès l'enregistrement (au lieu de 5 s plus tard), et un dernier envoi part quand
+  l'app passe en arrière-plan ou se ferme (demande qui survit à la fermeture). Sinon, elle repart à la prochaine
+  ouverture, comme avant, sans rien perdre. « N en attente d'envoi » reste affiché, discret, en haut du Carnet tant
+  que quelque chose n'est pas parti.
+- R59 fenêtre « Chercher une photo » : « Toucher pour utiliser » sous les vignettes Commons ; « À voir seulement : ne
+  peut pas être gardée » sur la photo Planespotters ; sans photo Commons : message clair + « Prendre une photo » /
+  « Choisir dans la galerie ».
+- Le numéro de version de l'accueil se met à droite du bouton « Rafraîchir ».
+
+**Tests**
+- `tests/unitaires/v026.test.js`, `tests/navigateur/v026.mjs` (téléphone et PC Chromium, iPad WebKit, faux NAS v5, faux
+  Commons / Planespotters, captures) ; v0.21 adapté (message « aucune photo » dans l'encadré) ; tous les tests
+  existants ; contrôle FlyLog local.
+
 ## v0.25 — 08/11/2026
 
 L'iPad devient un 3e appareil du carnet (en modification, comme le PC). carnet.php v5 inchangé ; photos d'avion pas

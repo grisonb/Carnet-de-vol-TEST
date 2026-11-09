@@ -52,7 +52,7 @@ function ecranPDF() {
   const c = ouvrirOutil('Carnet officiel (PDF EASA)', `
     <p class="hint" style="font-size:15px">A4 paysage, ${18} vols par page, heures en UTC. Chaque page porte ses totaux, le report des pages précédentes, le total général et une case signature. Les colonnes métier (feux, largages…) n'y figurent pas.</p>
     <div class="sec">${htmlPeriode()}
-      <div class="field"><label for="xp-tit">Titulaire (imprimé en haut de chaque page)</label><input id="xp-tit" value="${esc(reglage('titulaire'))}" autocomplete="off"></div></div>
+      <div class="field"><label for="xp-tit">Titulaire (imprimé en haut de chaque page)</label><input id="xp-tit" autocapitalize="words" value="${esc(reglage('titulaire'))}" autocomplete="off"></div></div>
     <button type="button" class="bigbtn" id="xp-go">Créer le PDF</button>
     <p class="prog" id="xp-prog"></p>
     <div id="xp-fin" hidden><button type="button" class="bigbtn" id="xp-dl">Enregistrer dans Téléchargements</button><button type="button" class="bigbtn second" id="xp-sh">Partager (Drive, e-mail…)</button></div>`);
@@ -221,8 +221,8 @@ function editerType(t) {
   const opt = (nom, valeurs, cur) => `<select id="te-${nom}">${valeurs.map(([k, l]) => `<option value="${k}" ${k === cur ? 'selected' : ''}>${l}</option>`).join('')}</select>`;
   const c = ouvrirOutil(t ? `Type ${t.code}` : 'Nouveau type', `<div class="sec">
     <div class="field"><label for="te-code">Code OACI</label><input class="big" id="te-code" maxlength="4" value="${esc(v.code)}" ${t ? 'readonly' : ''} autocapitalize="characters"></div>
-    <div class="field"><label for="te-cons">Constructeur</label><input id="te-cons" value="${esc(v.constructeur)}"></div>
-    <div class="field"><label for="te-mod">Modèle</label><input id="te-mod" value="${esc(v.modele)}"></div>
+    <div class="field"><label for="te-cons">Constructeur</label><input id="te-cons" autocapitalize="characters" value="${esc(v.constructeur)}"></div>
+    <div class="field"><label for="te-mod">Modèle</label><input id="te-mod" autocapitalize="sentences" value="${esc(v.modele)}"></div>
     <div class="field"><label>Équipage</label>${opt('eq', [['SP', 'Monopilote'], ['MP', 'Multipilote']], v.equipage)}</div>
     <div class="field"><label>Moteurs</label>${opt('mo', [['SE', 'Monomoteur (SE)'], ['ME', 'Multimoteur (ME)']], v.moteurs)}</div>
     <div class="field"><label>Motorisation</label>${opt('mt', Object.entries(MOTEUR), v.moteur)}</div>
@@ -275,7 +275,7 @@ function ecranPersonnes() {
 
 // ---------- Titulaire ----------
 function ecranTitulaire() {
-  const c = ouvrirOutil('Titulaire du carnet', `<div class="sec"><div class="field"><label for="ti-v">Nom imprimé en haut de chaque page du PDF</label><input id="ti-v" value="${esc(reglage('titulaire'))}" autocomplete="off"></div></div>
+  const c = ouvrirOutil('Titulaire du carnet', `<div class="sec"><div class="field"><label for="ti-v">Nom imprimé en haut de chaque page du PDF</label><input id="ti-v" autocapitalize="words" value="${esc(reglage('titulaire'))}" autocomplete="off"></div></div>
     <button type="button" class="bigbtn" id="ti-ok">Enregistrer</button>`);
   c.querySelector('#ti-ok').addEventListener('click', async () => { await enregistrerReglage('titulaire', $('#ti-v').value.trim()); fermerOutil(); majPlus(); toast('Enregistré'); });
 }

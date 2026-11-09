@@ -46,17 +46,34 @@ export async function ouvrirRecherchePhoto({ immat, avion, choisir, reduirePhoto
   photos = fusionnerPhotos(cat, tit);
   $('#ph-l').innerHTML = photos.map((p, i) => `<button type="button" class="phv" data-ph="${i}">
       <img src="${esc(p.vignette)}" alt="Photo ${i + 1}" loading="lazy">${p.aVerifier ? '<span class="phw">À vérifier</span>' : ''}
-      <span class="phc">${esc(p.auteur)} · ${esc(p.licence)}</span></button>`).join('');
-  message(photos.length ? `${photos.length} photo${photos.length > 1 ? 's' : ''} libre${photos.length > 1 ? 's' : ''} sur Wikimedia Commons : touche celle que tu veux garder.`
-    : erreur ? 'Wikimedia Commons ne répond pas : réessaie plus tard.' : `Aucune photo libre de ${immat} sur Wikimedia Commons.`);
+      <span class="phc">${esc(p.auteur)} · ${esc(p.licence)}</span><span class="phtap">Toucher pour utiliser</span></button>`).join('')
+    // v0.26 (R59) : aucune photo libre -> le dire clairement et proposer une photo à soi
+    || `<div class="ph-aucune"><p><b>${erreur ? 'Wikimedia Commons ne répond pas.' : `Aucune photo libre de ${esc(immat)} sur Wikimedia Commons.`}</b> Tu peux mettre ta propre photo :</p>
+      <label class="bigbtn vert ph-fichier">Prendre une photo<input type="file" accept="image/*" capture="environment" id="ph-cam"></label>
+      <label class="bigbtn second ph-fichier">Choisir dans la galerie<input type="file" accept="image/*" id="ph-gal"></label></div>`;
+  // (aucune photo : le message est dans l'encadré, avec « Prendre une photo » / « Choisir dans la galerie »)
+  message(photos.length ? `${photos.length} photo${photos.length > 1 ? 's' : ''} libre${photos.length > 1 ? 's' : ''} sur Wikimedia Commons : touche celle que tu veux garder.` : '');
+  for (const id of ['#ph-cam', '#ph-gal']) $(id)?.addEventListener('change', photoAMoi);
   const p = await ps;
   if (n !== jeton) return;
   $('#ph-ps').innerHTML = p
     ? `<h4>Planespotters.net</h4>
-      <a class="ph-psimg" href="${esc(p.lien)}" target="_blank" rel="noopener"><img src="${esc(p.vignette)}" alt="Photo de ${esc(immat)} sur Planespotters.net"></a>
+      <a class="ph-psimg" href="${esc(p.lien)}" target="_blank" rel="noopener"><img src="${esc(p.vignette)}" alt="Photo de ${esc(immat)} sur Planespotters.net"><span class="ph-seule">À voir seulement : ne peut pas être gardée</span></a>
       <p class="phcredit">Photo : <a href="${esc(p.lien)}" target="_blank" rel="noopener">${esc(p.photographe)}</a> · Planespotters.net</p>
       <p class="hint">Affichée seulement : les règles de Planespotters interdisent de la garder dans le carnet. Touche-la pour l'ouvrir sur leur site.</p>`
     : `<p class="hint">Planespotters.net : ${p === null ? `aucune photo de ${esc(immat)}.` : 'ne répond pas.'}</p>`;
+}
+
+// Photo prise au téléphone / choisie dans la galerie (pas de crédit) : réduite comme dans la fiche
+async function photoAMoi(e) {
+  const f = e.target.files && e.target.files[0];
+  if (!f) return;
+  try {
+    const photo = await reduire(f);
+    jeton++;
+    $('#ph-modal').hidden = true;
+    rappel(photo, null);
+  } catch { message('Photo illisible : essaie une autre photo.'); }
 }
 
 function regarder(i) {

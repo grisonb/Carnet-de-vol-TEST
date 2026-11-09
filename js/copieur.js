@@ -10,7 +10,8 @@ export const DELAIS_ESSAI = [30e3, 60e3, 120e3, 300e3, 600e3, 1800e3];
 // envoyer() -> Promise<{ statut: 'ok'|'refuse'|'injoignable'|'trop-gros'|'abimee'|'stockage', ... }>
 // pret(forcer) -> la copie est-elle configurée (et automatique, sauf si forcer) ?
 // enLigne() -> le téléphone a-t-il du réseau ?  surEtat(evenement) : pour l'affichage et l'enregistrement
-export function creerCopieur({ envoyer, pret, enLigne = () => true, surEtat = () => {}, minuterie = { poser: (f, ms) => setTimeout(f, ms), enlever: id => clearTimeout(id) } }) {
+// regroupement : délai avant l'envoi après une modification (la copie NAS : 5 s ; la synchro, v0.26 : presque tout de suite)
+export function creerCopieur({ envoyer, pret, enLigne = () => true, surEtat = () => {}, regroupement = REGROUPEMENT_MS, minuterie = { poser: (f, ms) => setTimeout(f, ms), enlever: id => clearTimeout(id) } }) {
   let enAttente = false, enCours = false, echecs = 0, refuse = false, horloge = null;
 
   const planifier = ms => { minuterie.enlever(horloge); horloge = minuterie.poser(() => { horloge = null; lancer(false); }, ms); };
@@ -30,7 +31,7 @@ export function creerCopieur({ envoyer, pret, enLigne = () => true, surEtat = ()
     if (r.statut === 'ok') {
       echecs = 0; refuse = false;
       surEtat({ ...r, enAttente });
-      if (enAttente) planifier(REGROUPEMENT_MS);
+      if (enAttente) planifier(regroupement);
     } else {
       enAttente = enAttente || avant || forcer;
       if (r.statut === 'refuse') refuse = true;
@@ -45,7 +46,7 @@ export function creerCopieur({ envoyer, pret, enLigne = () => true, surEtat = ()
     modification() {
       enAttente = true;
       surEtat({ statut: 'attente', enAttente });
-      if (!enCours) planifier(REGROUPEMENT_MS);
+      if (!enCours) planifier(regroupement);
     },
     // Ouverture de l'app, retour du réseau, nouveau mot de passe : on réessaie bientôt (s'il y a quelque chose à copier)
     reprendre(ms = 2000) {

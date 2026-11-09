@@ -255,3 +255,12 @@ export function doublons(vols, cleDe, depuis, vus = []) {
   }
   return paires;
 }
+
+// v0.26 (R61) : court message après « Rafraîchir ». r : résultat de la synchro ; e : { attente, conflits }
+export function texteRafraichir(r, e = {}) {
+  const n = typeof e.attente === 'number' ? e.attente : 0, att = n ? `, ${n} en attente` : '';
+  if (r.statut === 'ok') return e.conflits ? `À jour · ${e.conflits} à choisir` : 'À jour';
+  return ({ horsLigne: `Pas de réseau${att}`, injoignable: `NAS injoignable${att}`, refuse: 'Mot de passe refusé : à corriger dans Plus › Copie sur le NAS',
+    'nas-ancien': 'Le NAS n\'a pas encore carnet.php version 5', bloque: `Trop d'essais de mot de passe${att}`,
+    pasConfiguree: 'Synchro pas activée : Plus › Synchro du carnet' })[r.statut] || `Synchro impossible${att}`;
+}

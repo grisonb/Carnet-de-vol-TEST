@@ -158,7 +158,7 @@ try {
   await ouvrirFiche('a2');
   await p.click('#fi-web'); await p.waitForSelector('#ph-modal:not([hidden])');
   await p.waitForFunction(() => document.querySelector('#ph-ps .hint'), null, { timeout: 10000 });
-  verifier(await p.textContent('#ph-etat') === 'Aucune photo libre de F-XZZB sur Wikimedia Commons.' && (await p.textContent('#ph-ps')).includes('aucune photo de F-XZZB'),
+  verifier((await p.textContent('.ph-aucune')).includes('Aucune photo libre de F-XZZB sur Wikimedia Commons.') && (await p.textContent('#ph-ps')).includes('aucune photo de F-XZZB'),
     'aucune photo : messages clairs (Commons et Planespotters)');
   await p.screenshot({ path: join(CAPT, 'v021-06-aucune.png') });
   await p.goBack(); await attendre(600);

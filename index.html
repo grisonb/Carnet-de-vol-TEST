@@ -25,6 +25,8 @@
     <button type="button" class="alerte-bandeau orange" id="suppr-bandeau" hidden></button>
     <div class="hero hrow">
       <span class="ver" id="h-version" aria-label="Version de l'app"></span>
+      <!-- v0.26 (R61) : « Rafraîchir » = Synchroniser maintenant (icône dessinée par l'app) -->
+      <button type="button" class="rafraichir" id="rafraichir" aria-label="Rafraîchir : synchroniser maintenant"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"/></svg></button>
       <span class="lbl" style="text-transform:none">TOTAL HdV</span>
       <span class="big num" id="h-total">0h00</span>
       <button type="button" class="loupe" id="q-open" aria-label="Rechercher un vol" aria-expanded="false" aria-controls="q"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 3a7 7 0 0 1 5.6 11.2l5.1 5.1-1.4 1.4-5.1-5.1A7 7 0 1 1 10 3zm0 2a5 5 0 1 0 0 10 5 5 0 0 0 0-10z"/></svg></button>
@@ -87,7 +89,7 @@
     <div class="sec c-av">
       <h3>Avion</h3>
       <div class="acline"><button type="button" class="acbtn" id="ac-cur" aria-expanded="false" aria-controls="ac-sz" aria-label="Changer d'avion"><span class="t"><b id="ac-reg">—</b><span id="ac-type"></span><small id="ac-sub"></small></span></button><button type="button" class="ibtn" id="ac-fiche" aria-label="Fiche de l'avion (lecture)">i</button><button type="button" class="plus" id="ac-add" aria-label="Ajouter un avion"><svg class="ip" viewBox="0 0 24 24" aria-hidden="true"><path d="M10.75 4h2.5v16h-2.5zM4 10.75h16v2.5H4z"/></svg></button></div>
-      <div class="acsearch" id="ac-sz" hidden><input class="search" id="ac-q" type="search" autocomplete="off" placeholder="Chercher : immat, nom, type…" aria-label="Chercher un avion"><div id="ac-res" class="acres" hidden></div><button type="button" class="linkbtn" id="ac-all">Tous mes avions ›</button></div>
+      <div class="acsearch" id="ac-sz" hidden><input class="search" id="ac-q" autocapitalize="characters" type="search" autocomplete="off" placeholder="Chercher : immat, nom, type…" aria-label="Chercher un avion"><div id="ac-res" class="acres" hidden></div><button type="button" class="linkbtn" id="ac-all">Tous mes avions ›</button></div>
       <div class="tgrow"><span class="flabel">Étiquette</span><span id="tg-val" class="tgrow" style="display:contents"></span><button type="button" class="plus petit" id="tg-add" aria-label="Nouvelle étiquette pour cet avion"><svg class="ip" viewBox="0 0 24 24" aria-hidden="true"><path d="M10.75 4h2.5v16h-2.5zM4 10.75h16v2.5H4z"/></svg></button></div>
     </div>
 
@@ -97,7 +99,7 @@
         <button type="button" aria-pressed="true" data-r="cdb">CdB</button><button type="button" aria-pressed="false" data-r="copi">Copi.</button><button type="button" aria-pressed="false" data-r="dc">DC</button><button type="button" aria-pressed="false" data-r="inst">Inst.</button>
       </div>
       <div class="field" id="f-copi-z"><label for="f-copi" id="f-copi-l">Copi</label>
-        <div class="pwrap"><input id="f-copi" autocomplete="off" placeholder="Trigramme, prénom ou nom"><button type="button" class="plus" id="p-add" aria-label="Ajouter une personne" style="margin:0"><svg class="ip" viewBox="0 0 24 24" aria-hidden="true"><path d="M10.75 4h2.5v16h-2.5zM4 10.75h16v2.5H4z"/></svg></button></div>
+        <div class="pwrap"><input id="f-copi" autocapitalize="characters" autocomplete="off" placeholder="Trigramme, prénom ou nom"><button type="button" class="plus" id="p-add" aria-label="Ajouter une personne" style="margin:0"><svg class="ip" viewBox="0 0 24 24" aria-hidden="true"><path d="M10.75 4h2.5v16h-2.5zM4 10.75h16v2.5H4z"/></svg></button></div>
         <div id="p-res" class="acres" hidden></div></div>
       <p class="hint" id="f-fn-h"></p>
     </div>
@@ -105,7 +107,7 @@
     <div class="sec c-mi">
       <h3>Mission</h3>
       <div id="ml" class="mlines"></div>
-      <div class="pwrap"><input class="search" id="m-q" autocomplete="off" placeholder="Mission : tape (ex. EN) ou choisis" aria-label="Mission" style="margin:0"><button type="button" class="plus" id="m-add" aria-label="Ajouter cette mission" style="margin:0"><svg class="ip" viewBox="0 0 24 24" aria-hidden="true"><path d="M10.75 4h2.5v16h-2.5zM4 10.75h16v2.5H4z"/></svg></button></div>
+      <div class="pwrap"><input class="search" id="m-q" autocapitalize="characters" autocomplete="off" placeholder="Mission : tape (ex. EN) ou choisis" aria-label="Mission" style="margin:0"><button type="button" class="plus" id="m-add" aria-label="Ajouter cette mission" style="margin:0"><svg class="ip" viewBox="0 0 24 24" aria-hidden="true"><path d="M10.75 4h2.5v16h-2.5zM4 10.75h16v2.5H4z"/></svg></button></div>
       <div id="m-res" class="acres" hidden></div>
       <div class="step" id="feu-row"><span>Feux <small class="hint" id="fire-next"></small></span><span class="ctl"><button type="button" id="feu-m" aria-label="Feux moins"><svg class="ip" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10.75h16v2.5H4z"/></svg></button><output id="s-feu">0</output><button type="button" id="feu-p" aria-label="Feux plus"><svg class="ip" viewBox="0 0 24 24" aria-hidden="true"><path d="M10.75 4h2.5v16h-2.5zM4 10.75h16v2.5H4z"/></svg></button></span></div>
       <div id="ctrs" style="display:grid;gap:10px"></div>
@@ -133,7 +135,7 @@
 
     <div class="sec c-rq">
       <h3>Remarques</h3>
-      <div class="field"><label for="f-rem">Remarques et visas (apparaissent dans le PDF officiel)</label><textarea id="f-rem" rows="3"></textarea></div>
+      <div class="field"><label for="f-rem">Remarques et visas (apparaissent dans le PDF officiel)</label><textarea id="f-rem" autocapitalize="sentences" rows="3"></textarea></div>
     </div>
 
     <div id="del-zone" hidden class="sec">
@@ -230,7 +232,7 @@
 <!-- Mes avions -->
 <div class="sheet" id="fleet" hidden role="dialog" aria-modal="true" aria-labelledby="fl-t"><div class="sheet-in">
   <div class="shead"><button type="button" class="xbtn" id="fl-x" aria-label="Fermer"><svg class="ix" viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></svg></button><h2 id="fl-t">Mes avions</h2><span style="width:42px;flex:none"></span></div>
-  <input class="search" id="fl-q" type="search" autocomplete="off" placeholder="Rechercher : immat, indicatif, type…" aria-label="Rechercher un avion" style="margin:0 0 4px">
+  <input class="search" id="fl-q" autocapitalize="characters" type="search" autocomplete="off" placeholder="Rechercher : immat, indicatif, type…" aria-label="Rechercher un avion" style="margin:0 0 4px">
   <p class="hint" id="fl-n"></p>
   <div id="fl-list"></div>
 </div></div>
@@ -264,11 +266,11 @@
     <div class="row2"><div class="field" id="fi-oaci-f"><label for="fi-oaci">Type OACI</label><input class="big" id="fi-oaci" maxlength="4" autocapitalize="characters" autocomplete="off" placeholder="DH8D"></div>
       <div class="field" id="fi-fstd-f" hidden><label>Type FSTD</label><div class="seg" id="fi-fstd" role="group" aria-label="Type FSTD"><button type="button" aria-pressed="false">FFS</button><button type="button" aria-pressed="false">FTD</button><button type="button" aria-pressed="false">FNPT II</button></div></div></div>
     <div class="typeline" id="fi-tl"></div>
-    <div class="field"><label for="fi-mod">Modèle</label><input id="fi-mod" placeholder="ex. DHC-8-400 Dash 8"></div>
+    <div class="field"><label for="fi-mod">Modèle</label><input id="fi-mod" autocapitalize="sentences" placeholder="ex. DHC-8-400 Dash 8"></div>
     <div class="row2" id="fi-ind-z"><div class="field"><label for="fi-nm">Nom</label><input class="big" id="fi-nm" placeholder="ex. X12" autocapitalize="characters" autocomplete="off"></div>
       <div class="field"><label for="fi-ind">Indicatif radio</label><input id="fi-ind" placeholder="ex. ALPHA 12" autocapitalize="characters" autocomplete="off"></div></div>
     <div class="field" id="fi-hex-z"><label for="fi-hex">Code ADS-B (6 caractères, pour la carte du vol)</label><input id="fi-hex" maxlength="6" autocapitalize="characters" autocomplete="off" spellcheck="false" placeholder="ex. 3A1B2C"></div>
-    <div class="field"><label for="fi-rem">Remarques</label><input id="fi-rem"></div>
+    <div class="field"><label for="fi-rem">Remarques</label><input id="fi-rem" autocapitalize="sentences"></div>
   </div>
   <div class="sec" id="fi-easa">
     <h3>Carnet officiel</h3>
@@ -293,7 +295,7 @@
 <!-- Personne -->
 <div class="modal" id="p-modal" hidden role="dialog" aria-modal="true" aria-labelledby="pm-t"><div class="mbox">
   <h3 id="pm-t">Ajouter un copi</h3>
-  <div class="row2"><div class="field"><label for="pm-pre">Prénom</label><input id="pm-pre" autocomplete="off"></div><div class="field"><label for="pm-nom">Nom</label><input id="pm-nom" autocomplete="off"></div></div>
+  <div class="row2"><div class="field"><label for="pm-pre">Prénom</label><input id="pm-pre" autocapitalize="words" autocomplete="off"></div><div class="field"><label for="pm-nom">Nom</label><input id="pm-nom" autocapitalize="words" autocomplete="off"></div></div>
   <div class="field"><label for="pm-tri">Trigramme</label><input class="big" id="pm-tri" maxlength="4" autocapitalize="characters" autocomplete="off"></div>
   <p class="hint">Un seul des trois suffit.</p>
   <div class="row2"><button type="button" class="ghost annuler" id="pm-x">Annuler</button><button type="button" class="ghost primary" id="pm-ok" disabled>Ajouter</button></div>
@@ -312,7 +314,7 @@
   <h3 id="rm-t">Pastilles des missions</h3>
   <p class="hint" style="font-size:15px">Si une mission commence par ce texte, la pastille s'affiche sur le vol. Marche aussi pour les vols FlyLog. (FEU est automatique.)</p>
   <div id="rm-list" style="display:grid;gap:6px"></div>
-  <div class="row2"><div class="field"><label for="rm-p">Commence par</label><input id="rm-p" autocapitalize="characters" autocomplete="off" placeholder="ex. DNPAF"></div><div class="field"><label for="rm-l">Pastille</label><input id="rm-l" autocomplete="off" placeholder="ex. DNPAF"></div></div>
+  <div class="row2"><div class="field"><label for="rm-p">Commence par</label><input id="rm-p" autocapitalize="characters" autocomplete="off" placeholder="ex. DNPAF"></div><div class="field"><label for="rm-l">Pastille</label><input id="rm-l" autocapitalize="characters" autocomplete="off" placeholder="ex. DNPAF"></div></div>
   <div class="row2"><button type="button" class="ghost primary" id="rm-add" disabled style="grid-column:2">+ Ajouter la règle</button></div>
   <div id="rm-masq-z" style="display:grid;gap:6px"><h3 style="font-size:15px">Suggestions masquées</h3>
     <p class="hint">Missions retirées des suggestions (glissé à gauche dans la saisie). Les vols enregistrés ne changent pas.</p>
@@ -339,7 +341,7 @@
   <h3 id="ter-t">Ajouter un terrain</h3>
   <div class="row2"><div class="field"><label for="ter-code">Code OACI</label><input class="big" id="ter-code" maxlength="4" autocapitalize="characters" autocomplete="off"></div>
     <div class="field"><label for="ter-pays">Pays (2 lettres)</label><input id="ter-pays" maxlength="2" autocapitalize="characters" autocomplete="off" placeholder="FR"></div></div>
-  <div class="field"><label for="ter-nom">Nom</label><input id="ter-nom" autocomplete="off"></div>
+  <div class="field"><label for="ter-nom">Nom</label><input id="ter-nom" autocapitalize="words" autocomplete="off"></div>
   <div class="row2"><div class="field"><label for="ter-lat">Latitude</label><input id="ter-lat" inputmode="decimal" autocomplete="off" placeholder="45.123"></div>
     <div class="field"><label for="ter-lon">Longitude</label><input id="ter-lon" inputmode="decimal" autocomplete="off" placeholder="-0.456"></div></div>
   <div class="field"><label for="ter-tz">Fuseau horaire</label><input id="ter-tz" list="ter-tzs" autocomplete="off" placeholder="Europe/Paris"><datalist id="ter-tzs"></datalist></div>

@@ -30,14 +30,15 @@ export async function erreurDansReponse(r) {
   const code = Number(j.code) || 400;
   return { statut: STATUTS[code] || 'injoignable', code, erreur: String(j.erreur), attente: Number(j.attente) || 0, minimum: Number(j.minimum) || 0 };
 }
-export async function requete(action, { url = configNas().url, motDePasse = configNas().motDePasse, corps = null, entetes = {}, extra = '', delai = 30000 } = {}) {
+// keepalive (v0.26) : le navigateur termine la demande même si la page se ferme (corps de 64 Ko au plus)
+export async function requete(action, { url = configNas().url, motDePasse = configNas().motDePasse, corps = null, entetes = {}, extra = '', delai = 30000, keepalive = false } = {}) {
   if (!url) return { statut: 'adresse' };
   if (!enLigne()) return { statut: 'horsLigne' };
   const arret = new AbortController();
   const minuterie = setTimeout(() => arret.abort(), delai);
   try {
     const r = await fetch(`${url}?action=${action}&v=2${extra}`, {
-      method: 'POST', body: corps, signal: arret.signal, cache: 'no-store',
+      method: 'POST', body: corps, signal: keepalive ? undefined : arret.signal, cache: 'no-store', keepalive,
       headers: { 'X-Carnet-Cle': motDePasse, ...entetes },
     });
     if (!r.ok) return { statut: STATUTS[r.status] || 'injoignable', code: r.status };

@@ -275,7 +275,7 @@ function indicationFeu() {
 }
 function rendreLignes() {
   $('#ml').innerHTML = F.lignes.map((m, i) =>
-    `<div class="mline${estLigneFeu(m.t) ? ' feu' : ''}"><input data-mi="${i}" value="${esc(m.t)}" aria-label="Mission ${i + 1}"><button type="button" class="x" data-mx="${i}" aria-label="Enlever">${CROIX}</button></div>`).join('');
+    `<div class="mline${estLigneFeu(m.t) ? ' feu' : ''}"><input data-mi="${i}" value="${esc(m.t)}" aria-label="Mission ${i + 1}" autocapitalize="characters"><button type="button" class="x" data-mx="${i}" aria-label="Enlever">${CROIX}</button></div>`).join('');
   indicationFeu(); apercu();
 }
 function rendreSuggestions() {

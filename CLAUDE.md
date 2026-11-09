@@ -137,6 +137,12 @@ Pas d'étape de compilation : les fichiers du dépôt sont servis tels quels.
   Barre d'état : padding env(safe-area-inset-top). Carnet d'ici vide : pas de « Confirmer » des suppressions.
   Même origine que NPF-Q400 (grisonb.github.io) : le Carnet ne touche qu'à ses caches (préfixe 'carnet-de-vol-',
   sw.js) et à sa base IndexedDB 'carnet-de-vol' ; aucun localStorage.
+- v0.26 : majuscules par défaut (attribut `autocapitalize` : characters pour codes / immatriculations / noms d'avion /
+  trigrammes / étiquettes / missions, words pour noms de personnes / terrains / titulaire, sentences pour remarques /
+  modèles ; vérifié champ par champ par tests/unitaires/v026.test.js). Bouton `#rafraichir` (haut gauche du Carnet) =
+  synchroniser maintenant, `texteRafraichir` (synchro.js). Synchro : envoyeur regroupé sur 0,3 s ; `dernierEnvoi()` à
+  visibilitychange hidden / pagehide (requete keepalive, 60 Ko au plus, depuis le carnet en mémoire) ; « N en attente
+  d'envoi » (#sync-bandeau.discret) tant que quelque chose n'est pas parti.
 - Photos d'Internet (v0.21, R34) : `js/photos-web.js` (Commons : catégorie « immat (aircraft) » puis titres ; Planespotters)
   et `js/ui/photo-web.js` (fenêtre #ph-modal). Commons : photo choisie gardée avec `photoCredit` {source, auteur, licence,
   licenceUrl, page, titre}, crédit affiché sous la photo (#fi-credit). Planespotters : AFFICHÉE seulement (ses règles
@@ -202,6 +208,7 @@ BOMBING et TRANSPORT s'excluent sur un vol. Suggestions de missions masquées : 
 - `node tests/navigateur/v025.mjs` : iPad (WebKit, paysage / portrait) 3e appareil : rejoindre, modifier, conflit, hors ligne, carnet effacé.
   WebKit sur ce PC (Ubuntu 26.04) : bibliothèques d'Ubuntu 24.04 décompressées dans ~/.cache/carnet-webkit-libs et
   reliées dans ~/.cache/ms-playwright/webkit-2104/minibrowser-wpe/sys/lib ; le test met PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS=1.
+- `node tests/navigateur/v026.mjs` : majuscules, bouton « Rafraîchir » (3 appareils), envoi dès l'enregistrement et à la fermeture (keepalive), fenêtre photo.
 - `node tests/navigateur/v024.mjs` : synchro dans les deux sens (passage en modification, conflits et 3 choix, doublon, NPF, hors ligne, >20 suppressions, annuler, mot de passe refusé).
 - `node tests/navigateur/fluidite.mjs` : 4070 vols inventés, processeur ralenti ×6.
 - `node outils/controle-import.mjs ../donnees-privees/flylog-decode-v1.csv ../donnees-privees/totaux-flylog-reference.json` :

@@ -14,7 +14,7 @@ import { nouvelId, cleDoublon } from '../modele.js';
 import { hm, dateFr } from '../temps.js';
 import { elementsDuCarnet, preparerEnvoi, majCarte, carteDepuisNas, trierRecus, lots, resumeSynchro, REGLAGES_PARTAGES,
   PAR_ENVOI, PAR_PAGE, PERIODE_CONSULTATION, cleElement, empreinteTexte, analyserRecus, compterSuppressions, SUPPRESSIONS_A_CONFIRMER,
-  nomAppareil, differences, doublons, duNom, ceNom, ceNomMin as ceNomMinDe, leNom, estIPad } from '../synchro.js';
+  nomAppareil, differences, doublons, texteRafraichir, duNom, ceNom, ceNomMin as ceNomMinDe, leNom, estIPad } from '../synchro.js';
 
 const nombre = n => n.toLocaleString('fr-FR');
 const enLigne = () => navigator.onLine !== false;
@@ -191,8 +191,9 @@ export async function synchroniser(progres = () => {}) {
   try { return await enCours; } finally { enCours = null; }
 }
 
-// Quelques secondes après chaque modification (regroupées), nouvel essai si pas de réseau, à l'ouverture…
+// v0.26 (R62) : envoi dès l'enregistrement (regroupé sur 0,3 s seulement), nouvel essai si pas de réseau, à l'ouverture…
 const envoyeur = creerCopieur({
+  regroupement: 300,
   envoyer: () => synchroniser(),
   pret: () => deuxSens() && configNas().configuree && !nasRefuse(),
   enLigne,
@@ -200,7 +201,47 @@ const envoyeur = creerCopieur({
   surEtat: ev => { if (ev.statut === 'horsLigne') synchroniser(); else if (ev.statut === 'injoignable') noter({ statut: ev.statut }); },
 });
 export function synchroModifiee() {
-  if (deuxSens()) envoyeur.modification();
+  if (!deuxSens()) return;
+  envoyeur.modification();
+  compterAttente(); // « N en attente d'envoi » s'affiche tout de suite, jusqu'à ce que ce soit parti
+}
+
+// ---------- R62 : ce qui attend, compté à partir du carnet en mémoire (sans attendre la base) ----------
+function attenteEnMemoire() {
+  const e = etatSynchro();
+  if (!e.carte) return null;
+  const contenu = { vols: etat.vols, avions: [...etat.avions.values()], personnes: etat.personnes,
+    reglages: Object.entries(etat.reglages).map(([cle, valeur]) => ({ cle, valeur })) };
+  const p = preparerEnvoi(elementsDuCarnet(contenu), e.carte, new Set((e.conflits || []).map(c => c.cle)));
+  // plus de 20 suppressions : elles attendent la confirmation, elles ne partent pas toutes seules
+  const mods = compterSuppressions(p.modifications) > SUPPRESSIONS_A_CONFIRMER && !e.suppressionsConfirmees ? p.modifications.filter(m => !m.supprime) : p.modifications;
+  return mods;
+}
+function compterAttente() {
+  const m = attenteEnMemoire();
+  if (m && m.length !== (etatSynchro().attente || 0)) noter({ attente: m.length });
+}
+// App mise en arrière-plan ou fermée : dernier envoi immédiat de ce qui attend. La demande est faite pour survivre à la
+// fermeture (keepalive). Si elle n'arrive pas, rien n'est perdu : tout repart à la prochaine ouverture (le NAS répond
+// « déjà là » pour ce qui était quand même arrivé).
+export function dernierEnvoi() {
+  if (!deuxSens() || !configNas().configuree || nasRefuse() || !enLigne()) return false;
+  const mods = attenteEnMemoire();
+  if (!mods || !mods.length) return false;
+  const corps = JSON.stringify({ appareil: appareil(), modifications: mods });
+  if (corps.length > 60000) return false; // trop gros pour une demande qui survit à la fermeture : à la réouverture
+  requete('synchro-envoyer', { corps, entetes: { 'Content-Type': 'application/json' }, keepalive: true, delai: 20000 });
+  return true;
+}
+
+// ---------- R61 : bouton « Rafraîchir » du Carnet ----------
+async function rafraichir() {
+  const b = $('#rafraichir');
+  if (b.classList.contains('tourne')) return;
+  b.classList.add('tourne'); b.setAttribute('aria-busy', 'true');
+  let r;
+  try { r = roleSynchro() && configNas().configuree ? await synchroniser() : { statut: 'pasConfiguree' }; } finally { b.classList.remove('tourne'); b.removeAttribute('aria-busy'); }
+  toast(texteRafraichir(r, resumeEtat()), r.statut === 'ok' ? 1600 : 3200);
 }
 
 let minuterie = null;
@@ -208,7 +249,11 @@ export function initSynchro() {
   document.body.classList.toggle('consultation', enConsultation());
   document.addEventListener('consultation-refus', () => toast('Consultation : les modifications se font sur le téléphone.', 2600));
   const regarder = () => { if (roleSynchro() && document.visibilityState !== 'hidden' && !nasRefuse()) synchroniser(); };
-  if (deuxSens()) { envoyeur.restaurerAttente(true); envoyeur.reprendre(4000); } // ouverture : recevoir et envoyer
+  if (deuxSens()) { envoyeur.restaurerAttente(true); envoyeur.reprendre(1500); } // ouverture : recevoir et envoyer (ce qui n'était pas parti aussi)
+  // R62 : app en arrière-plan ou fermée -> dernier envoi de ce qui attend
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') dernierEnvoi(); });
+  addEventListener('pagehide', () => dernierEnvoi());
+  $('#rafraichir').addEventListener('click', rafraichir);
   if (roleSynchro() === 'consultation') setTimeout(regarder, 2500);
   addEventListener('online', () => setTimeout(regarder, 1500));
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') setTimeout(regarder, 1000); });
@@ -230,8 +275,10 @@ export function majBandeaux() {
   const role = roleSynchro(), e = resumeEtat();
   const sb = $('#sync-bandeau');
   if (!sb) return;
-  const probleme = deuxSens() && (e.attente > 0 && (e.statut === 'horsLigne' || e.statut === 'injoignable' || !enLigne()) || e.statut === 'refuse');
+  // v0.26 (R62) : « N en attente d'envoi » reste visible tant que quelque chose n'est pas parti
+  const probleme = deuxSens() && (e.attente > 0 || e.statut === 'refuse');
   sb.hidden = !(role === 'consultation' || probleme);
+  sb.classList.toggle('discret', deuxSens());
   if (!sb.hidden) sb.textContent = role === 'consultation' ? `${resumeSynchroActuel()} · les modifications se font sur le téléphone ›` : `${resumeSynchroActuel()} ›`;
   const nc = e.conflits;
   $('#conflit-bandeau').hidden = !deuxSens() || !nc;

@@ -546,3 +546,23 @@ body{padding-top:env(safe-area-inset-top,0px)}
 /* v0.25 : tablette tactile (iPad, 768 px et plus) : onglets du bas assez hauts pour le doigt (48 px). Le téléphone
    (écran étroit) et le PC (souris) ne changent pas. */
 @media (pointer:coarse) and (min-width:700px){.tabs button{min-height:48px}#cancel{min-height:44px}}
+
+/* v0.26 (R61) : bouton « Rafraîchir » en haut à gauche du Carnet (à l'opposé de la loupe) ; l'icône tourne pendant la
+   synchro. (R62) : « N en attente d'envoi », discret, en haut du Carnet. */
+.rafraichir{position:absolute;left:0;top:50%;transform:translateY(-50%);width:44px;height:44px;border-radius:50%;border:1px solid var(--line);
+  background:var(--surface);display:grid;place-items:center;padding:0;color:var(--primary)}
+.rafraichir svg{width:24px;height:24px;fill:currentColor}
+.rafraichir.tourne svg{animation:tourne 1s linear infinite}
+@keyframes tourne{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.rafraichir.tourne svg{animation-duration:3s}}
+.sync-bandeau.discret{border:0;background:none;padding:6px 14px 0;font-size:13px;font-weight:600;color:var(--muted);text-align:center}
+
+/* v0.26 (R59) : fenêtre « Chercher une photo » plus claire */
+.phv .phtap{font-size:12px;font-weight:700;color:var(--primary);padding:0 6px 6px}
+.ph-psimg{position:relative;display:block}
+.ph-seule{position:absolute;left:8px;right:8px;bottom:8px;background:rgba(0,0,0,.72);color:#fff;font-size:13px;font-weight:700;border-radius:8px;padding:6px 8px;text-align:center}
+.ph-aucune{grid-column:1/-1;display:grid;gap:8px}
+.ph-fichier{position:relative;text-align:center;cursor:pointer}
+.ph-fichier input{position:absolute;opacity:0;width:1px;height:1px;pointer-events:none}
+/* v0.26 : la version se met à droite du bouton « Rafraîchir » (plus de chevauchement) */
+.hrow .ver{left:52px}
