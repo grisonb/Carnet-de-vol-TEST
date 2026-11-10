@@ -149,10 +149,13 @@ function colonneAuto() {
 }
 
 // ---------- Escales ----------
-let vmEdit = -1, VM = { attJour: 1, attNuit: 0 };
+// v0.27 (R63) : chaque terrain intermédiaire a ses approches ; le compteur « Appr » principal = celles de l'arrivée ;
+// le vol garde le TOTAL (vol.approches = arrivée + terrains intermédiaires : Totaux, PDF, CSV inchangés).
+const approchesEscales = escales => (escales || []).reduce((s, e) => s + (Number(e.approches) || 0), 0);
+let vmEdit = -1, VM = { attJour: 1, attNuit: 0, approches: 0 };
 function rendreEscales() {
   $('#via-list').innerHTML = F.escales.map((v, i) =>
-    `<button type="button" class="viachip${v.code ? '' : ' sans-code'}" data-vi="${i}">${v.code ? drapeau(terrain(v.code)?.pays) : ''}<b>${esc(v.code || 'Code ?')}</b> ${esc(terrain(v.code)?.nom || v.nom || '')} · ${v.attJour + v.attNuit} att.${v.attNuit ? ` (${v.attNuit} nuit)` : ''}</button>`).join('');
+    `<button type="button" class="viachip${v.code ? '' : ' sans-code'}" data-vi="${i}">${v.code ? drapeau(terrain(v.code)?.pays) : ''}<b>${esc(v.code || 'Code ?')}</b> ${esc(terrain(v.code)?.nom || v.nom || '')} · ${v.attJour + v.attNuit} att.${v.attNuit ? ` (${v.attNuit} nuit)` : ''}${v.approches ? ` · ${v.approches} appr.` : ''}</button>`).join('');
 }
 function nomVM() {
   const c = $('#vm-icao').value.toUpperCase();
@@ -162,9 +165,10 @@ function nomVM() {
 }
 function ouvrirEscale(i) {
   vmEdit = i;
-  const v = i >= 0 ? F.escales[i] : { code: '', attJour: 1, attNuit: 0 };
-  VM = { attJour: v.attJour, attNuit: v.attNuit };
+  const v = i >= 0 ? F.escales[i] : { code: '', attJour: 1, attNuit: 0, approches: 0 };
+  VM = { attJour: v.attJour, attNuit: v.attNuit, approches: Number(v.approches) || 0 };
   $('#vm-icao').value = v.code; $('#vm-attJour').textContent = VM.attJour; $('#vm-attNuit').textContent = VM.attNuit;
+  $('#vm-approches').textContent = VM.approches;
   nomVM();
   $('#vm-ok').textContent = i >= 0 ? 'Valider' : 'Ajouter';
   $('#vm-del').hidden = i < 0;
@@ -354,7 +358,8 @@ function recap() {
   const qui = $('#f-copi').value.trim();
   rows.push(['Nom du CdB', F.fonction === 'cdb' || F.fonction === 'inst' ? 'SELF' : (qui || 'à remplir')]);
   if (F.fonction !== 'copi' && champPersonneVisible(a, F.fonction)) rows.push([f.autre, qui || 'à remplir']);
-  if (F.s.approches) rows.push(['Approches', String(F.s.approches)]);
+  const totalAppr = F.s.approches + approchesEscales(F.escales);
+  if (totalAppr) rows.push(['Approches', F.escales.some(e => e.approches) ? `${totalAppr} (arrivée ${F.s.approches} + terrains intermédiaires ${totalAppr - F.s.approches})` : String(totalAppr)]);
   $('#rec-x').innerHTML = rows.map(r => `<div class="tline"><span>${esc(r[0])}</span><b class="rv">${esc(r[1])}</b></div>`).join('');
 }
 
@@ -401,7 +406,11 @@ function appliquerNpf(n, vol) {
   F.heuresInconnues = false;
   if (b.dep || !vol) $('#f-dep').value = b.dep;
   if (b.arr || !vol) $('#f-arr').value = b.arr;
-  if (b.escales.length || !vol) F.escales = b.escales;
+  if (b.escales.length || !vol) {
+    // R63 : NPF ne transmet pas d'approches ; celles déjà saisies sur le même terrain intermédiaire sont gardées
+    const avant = F.escales || [];
+    F.escales = b.escales.map((e, i) => ({ ...e, approches: avant[i] && avant[i].code === e.code ? Number(avant[i].approches) || 0 : 0 }));
+  }
   F.avionId = b.avion ? b.avion.id : null;
   if (vol) {
     const deja = F.lignes.filter(l => l.nouveauFeu).length;
@@ -441,10 +450,16 @@ export function ouvrirSaisie(vol, opts = {}) {
   const v = vol ? structuredClone(vol) : volVide();
   F = { vol: vol || null, mode: vol ? (vol.mode || 'loc') : 'loc', escales: (v.escales || []).map(e => ({ ...e })),
     avionId: v.avionId, etiquettes: [...(v.etiquettes || [])], fonction: v.fonction || 'cdb',
-    lignes: lignesPourSaisie(v), compteurs: { ...v.compteurs }, s: { approches: v.approches || 0, attJour: v.attJour, attNuit: v.attNuit },
+    lignes: lignesPourSaisie(v), compteurs: { ...v.compteurs }, s: { approches: Math.max(0, (v.approches || 0) - approchesEscales(v.escales)), attJour: v.attJour, attNuit: v.attNuit },
     ifr: !!v.regleIFR, bloc: v.tempsTotal || v.simTemps || 0, heuresInconnues: !!vol && !(vol.hDep && vol.hArr), charge: true, npf: null,
     arrPos: v.arriveePosition ? { ...v.arriveePosition } : null };
   $('#npf-zone').hidden = true;
+  // v0.27 (R64) : TOUTES les cases repartent de zéro (le formulaire sert à chaque vol : sans cela, « Temps IFR » et
+  // « Temps nuit » tapés dans le vol précédent restaient affichés, et étaient enregistrés avec le vol suivant)
+  for (const c of CHAMPS) $(c).value = '';
+  $('#c-ifr').value = hm(0); $('#c-nuit').value = hm(0); $('#c-col').value = hm(0); $('#c-fn').value = hm(0);
+  $('#f-bloc').textContent = hm(0); $('#f-j1').hidden = true;
+  $$('#v-saisie input.bad').forEach(el => el.classList.remove('bad'));
   majBoutonLF();
   $('#f-err').textContent = '';
   $('#ctr-panel').hidden = true; $('#ctr-open').setAttribute('aria-expanded', 'false');
@@ -579,7 +594,7 @@ async function enregistrer() {
   if (F.fonction === 'dc') { v.nomInstructeur = qui; v.nomCdB = qui; }
   if (F.fonction === 'inst') { v.nomEleve = qui; v.nomCdB = 'SELF'; }
   v.tempsNuit = nuit; v.tempsIFR = ifr; v.regleIFR = F.ifr;
-  v.approches = F.s.approches; v.attJour = F.s.attJour; v.attNuit = F.s.attNuit;
+  v.approches = F.s.approches + approchesEscales(F.escales); v.attJour = F.s.attJour; v.attNuit = F.s.attNuit; // R63 : total
   v.missions = F.lignes.map(l => l.t.trim()).filter(Boolean);
   v.feux = nbFeux();
   v.compteurs = { ...v.compteurs, ...F.compteurs };
@@ -659,7 +674,7 @@ export function initSaisie({ fermer }) {
   $('#vm-ok').addEventListener('click', () => {
     const c = $('#vm-icao').value.toUpperCase();
     if (c.length !== 4) { nomVM(); return; }
-    const v = { ...(vmEdit >= 0 ? F.escales[vmEdit] : {}), code: c, attJour: VM.attJour, attNuit: VM.attNuit };
+    const v = { ...(vmEdit >= 0 ? F.escales[vmEdit] : {}), code: c, attJour: VM.attJour, attNuit: VM.attNuit, approches: VM.approches };
     delete v.aVerifier;
     if (vmEdit >= 0) F.escales[vmEdit] = v; else F.escales.push(v);
     $('#via-modal').hidden = true; rendreEscales(); recalculer();

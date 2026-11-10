@@ -143,6 +143,9 @@ Pas d'étape de compilation : les fichiers du dépôt sont servis tels quels.
   synchroniser maintenant, `texteRafraichir` (synchro.js). Synchro : envoyeur regroupé sur 0,3 s ; `dernierEnvoi()` à
   visibilitychange hidden / pagehide (requete keepalive, 60 Ko au plus, depuis le carnet en mémoire) ; « N en attente
   d'envoi » (#sync-bandeau.discret) tant que quelque chose n'est pas parti.
+- v0.27 : `ouvrirSaisie` remet TOUTES les cases du formulaire à zéro avant de remplir (R64 : Temps IFR / nuit du vol
+  précédent repris et enregistrés). R63 : chaque escale a `approches` ; `vol.approches` reste le TOTAL (arrivée +
+  escales : PDF, CSV, synchro, sauvegardes inchangés) ; le compteur principal = total − escales (`approchesEscales`).
 - Photos d'Internet (v0.21, R34) : `js/photos-web.js` (Commons : catégorie « immat (aircraft) » puis titres ; Planespotters)
   et `js/ui/photo-web.js` (fenêtre #ph-modal). Commons : photo choisie gardée avec `photoCredit` {source, auteur, licence,
   licenceUrl, page, titre}, crédit affiché sous la photo (#fi-credit). Planespotters : AFFICHÉE seulement (ses règles
@@ -209,6 +212,7 @@ BOMBING et TRANSPORT s'excluent sur un vol. Suggestions de missions masquées : 
   WebKit sur ce PC (Ubuntu 26.04) : bibliothèques d'Ubuntu 24.04 décompressées dans ~/.cache/carnet-webkit-libs et
   reliées dans ~/.cache/ms-playwright/webkit-2104/minibrowser-wpe/sys/lib ; le test met PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS=1.
 - `node tests/navigateur/v026.mjs` : majuscules, bouton « Rafraîchir » (3 appareils), envoi dès l'enregistrement et à la fermeture (keepalive), fenêtre photo.
+- `node tests/navigateur/v027.mjs` : R64 formulaire propre (2 vols NPF à la suite, Nouveau vol après Enregistrer / Annuler / Ignorer) et R63 approches par terrain intermédiaire (PDF, CSV, sauvegarde, synchro, iPad).
 - `node tests/navigateur/v024.mjs` : synchro dans les deux sens (passage en modification, conflits et 3 choix, doublon, NPF, hors ligne, >20 suppressions, annuler, mot de passe refusé).
 - `node tests/navigateur/fluidite.mjs` : 4070 vols inventés, processeur ralenti ×6.
 - `node outils/controle-import.mjs ../donnees-privees/flylog-decode-v1.csv ../donnees-privees/totaux-flylog-reference.json` :

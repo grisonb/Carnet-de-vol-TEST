@@ -1,5 +1,29 @@
 # Journal des versions
 
+## v0.27 — 10/11/2026
+
+Remarques R63 et R64. carnet.php v5 et format NPF (carnet-vol-npf v2) inchangés ; NAS et VPS non touchés.
+
+**R64 (bug corrigé) : valeurs reprises d'un vol au suivant**
+- Cause : le formulaire de saisie sert à chaque vol ; à l'ouverture d'un nouveau vol ou d'un brouillon NPF-Q400, les
+  cases « Temps IFR » (en VFR) et « Temps nuit » (heures pas encore complètes) n'étaient pas remises à zéro : elles
+  gardaient la valeur tapée dans le vol précédent, et l'enregistrement la reprenait.
+- Correction : à chaque ouverture, toutes les cases repartent de zéro, puis le vol (ou le brouillon) les remplit.
+  Les valeurs reprises volontairement du dernier vol enregistré ne changent pas (terrains R46/R58, avion, étiquettes,
+  copilote, LOC/UTC).
+
+**R63 : approches par terrain intermédiaire**
+- Chaque terrain intermédiaire a son compteur « Appr » (– / +), à côté de ses atterrissages ; il s'affiche sur le terrain
+  (« · 2 appr. »). Le compteur « Appr » principal = l'arrivée seulement ; le récapitulatif donne le total.
+- Le vol garde le total (arrivée + terrains intermédiaires) : PDF et CSV le comptent ; vols existants inchangés (leurs
+  approches restent sur l'arrivée) ; import NPF-Q400 : 0 sur les terrains intermédiaires (celles déjà saisies sont
+  gardées lors d'une mise à jour) ; sauvegarde, restauration, copie NAS et synchro : sans perte ; ancienne sauvegarde
+  relue normalement.
+
+**Tests**
+- `tests/unitaires/v027.test.js`, `tests/navigateur/v027.mjs` (téléphone, PC, iPad WebKit, faux NAS v5, captures ; le
+  test R64 échoue sur la v0.26 et passe en v0.27) ; tous les tests existants ; contrôle FlyLog local.
+
 ## v0.26 — 09/11/2026
 
 Remarques R59 à R62. carnet.php v5 inchangé ; NAS et VPS non touchés.
