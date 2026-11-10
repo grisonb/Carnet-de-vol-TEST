@@ -584,3 +584,12 @@ body{padding-top:env(safe-area-inset-top,0px)}
 .save{bottom:calc(78px + env(safe-area-inset-bottom,0px))}
 .topbtn{bottom:calc(80px + env(safe-area-inset-bottom,0px))}
 body{padding-bottom:104px}
+
+/* v0.30 (R69) : libellés des compteurs de la saisie plus lisibles (Feux, compteurs choisis, Appr, Att. Jour / Nuit,
+   terrains intermédiaires) : couleur du texte, gras 600, 17 px ; un libellé long passe à la ligne, les boutons – / + gardent leur taille */
+.step>span:first-child,.mlbl{color:var(--ink);font-weight:600;font-size:17px;line-height:1.25;min-width:0;overflow-wrap:anywhere}
+.step>span:first-child{flex:1 1 auto}
+.step .ctl{flex:none}
+.step small.hint{font-size:14px;font-weight:500;color:#3b4a5a}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .step small.hint{color:#c3cfdb}}
+:root[data-theme="dark"] .step small.hint{color:#c3cfdb}

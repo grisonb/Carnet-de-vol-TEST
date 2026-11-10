@@ -1,5 +1,21 @@
 # Journal des versions
 
+## v0.30 — 10/11/2026
+
+Remarque R69. carnet.php v5 et format NPF (carnet-vol-npf v2) inchangés ; NAS et VPS non touchés.
+
+**R69 : libellés des compteurs plus lisibles**
+- Saisie d'un vol : les libellés de tous les compteurs (Feux, Largages et autres compteurs choisis, Appr, Att. Jour,
+  Att. Nuit, ainsi que Règles, Temps IFR et Temps nuit dans le même bloc, et les compteurs de la fenêtre Terrain
+  intermédiaire) sont de la couleur du texte (comme les valeurs), en gras 600, en 17 px.
+- Le complément « (n°54) » est en 14 px gris foncé, plus discret mais lisible.
+- Un libellé long passe à la ligne ; les boutons – / + gardent leur taille et leur place.
+- Thème sombre : texte clair, même lisibilité.
+
+**Tests**
+- `tests/navigateur/v030.mjs` (taille, graisse, couleur et contraste en clair et en sombre ; libellé long à 360 px ;
+  téléphone 390 px, PC, iPad WebKit ; captures) ; tous les tests existants ; contrôle FlyLog local.
+
 ## v0.29 — 10/11/2026
 
 Remarque R68. carnet.php v5 et format NPF (carnet-vol-npf v2) inchangés ; NAS et VPS non touchés.
