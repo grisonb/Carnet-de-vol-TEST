@@ -146,6 +146,10 @@ Pas d'étape de compilation : les fichiers du dépôt sont servis tels quels.
 - v0.27 : `ouvrirSaisie` remet TOUTES les cases du formulaire à zéro avant de remplir (R64 : Temps IFR / nuit du vol
   précédent repris et enregistrés). R63 : chaque escale a `approches` ; `vol.approches` reste le TOTAL (arrivée +
   escales : PDF, CSV, synchro, sauvegardes inchangés) ; le compteur principal = total − escales (`approchesEscales`).
+- v0.28 : carte du Carnet : étiquette `.chip.appr` « N appr. » (total) après l'IFR (R65) ; temps de vol dans une pastille
+  `.fl-bloc.t-feu|feu2|mi|ifr|sable` (`couleurTemps` dans js/ui/carnet.js : feu > Entraînement > IFR > sable, mêmes règles
+  et mêmes couleurs CSS que les étiquettes) (R66). Plus de bouton flottant : `#fab` = « + » rond vert dans `.tabs`, à droite
+  de « Plus » (actif depuis toutes les vues ; saisie modifiée : « Abandonner la saisie ? » puis nouveau vol, `apresAbandon`) (R67).
 - Photos d'Internet (v0.21, R34) : `js/photos-web.js` (Commons : catégorie « immat (aircraft) » puis titres ; Planespotters)
   et `js/ui/photo-web.js` (fenêtre #ph-modal). Commons : photo choisie gardée avec `photoCredit` {source, auteur, licence,
   licenceUrl, page, titre}, crédit affiché sous la photo (#fi-credit). Planespotters : AFFICHÉE seulement (ses règles
@@ -213,6 +217,7 @@ BOMBING et TRANSPORT s'excluent sur un vol. Suggestions de missions masquées : 
   reliées dans ~/.cache/ms-playwright/webkit-2104/minibrowser-wpe/sys/lib ; le test met PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS=1.
 - `node tests/navigateur/v026.mjs` : majuscules, bouton « Rafraîchir » (3 appareils), envoi dès l'enregistrement et à la fermeture (keepalive), fenêtre photo.
 - `node tests/navigateur/v027.mjs` : R64 formulaire propre (2 vols NPF à la suite, Nouveau vol après Enregistrer / Annuler / Ignorer) et R63 approches par terrain intermédiaire (PDF, CSV, sauvegarde, synchro, iPad).
+- `node tests/navigateur/v028.mjs` : étiquette « N appr. », pastille du temps (couleurs = étiquettes, route longue sans chevauchement), « + » de la barre du bas (19 px, 360 px, garde d'abandon, Enregistrer non recouvert), téléphone, PC, iPad paysage et portrait.
 - `node tests/navigateur/v024.mjs` : synchro dans les deux sens (passage en modification, conflits et 3 choix, doublon, NPF, hors ligne, >20 suppressions, annuler, mot de passe refusé).
 - `node tests/navigateur/fluidite.mjs` : 4070 vols inventés, processeur ralenti ×6.
 - `node outils/controle-import.mjs ../donnees-privees/flylog-decode-v1.csv ../donnees-privees/totaux-flylog-reference.json` :

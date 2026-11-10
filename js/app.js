@@ -24,8 +24,7 @@ function montrer(v) {
   if (vue === 'carnet' && v !== 'carnet') memoriserPlace(); // la liste garde sa place (v0.13)
   vue = v;
   for (const k of ['carnet', 'saisie', 'totaux', 'plus']) $('#v-' + k).hidden = k !== v;
-  $$('.tabs button').forEach(b => (b.dataset.v === v ? b.setAttribute('aria-current', 'page') : b.removeAttribute('aria-current')));
-  $('#fab').hidden = v !== 'carnet';
+  $$('.tabs button[data-v]').forEach(b => (b.dataset.v === v ? b.setAttribute('aria-current', 'page') : b.removeAttribute('aria-current')));
   if (v !== 'carnet') $('#top-btn').hidden = true;
   if (aRafraichir.has(v)) {
     aRafraichir.delete(v);
@@ -53,17 +52,29 @@ async function demarrer() {
   initRegles();
   initTerrainPerso();
   initCarte();
-  initRetour({ vue: () => vue, montrer, saisieModifiee, abandonnerSaisie });
+  // « Abandonner la saisie ? » : après « Abandonner », le « + » ouvre ensuite le nouveau vol (v0.28)
+  let apresAbandon = null;
+  initRetour({ vue: () => vue, montrer, saisieModifiee, abandonnerSaisie: () => {
+    abandonnerSaisie();
+    const f = apresAbandon; apresAbandon = null;
+    if (f) f();
+  } });
+  $('#ab-no').addEventListener('click', () => { apresAbandon = null; });
   // Vols envoyés par NPF-Q400 : brouillon dans la saisie (vol = vol déjà enregistré avec le même id, ou null)
   initNpf({ ouvrir: (n, vol) => { memoriserPlace(); ouvrirSaisie(vol, { npf: n }); montrer('saisie'); } });
   // Appui long : pas de menu « copier / partager » hors des champs de saisie (R28)
   document.addEventListener('contextmenu', e => { if (!e.target.closest('input, textarea, select, [contenteditable]')) e.preventDefault(); });
   // Onglet Carnet touché alors qu'on y est déjà : retour au dernier vol (en haut)
-  $$('.tabs button').forEach(b => b.addEventListener('click', () => {
+  $$('.tabs button[data-v]').forEach(b => b.addEventListener('click', () => {
     if (b.dataset.v === 'carnet' && vue === 'carnet') return allerAuDernierVol();
     montrer(b.dataset.v);
   }));
-  $('#fab').addEventListener('click', () => { memoriserPlace(); oublierPlace(); ouvrirVol(null); }); // nouveau vol : retour en haut
+  // v0.28 (R67) : « + » de la barre du bas, depuis Carnet, Totaux ou Plus ; saisie en cours modifiée : on demande d'abord
+  $('#fab').addEventListener('click', () => {
+    const nouveau = () => { if (vue === 'carnet') memoriserPlace(); oublierPlace(); ouvrirVol(null); }; // nouveau vol : retour en haut
+    if (vue === 'saisie' && saisieModifiee()) { apresAbandon = nouveau; $('#ab-modal').hidden = false; return; }
+    nouveau();
+  });
 
   try {
     await Promise.all([charger(), chargerTerrains()]);

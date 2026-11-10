@@ -64,7 +64,8 @@ async function appareil(nom, moteur, options, nasConfig = true) {
   await ctx.route('**/*', r => { if (new URL(r.request().url()).hostname === '127.0.0.1') return r.continue(); bloquees.push(r.request().url()); return r.abort(); });
   await ctx.addInitScript(() => { globalThis.CARNET_SERVEUR_TRACES = 'http://127.0.0.1:9/'; globalThis.CARNET_TUILES = 'http://127.0.0.1:9/{z}/{x}/{y}.png'; });
   const p = await ctx.newPage();
-  p.on('pageerror', e => erreurs.push(`${nom} : ${e.message}`));
+  // WebKit sans écran : la vérification du service worker (sw.js) peut échouer quand le serveur de test se ferme ; ce n'est pas une erreur de l'app
+  p.on('pageerror', e => { if (!/sw\.js due to access control checks/.test(e.message)) erreurs.push(`${nom} : ${e.message}`); });
   p.on('console', m => { if (m.type() === 'error' && !/Failed to load resource|ERR_|net::|CORS|Access-Control|access control/i.test(m.text())) erreurs.push(`${nom} : ${m.text()}`); });
   await p.goto(srv.url); await p.waitForSelector('body[data-pret="1"]');
   await p.evaluate(async ([a, url, mdp, nasConfig]) => {

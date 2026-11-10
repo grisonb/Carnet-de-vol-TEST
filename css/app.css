@@ -43,8 +43,8 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
 .flag{display:inline-block;width:20px;height:14px;border-radius:2px;vertical-align:-1px;background:linear-gradient(90deg,#1f3f9a 0 33.3%,#fff 33.3% 66.6%,#d6282f 66.6%);box-shadow:0 0 0 1px var(--line);margin:0 6px}
 .chip{font-size:13px;padding:4px 9px;border-radius:999px;background:var(--surface2);border:1px solid var(--line);white-space:nowrap}
-.chip.feu2{border-color:var(--feu);color:var(--feu);background:none;font-weight:600}
-.chip.feu{background:var(--feu-soft);border-color:transparent;color:var(--feu);font-weight:600}
+.chip.feu2,.fl-bloc.t-feu2{border-color:var(--feu);color:var(--feu);background:none;font-weight:600}
+.chip.feu,.fl-bloc.t-feu{background:var(--feu-soft);border-color:transparent;color:var(--feu);font-weight:600}
 .chip.hl{background:var(--hl-soft);border-color:transparent;font-weight:600}
 .fl-rem{margin-top:8px;font-size:14px}
 /* barre d'onglets */
@@ -53,8 +53,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .tabs div{display:grid;grid-template-columns:repeat(3,1fr);width:100%;max-width:480px}
 .tabs button{background:none;border:0;padding:8px 4px;border-radius:10px;font-size:14px;font-weight:600;color:var(--muted)}
 .tabs button[aria-current="page"]{color:var(--primary);background:var(--surface2)}
-.fab{position:fixed;right:max(16px,calc(env(safe-area-inset-right,0px) + 16px));bottom:calc(76px + env(safe-area-inset-bottom,0px));
-  background:var(--primary);color:var(--primary-ink);border:0;border-radius:16px;padding:14px 18px;font-weight:600;font-size:16px;box-shadow:0 6px 18px rgba(0,0,0,.18);z-index:6}
+.fab{border:0;padding:0}
 /* saisie */
 .formhead{display:flex;justify-content:space-between;align-items:center;padding:14px 0 6px;gap:8px}
 .ghost{background:none;border:1px solid var(--line);border-radius:10px;padding:8px 12px}
@@ -217,7 +216,7 @@ svg.flag{background:none;flex:none;display:inline-block;width:20px;height:14px;b
 .ap-inline svg.flag{margin-right:4px}
 .flight{color:var(--ink);font:inherit}
 .fl-meta{overflow-wrap:anywhere}
-.chip.feu2{background:none}
+.chip.feu2,.fl-bloc.t-feu2{background:none}
 .save[disabled]{opacity:.6}
 .tot .tline small{display:block;color:var(--muted);font-size:13px}
 .tot .tline b small{display:inline;font-family:var(--f-body);font-weight:500;font-size:13px;color:var(--muted)}
@@ -256,8 +255,8 @@ select{font:inherit}
 .month{margin:12px 4px 6px}
 /* Pastilles des vols en couleur */
 .chip.fn{background:#efe8f6;border-color:transparent;color:#6a3d9a;font-weight:600}
-.chip.mi{background:#fdeedd;border-color:transparent;color:#a04d00;font-weight:600}
-.chip.ifr{background:#e6eef7;border-color:transparent;color:#1f4e79;font-weight:600}
+.chip.mi,.fl-bloc.t-mi{background:#fdeedd;border-color:transparent;color:#a04d00;font-weight:600}
+.chip.ifr,.fl-bloc.t-ifr{background:#e6eef7;border-color:transparent;color:#1f4e79;font-weight:600}
 .chip.nuit{background:#263238;border-color:transparent;color:#fff;font-weight:600}
 /* Saisie : date étroite + LOC/UTC sur la même ligne */
 .datein{width:150px;padding:7px 8px;border-radius:10px;border:1px solid var(--line);background:var(--surface2);color:var(--ink);font:inherit;font-weight:600}
@@ -324,14 +323,14 @@ svg.ip{width:20px;height:20px;fill:currentColor;display:block;margin:auto}
   :root:not([data-theme="light"]) .c-vol{--primary:#6ea8e0;--tint:#1a2a3c}:root:not([data-theme="light"]) .c-av{--primary:#4db6ac;--tint:#15302d}
   :root:not([data-theme="light"]) .c-fn{--primary:#b39ddb;--tint:#2a2236}:root:not([data-theme="light"]) .c-mi{--primary:#ffa04d;--tint:#38281a}
   :root:not([data-theme="light"]) .c-tp{--primary:#81c784;--tint:#1c2f1d}:root:not([data-theme="light"]) .c-rq{--primary:#90a4ae;--tint:#232c31}
-  :root:not([data-theme="light"]) .chip.fn{background:#2a2236;color:#b39ddb}:root:not([data-theme="light"]) .chip.mi{background:#38281a;color:#ffa04d}
-  :root:not([data-theme="light"]) .chip.ifr{background:#1a2a3c;color:#6ea8e0}:root:not([data-theme="light"]) .chip.nuit{background:#000;color:#cfd8dc}
+  :root:not([data-theme="light"]) .chip.fn{background:#2a2236;color:#b39ddb}:root:not([data-theme="light"]) .chip.mi,:root:not([data-theme="light"]) .fl-bloc.t-mi{background:#38281a;color:#ffa04d}
+  :root:not([data-theme="light"]) .chip.ifr,:root:not([data-theme="light"]) .fl-bloc.t-ifr{background:#1a2a3c;color:#6ea8e0}:root:not([data-theme="light"]) .chip.nuit{background:#000;color:#cfd8dc}
 }
 :root[data-theme="dark"] .c-vol{--primary:#6ea8e0;--tint:#1a2a3c}:root[data-theme="dark"] .c-av{--primary:#4db6ac;--tint:#15302d}
 :root[data-theme="dark"] .c-fn{--primary:#b39ddb;--tint:#2a2236}:root[data-theme="dark"] .c-mi{--primary:#ffa04d;--tint:#38281a}
 :root[data-theme="dark"] .c-tp{--primary:#81c784;--tint:#1c2f1d}:root[data-theme="dark"] .c-rq{--primary:#90a4ae;--tint:#232c31}
-:root[data-theme="dark"] .chip.fn{background:#2a2236;color:#b39ddb}:root[data-theme="dark"] .chip.mi{background:#38281a;color:#ffa04d}
-:root[data-theme="dark"] .chip.ifr{background:#1a2a3c;color:#6ea8e0}:root[data-theme="dark"] .chip.nuit{background:#000;color:#cfd8dc}
+:root[data-theme="dark"] .chip.fn{background:#2a2236;color:#b39ddb}:root[data-theme="dark"] .chip.mi,:root[data-theme="dark"] .fl-bloc.t-mi{background:#38281a;color:#ffa04d}
+:root[data-theme="dark"] .chip.ifr,:root[data-theme="dark"] .fl-bloc.t-ifr{background:#1a2a3c;color:#6ea8e0}:root[data-theme="dark"] .chip.nuit{background:#000;color:#cfd8dc}
 .sfab .main{width:42px;height:42px;border-radius:50%;padding:0;display:grid;place-items:center}
 #fiche.ro input::placeholder{color:transparent}
 
@@ -566,3 +565,22 @@ body{padding-top:env(safe-area-inset-top,0px)}
 .ph-fichier input{position:absolute;opacity:0;width:1px;height:1px;pointer-events:none}
 /* v0.26 : la version se met à droite du bouton « Rafraîchir » (plus de chevauchement) */
 .hrow .ver{left:52px}
+
+/* v0.28 (R65) : étiquette « N appr. » (vert-de-gris clair) */
+.chip.appr{background:#e2f2ee;border-color:transparent;color:#1f6656;font-weight:600}
+/* v0.28 (R66) : temps de vol dans une pastille de la couleur du type de vol (feu, entraînement, IFR, sinon sable) */
+.fl-top{align-items:flex-start}
+.fl-top .fl-bloc{flex:none;border:1px solid transparent;font-family:var(--f-num);font-weight:800;font-size:25px;line-height:1.2;padding:4px 12px;border-radius:12px;
+  white-space:nowrap;font-variant-numeric:tabular-nums}
+.fl-bloc.t-sable{background:#efe6d3;border-color:transparent;color:#3a2f1a}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .chip.appr{background:#183a33;color:#7fd1bd}:root:not([data-theme="light"]) .fl-bloc.t-sable{background:#3a3226;color:#efe2c4}}
+:root[data-theme="dark"] .chip.appr{background:#183a33;color:#7fd1bd}:root[data-theme="dark"] .fl-bloc.t-sable{background:#3a3226;color:#efe2c4}
+/* v0.28 (R67) : barre du bas plus lisible (19 px, une ligne) + « + » vert rond (nouveau vol) à droite de « Plus » */
+.tabs div{grid-template-columns:repeat(3,minmax(0,1fr)) 64px;align-items:center}
+.tabs button[data-v]{font-size:19px;font-weight:700;white-space:nowrap;padding:10px 2px}
+.tabs .fab{justify-self:center;width:52px;height:52px;border-radius:50%;background:var(--vert-fond);display:grid;place-items:center;
+  box-shadow:0 2px 6px rgba(0,0,0,.25)}
+.tabs .fab svg{width:26px;height:26px;fill:none;stroke:#fff;stroke-width:3;stroke-linecap:round}
+.save{bottom:calc(78px + env(safe-area-inset-bottom,0px))}
+.topbtn{bottom:calc(80px + env(safe-area-inset-bottom,0px))}
+body{padding-bottom:104px}

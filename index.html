@@ -220,12 +220,13 @@
   </section>
 </div>
 
-<button class="fab" id="fab" type="button">+ Nouveau vol</button>
 <button class="topbtn" id="top-btn" type="button" hidden aria-label="Revenir au dernier vol">↑ Dernier vol</button>
 <nav class="tabs" aria-label="Navigation"><div>
   <button type="button" data-v="carnet" aria-current="page">Carnet</button>
   <button type="button" data-v="totaux">Totaux</button>
   <button type="button" data-v="plus">Plus</button>
+  <!-- v0.28 (R67) : nouveau vol (« + » dessiné par l'app), à droite de « Plus » -->
+  <button type="button" class="fab" id="fab" aria-label="Nouveau vol"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
 </div></nav>
 <div class="toast" id="toast" role="status" hidden></div>
 

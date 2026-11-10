@@ -57,6 +57,16 @@ export function dateAffichee(v) {
   return v.date;
 }
 
+// v0.28 (R66) : couleur de la pastille du temps de vol = couleur de l'étiquette qui donne le type du vol, avec les
+// MÊMES règles que les étiquettes de la carte : feu (pastilleFeu : plein ou contour), puis Entraînement (règle de
+// pastille « Entraînement », par défaut les missions qui commencent par « ENT. »), puis IFR (temps IFR), sinon sable.
+export function couleurTemps(feu, regles, v) {
+  if (feu) return feu.plein ? 'feu' : 'feu2';
+  if (regles.some(p => p.toUpperCase() === 'ENTRAÎNEMENT')) return 'mi';
+  if (v.tempsIFR) return 'ifr';
+  return 'sable';
+}
+
 export function carteVol(v, voir = false) {
   const a = avionDe(v);
   const esc0 = (v.escales || []).map(e => e.code || e.nom || '?');
@@ -77,7 +87,8 @@ export function carteVol(v, voir = false) {
   if (autre && autre !== 'SELF') puces.push(`<span class="chip fn">${esc(f.puceAutre)} ${esc(autre)}</span>`);
   const feu = pastilleFeu(v);
   if (feu) puces.push(`<span class="chip ${feu.plein ? 'feu' : 'feu2'}">${esc(feu.texte)}</span>`);
-  for (const p of pastillesRegles(v, reglage('regles'))) puces.push(`<span class="chip mi">${esc(p)}</span>`);
+  const regles = pastillesRegles(v, reglage('regles'));
+  for (const p of regles) puces.push(`<span class="chip mi">${esc(p)}</span>`);
   for (const c of COMPTEURS) {
     const n = v.compteurs && v.compteurs[c.cle];
     if (n) puces.push(`<span class="chip hl">${n} ${esc(c.court)}</span>`);
@@ -85,12 +96,14 @@ export function carteVol(v, voir = false) {
   const att = (v.attJour || 0) + (v.attNuit || 0);
   if (att) puces.push(`<span class="chip">${att} att.</span>`);
   if (v.tempsIFR) puces.push(`<span class="chip ifr">IFR ${hm(v.tempsIFR)}</span>`);
+  // v0.28 (R65) : approches du vol (total : arrivée + terrains intermédiaires), juste après l'IFR
+  if (v.approches > 0) puces.push(`<span class="chip appr">${v.approches} appr.</span>`);
   if (v.tempsNuit) puces.push(`<span class="chip nuit">Nuit ${hm(v.tempsNuit)}</span>`);
   const mission = texteMissions(v);
   const duree = v.tempsTotal || v.simTemps || 0;
   // la carte se glisse vers la gauche pour faire apparaître « Supprimer » (avec confirmation)
   return `<div class="swrow flrow"><button type="button" class="swdel" data-fdel="${esc(v.id)}" tabindex="-1">Supprimer</button><button type="button" class="flight swfront" data-id="${esc(v.id)}">
-    <div class="fl-top"><span class="fl-route${taille}">${route}</span><span class="fl-bloc">${hm(duree)}</span></div>
+    <div class="fl-top"><span class="fl-route${taille}">${route}</span><span class="fl-bloc t-${couleurTemps(feu, regles, v)}">${hm(duree)}</span></div>
     <div class="fl-id">${ligne}</div>
     <div class="fl-meta num">${esc(ligneHeures(v))}</div>
     <div class="chips">${puces.join('')}</div>

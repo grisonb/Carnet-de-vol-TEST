@@ -1,5 +1,29 @@
 # Journal des versions
 
+## v0.28 — 10/11/2026
+
+Remarques R65 à R67 (maquette validée). carnet.php v5 et format NPF (carnet-vol-npf v2) inchangés ; NAS et VPS non touchés.
+
+**R65 : approches sur la carte du vol**
+- Étiquette « N appr. » (total : arrivée + terrains intermédiaires), juste après l'IFR (ou à sa place sans IFR), seulement
+  s'il y a au moins une approche ; couleur vert-de-gris.
+
+**R66 : temps de vol en pastille**
+- Le temps de vol est dans une pastille arrondie, en gras, un peu plus grand, en haut à droite de la carte.
+- Sa couleur est celle de l'étiquette qui donne le type du vol, avec les mêmes règles : feu (plein ou contour), puis
+  Entraînement, puis IFR, sinon sable. Une route longue passe à la ligne sans chevaucher la pastille.
+
+**R67 : nouveau vol depuis la barre du bas**
+- Le bouton flottant « + Nouveau vol » est remplacé par un « + » blanc dans une bulle verte, à droite de « Plus » ; il
+  marche depuis Carnet, Totaux et Plus ; pendant une saisie modifiée, il demande « Abandonner la saisie ? ».
+- « Carnet / Totaux / Plus » plus grands (19 px), sur une ligne même à 360 px ; « Enregistrer le vol » ne recouvre plus
+  la barre ; marge du bas de l'iPhone et de l'iPad respectée.
+
+**Tests**
+- `tests/navigateur/v028.mjs` (téléphone 390 et 360 px, PC, iPad WebKit paysage et portrait, captures) ; tous les
+  tests existants (ceux qui cliquaient « + Nouveau vol » passent par le « + ») ; contrôle FlyLog local ; fluidité de la
+  liste avec le vrai carnet comparée à la v0.27.
+
 ## v0.27 — 10/11/2026
 
 Remarques R63 et R64. carnet.php v5 et format NPF (carnet-vol-npf v2) inchangés ; NAS et VPS non touchés.
