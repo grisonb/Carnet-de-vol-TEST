@@ -58,10 +58,10 @@ export function dateAffichee(v) {
 }
 
 // v0.28 (R66) : couleur de la pastille du temps de vol = couleur de l'étiquette qui donne le type du vol, avec les
-// MÊMES règles que les étiquettes de la carte : feu (pastilleFeu : plein ou contour), puis Entraînement (règle de
+// MÊMES règles que les étiquettes de la carte : feu (pastilleFeu), puis Entraînement (règle de
 // pastille « Entraînement », par défaut les missions qui commencent par « ENT. »), puis IFR (temps IFR), sinon sable.
 export function couleurTemps(feu, regles, v) {
-  if (feu) return feu.plein ? 'feu' : 'feu2';
+  if (feu) return 'feu'; // v0.29 (R68) : TOUT vol feu (« Feu n°… » plein ou « Feu » en contour) : pastille pleine, couleur « Feu n°… »
   if (regles.some(p => p.toUpperCase() === 'ENTRAÎNEMENT')) return 'mi';
   if (v.tempsIFR) return 'ifr';
   return 'sable';

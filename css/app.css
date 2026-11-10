@@ -43,7 +43,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
 .flag{display:inline-block;width:20px;height:14px;border-radius:2px;vertical-align:-1px;background:linear-gradient(90deg,#1f3f9a 0 33.3%,#fff 33.3% 66.6%,#d6282f 66.6%);box-shadow:0 0 0 1px var(--line);margin:0 6px}
 .chip{font-size:13px;padding:4px 9px;border-radius:999px;background:var(--surface2);border:1px solid var(--line);white-space:nowrap}
-.chip.feu2,.fl-bloc.t-feu2{border-color:var(--feu);color:var(--feu);background:none;font-weight:600}
+.chip.feu2{border-color:var(--feu);color:var(--feu);background:none;font-weight:600}
 .chip.feu,.fl-bloc.t-feu{background:var(--feu-soft);border-color:transparent;color:var(--feu);font-weight:600}
 .chip.hl{background:var(--hl-soft);border-color:transparent;font-weight:600}
 .fl-rem{margin-top:8px;font-size:14px}
@@ -216,7 +216,7 @@ svg.flag{background:none;flex:none;display:inline-block;width:20px;height:14px;b
 .ap-inline svg.flag{margin-right:4px}
 .flight{color:var(--ink);font:inherit}
 .fl-meta{overflow-wrap:anywhere}
-.chip.feu2,.fl-bloc.t-feu2{background:none}
+.chip.feu2{background:none}
 .save[disabled]{opacity:.6}
 .tot .tline small{display:block;color:var(--muted);font-size:13px}
 .tot .tline b small{display:inline;font-family:var(--f-body);font-weight:500;font-size:13px;color:var(--muted)}

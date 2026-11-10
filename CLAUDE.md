@@ -150,6 +150,7 @@ Pas d'étape de compilation : les fichiers du dépôt sont servis tels quels.
   `.fl-bloc.t-feu|feu2|mi|ifr|sable` (`couleurTemps` dans js/ui/carnet.js : feu > Entraînement > IFR > sable, mêmes règles
   et mêmes couleurs CSS que les étiquettes) (R66). Plus de bouton flottant : `#fab` = « + » rond vert dans `.tabs`, à droite
   de « Plus » (actif depuis toutes les vues ; saisie modifiée : « Abandonner la saisie ? » puis nouveau vol, `apresAbandon`) (R67).
+- v0.29 (R68) : `couleurTemps` rend `feu` pour TOUT vol feu (plus de pastille `t-feu2` en contour) ; l'étiquette `.chip.feu2` reste en contour.
 - Photos d'Internet (v0.21, R34) : `js/photos-web.js` (Commons : catégorie « immat (aircraft) » puis titres ; Planespotters)
   et `js/ui/photo-web.js` (fenêtre #ph-modal). Commons : photo choisie gardée avec `photoCredit` {source, auteur, licence,
   licenceUrl, page, titre}, crédit affiché sous la photo (#fi-credit). Planespotters : AFFICHÉE seulement (ses règles
@@ -218,6 +219,7 @@ BOMBING et TRANSPORT s'excluent sur un vol. Suggestions de missions masquées : 
 - `node tests/navigateur/v026.mjs` : majuscules, bouton « Rafraîchir » (3 appareils), envoi dès l'enregistrement et à la fermeture (keepalive), fenêtre photo.
 - `node tests/navigateur/v027.mjs` : R64 formulaire propre (2 vols NPF à la suite, Nouveau vol après Enregistrer / Annuler / Ignorer) et R63 approches par terrain intermédiaire (PDF, CSV, sauvegarde, synchro, iPad).
 - `node tests/navigateur/v028.mjs` : étiquette « N appr. », pastille du temps (couleurs = étiquettes, route longue sans chevauchement), « + » de la barre du bas (19 px, 360 px, garde d'abandon, Enregistrer non recouvert), téléphone, PC, iPad paysage et portrait.
+- `node tests/navigateur/v029.mjs` : pastille du temps pleine (couleur « Feu n°… ») pour tout vol feu, « Feu » repris compris, en clair et en sombre (téléphone, PC, iPad).
 - `node tests/navigateur/v024.mjs` : synchro dans les deux sens (passage en modification, conflits et 3 choix, doublon, NPF, hors ligne, >20 suppressions, annuler, mot de passe refusé).
 - `node tests/navigateur/fluidite.mjs` : 4070 vols inventés, processeur ralenti ×6.
 - `node outils/controle-import.mjs ../donnees-privees/flylog-decode-v1.csv ../donnees-privees/totaux-flylog-reference.json` :

@@ -1,5 +1,18 @@
 # Journal des versions
 
+## v0.29 — 10/11/2026
+
+Remarque R68. carnet.php v5 et format NPF (carnet-vol-npf v2) inchangés ; NAS et VPS non touchés.
+
+**R68 : pastille du temps de vol des vols feu**
+- Pour tout vol feu, avec l'étiquette « Feu n°… » (pleine) ou « Feu » (en contour, feu repris), la pastille du temps de
+  vol est pleine, exactement de la couleur de l'étiquette « Feu n°… », en clair comme en sombre.
+- L'étiquette « Feu » ne change pas (en contour). Ordre des couleurs inchangé : feu, puis entraînement, puis IFR, sinon sable.
+
+**Tests**
+- `tests/navigateur/v029.mjs` (téléphone 390 px clair et sombre, PC, iPad WebKit, captures) ; tous les tests existants ;
+  contrôle FlyLog local.
+
 ## v0.28 — 10/11/2026
 
 Remarques R65 à R67 (maquette validée). carnet.php v5 et format NPF (carnet-vol-npf v2) inchangés ; NAS et VPS non touchés.
