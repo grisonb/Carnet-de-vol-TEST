@@ -13,7 +13,7 @@ import { versLocal, versUTC } from '../fuseaux.js';
 import { terrain, fuseau } from '../terrains.js';
 import { drapeau } from '../drapeaux.js';
 import { minutesDeNuit, estNuit } from '../nuit.js';
-import { plusGrandFeu, ajouterFeu, enleverFeu, lignesPourSaisie, estLigneFeu, normaliser, estMasquee,
+import { plusGrandFeu, ajouterFeu, enleverFeu, lignesPourSaisie, estLigneFeu, normaliser, estMasquee, numeroFeu,
   masquerSuggestion, remettreSuggestion } from '../missions.js';
 import { activerGlisser } from './glisser.js';
 import { initAvions } from './avions.js';
@@ -83,9 +83,27 @@ function champHeure(sel, suivant) {
     const d = el.value.replace(/\D/g, '').slice(0, 4);
     el.value = d.length > 2 ? d.slice(0, 2) + 'h' + d.slice(2) : d;
     el.classList.toggle('bad', d.length === 4 && !heureValide(sel));
+    if (d.length === 4 && heureValide(sel)) heureAncienVol(sel);
     if (d.length === 4 && heureValide(sel)) { if (suivant) $(suivant).focus(); else el.blur(); }
   });
   el.addEventListener('focus', () => el.select());
+}
+
+// v0.32 (R76) : ancien vol (temps de vol saisi, sans heures bloc) : la dernière heure tapée donne l'autre,
+// avec le temps de vol déjà saisi (qui ne change pas) ; passage de minuit compris ; LOC : fuseau de chaque terrain
+function heureAncienVol(sel) {
+  if (!F || !F.ancien) return;
+  const date = $('#f-date').value, h = heureDe(sel), dep = $('#f-dep').value, arr = $('#f-arr').value;
+  if (!h || !dateValide(date)) return;
+  const enUTC = (hh, code) => (F.mode === 'loc' ? versUTC(date, hh, fuseau(code)) : { date, heure: hh });
+  const enAffiche = (ms, code) => {
+    const iso = new Date(ms).toISOString();
+    return F.mode === 'loc' ? versLocal(iso.slice(0, 10), iso.slice(11, 16), fuseau(code)).heure : iso.slice(11, 16);
+  };
+  const duree = F.ancien.temps * 60000;
+  if (sel === '#f-t0') { const a = enUTC(h, dep); $('#f-t1').value = heureH(enAffiche(Date.parse(`${a.date}T${a.heure}:00Z`) + duree, arr)); }
+  else { const b = enUTC(h, arr); $('#f-t0').value = heureH(enAffiche(Date.parse(`${b.date}T${b.heure}:00Z`) - duree, dep)); }
+  $$('#f-t0, #f-t1').forEach(x => x.classList.remove('bad'));
 }
 
 // Instants UTC du vol à partir des champs (null si heures incomplètes)
@@ -116,6 +134,7 @@ function sortie(k) { const el = $('#s-' + k); if (el) el.textContent = F.s[k]; }
 
 function recalculer() {
   const i = instants();
+  if (F.ancien) return recalculerAncien(i);
   const bloc = i ? Math.round((i.mb - i.ma) / 60000) : (F.heuresInconnues ? F.vol.tempsTotal || F.vol.simTemps || 0 : 0);
   F.bloc = bloc;
   $('#f-bloc').textContent = hm(bloc);
@@ -134,6 +153,20 @@ function recalculer() {
   if (F.ifr) $('#c-ifr').value = hm(bloc);
   $('#c-col').value = hm(colonneAuto());
   $('#c-fn').value = hm(avion()?.sim ? 0 : bloc);
+  recap(); apercu();
+}
+
+// v0.32 (R76) : ancien vol : le temps de vol, la nuit, l'IFR, les atterrissages et les colonnes déjà saisis ne sont
+// JAMAIS remplacés par un calcul ; la nuit calculée (si les heures et les terrains la permettent) est seulement proposée
+function recalculerAncien(i) {
+  F.bloc = F.ancien.temps;
+  $('#f-bloc').textContent = hm(F.bloc);
+  $('#f-j1').hidden = !(i && new Date(i.mb).toISOString().slice(0, 10) > i.dateUTC && minutesDuJour(heureDe('#f-t1')) < minutesDuJour(heureDe('#f-t0')));
+  const p = points();
+  const calcul = i && p ? minutesDeNuit(i.ma, F.bloc, p) : null, garde = lireDuree($('#c-nuit').value);
+  F.nuitProposee = calcul !== null && calcul !== (Number.isNaN(garde) ? 0 : garde || 0) ? calcul : null;
+  $('#nuit-calc').hidden = F.nuitProposee === null;
+  if (F.nuitProposee !== null) $('#nuit-calc-t').textContent = `Calcul de nuit : ${hm(calcul)} (gardé : ${$('#c-nuit').value || '0h00'})`;
   recap(); apercu();
 }
 
@@ -184,7 +217,8 @@ function ouvrirEscale(i) {
 function afficherLigneAvion(a) {
   const l = ligneAvion(a);
   $('#ac-reg').textContent = l.debut; $('#ac-type').textContent = l.modele; $('#ac-sub').textContent = l.fin;
-  $('#ac-cur').setAttribute('aria-label', `Avion : ${[l.debut, l.modele, l.fin].filter(Boolean).join(' ')}. Toucher pour changer d'avion`);
+  // v0.32 (R77) : affiché « nom / immatriculation / type » (ordre et « / » par le style ; page d'accueil inchangée)
+  $('#ac-cur').setAttribute('aria-label', `Avion : ${[l.debut, l.fin, l.modele].filter(Boolean).join(' / ')}. Toucher pour changer d'avion`);
 }
 function ouvrirChoixAvion(o) {
   $('#ac-sz').hidden = !o; $('#ac-cur').setAttribute('aria-expanded', String(o));
@@ -272,14 +306,58 @@ export function ouvrirPersonne(p = null, titre = null) {
 function verifierPersonne() { $('#pm-ok').disabled = !['#pm-pre', '#pm-nom', '#pm-tri'].some(x => $(x).value.trim()); }
 
 // ---------- Missions et feux ----------
-function prochainFeu() { return plusGrandFeu(etat.vols, F.vol?.id); }
+// Règle inchangée : prochain n° = plus grand n° de feu de TOUT le carnet (toutes années) + 1, hors ce vol (missions.js).
+// v0.32 (R79) : sans feu dans ce vol, un numéro choisi dans « Numéro du feu » sert au prochain « + » (F.feuChoisi).
+function prochainFeu() { return F.feuChoisi ? F.feuChoisi - 1 : plusGrandFeu(etat.vols, F.vol?.id); }
 function nbFeux() { return F.lignes.filter(l => l.nouveauFeu).length; }
+const numerosFeuxDuVol = () => F.lignes.filter(l => l.nouveauFeu > 0).map(l => l.nouveauFeu).sort((a, b) => a - b);
 function indicationFeu() {
   const n = nbFeux(), base = prochainFeu();
   $('#s-feu').textContent = n;
-  const nums = F.lignes.filter(l => l.nouveauFeu > 0).map(l => l.nouveauFeu);
-  $('#fire-next').textContent = n ? (nums.length ? `(n°${Math.min(...nums)}${nums.length > 1 ? ' à ' + Math.max(...nums) : ''})` : '')
-    : `(prochain : n°${base + 1})`;
+  const nums = numerosFeuxDuVol();
+  // v0.32 (R79) : le numéro est souligné en pointillé et se touche (fenêtre « Numéro du feu »)
+  const num = t => `<button type="button" class="feu-num" id="feu-num" aria-label="Changer le numéro du feu (${t})">${t}</button>`;
+  $('#fire-next').innerHTML = n ? (nums.length ? `(${num(`n°${nums[0]}`)}${nums.length > 1 ? ' à n°' + nums[nums.length - 1] : ''})` : '')
+    : `(prochain : ${num(`n°${base + 1}`)})`;
+}
+
+// ---------- v0.32 (R79) : fenêtre « Numéro du feu » ----------
+const remplacerNumero = (t, n) => t.replace(/(\bFEU\b[^+]*?n°\s*)(\d+)/i, `$1${n}`);
+// Vol (autre que celui-ci) qui a déjà ce numéro de feu
+function volAvecNumero(n) {
+  return etat.vols.find(v => v.id !== F.vol?.id && [...(v.missions || []), ...String(v.remarques || '').split(/\s+\+\s+|•/)].some(l => numeroFeu(l) === n)) || null;
+}
+let fnN = 0;
+function rendreNumeroFeu() {
+  const nums = numerosFeuxDuVol(), k = Math.max(1, nums.length);
+  $('#fn-n').value = String(fnN);
+  const lignes = F.lignes.filter(l => l.nouveauFeu > 0).sort((a, b) => a.nouveauFeu - b.nouveauFeu);
+  $('#fn-apercu').innerHTML = (lignes.length
+    ? `Ce vol : <b>${esc(remplacerNumero(lignes[0].t, fnN).trim())}</b>${lignes.length > 1 ? ` <span class="hint">(+ ${lignes.length - 1} autre${lignes.length > 2 ? 's' : ''} : jusqu'au n°${fnN + lignes.length - 1})</span>` : ''}`
+    : `Ce vol : pas encore de feu · le prochain « + » prendra le <b>n°${fnN}</b>`)
+    + `<br>Feu suivant : <b>n°${fnN + (lignes.length ? k : 0) + (lignes.length ? 0 : 1)}</b>`;
+  let doublon = null;
+  for (let i = 0; i < k && !doublon; i++) { const v = volAvecNumero(fnN + i); if (v) doublon = { n: fnN + i, v }; }
+  $('#fn-alerte').hidden = !doublon;
+  $('#fn-alerte').textContent = doublon ? `Le n°${doublon.n} est déjà dans le vol du ${dateFr(doublon.v.date)}. C'est possible si le même feu continue, sinon choisis un autre numéro.` : '';
+  $('#fn-oui').disabled = !(fnN > 0);
+}
+function ouvrirNumeroFeu() {
+  const nums = numerosFeuxDuVol();
+  fnN = nums.length ? nums[0] : prochainFeu() + 1;
+  rendreNumeroFeu();
+  $('#fn-modal').hidden = false;
+}
+function validerNumeroFeu() {
+  if (!(fnN > 0)) return;
+  const lignes = F.lignes.filter(l => l.nouveauFeu > 0).sort((a, b) => a.nouveauFeu - b.nouveauFeu);
+  if (lignes.length) {
+    // la ligne de mission « FEU n°… » de ce vol prend le nouveau numéro (et ses autres feux, les suivants)
+    const nouveaux = new Map(lignes.map((l, i) => [l, fnN + i]));
+    F.lignes = F.lignes.map(l => (nouveaux.has(l) ? { ...l, t: remplacerNumero(l.t, nouveaux.get(l)), nouveauFeu: nouveaux.get(l) } : l));
+  } else F.feuChoisi = fnN;
+  $('#fn-modal').hidden = true;
+  rendreLignes();
 }
 function rendreLignes() {
   $('#ml').innerHTML = F.lignes.map((m, i) =>
@@ -407,7 +485,7 @@ function appliquerNpf(n, vol) {
   F.mode = 'utc';
   F.arrAuto = false; // R58 : l'arrivée vient de NPF-Q400, elle ne suit pas le départ
   $('#f-date').value = b.date; $('#f-t0').value = heureH(b.hDep); $('#f-t1').value = heureH(b.hArr);
-  F.heuresInconnues = false;
+  F.heuresInconnues = false; F.ancien = null; // vol NPF : ses heures arrivent avec lui
   if (b.dep || !vol) $('#f-dep').value = b.dep;
   if (b.arr || !vol) $('#f-arr').value = b.arr;
   if (b.escales.length || !vol) {
@@ -469,13 +547,16 @@ export function ouvrirSaisie(vol, opts = {}) {
     avionId: v.avionId, etiquettes: [...(v.etiquettes || [])], fonction: v.fonction || 'cdb',
     lignes: lignesPourSaisie(v), compteurs: { ...v.compteurs }, s: { approches: Math.max(0, (v.approches || 0) - approchesEscales(v.escales)), attJour: v.attJour, attNuit: v.attNuit },
     ifr: !!v.regleIFR, bloc: v.tempsTotal || v.simTemps || 0, heuresInconnues: !!vol && !(vol.hDep && vol.hArr), charge: true, npf: null,
+    // v0.32 (R76) : ancien vol = enregistré avec un temps de vol mais sans heures bloc
+    feuChoisi: 0,
+    ancien: vol && !(vol.hDep && vol.hArr) && (vol.tempsTotal || vol.simTemps) > 0 ? { temps: vol.tempsTotal || vol.simTemps } : null, nuitProposee: null,
     arrPos: v.arriveePosition ? { ...v.arriveePosition } : null };
   $('#npf-zone').hidden = true;
   // v0.27 (R64) : TOUTES les cases repartent de zéro (le formulaire sert à chaque vol : sans cela, « Temps IFR » et
   // « Temps nuit » tapés dans le vol précédent restaient affichés, et étaient enregistrés avec le vol suivant)
   for (const c of CHAMPS) $(c).value = '';
   $('#c-ifr').value = hm(0); $('#c-nuit').value = hm(0); $('#c-col').value = hm(0); $('#c-fn').value = hm(0);
-  $('#f-bloc').textContent = hm(0); $('#f-j1').hidden = true;
+  $('#f-bloc').textContent = hm(0); $('#f-j1').hidden = true; $('#nuit-calc').hidden = true;
   $$('#v-saisie input.bad').forEach(el => el.classList.remove('bad'));
   majBoutonLF();
   $('#f-err').textContent = '';
@@ -545,6 +626,7 @@ export function ouvrirSaisie(vol, opts = {}) {
     if (!a) { ouvrirChoixAvion(true); $('#ac-q').value = brouillon.rechercheAvion; $('#ac-q').dispatchEvent(new Event('input')); }
   }
   F.charge = false;
+  $('#f-ancien').hidden = !(F.ancien && !brouillon);
   recap(); apercu();
   F.empreinte = empreinte();
   // carte du vol enregistré (sans jamais toucher aux heures) ; brouillon NPF : positions des feux reçues
@@ -598,6 +680,9 @@ async function enregistrer() {
     const cle = { tempsMP: 'mp', tempsME: 'me', tempsSE: 'se' }[champ];
     const auto = colonnesAvion({ ...v, [champ]: null }, a)[cle];
     v[champ] = col === auto ? null : col;
+    // v0.32 : colonne inchangée (même avion, même valeur comptée) : on garde exactement ce qui était enregistré
+    // (un vol importé de FlyLog a souvent la valeur écrite au lieu de « déduite de la fiche avion » : même total)
+    if (F.vol && F.vol.avionId === a.id && colonnesAvion(F.vol, a)[cle] === col && F.vol.tempsTotal === v.tempsTotal) v[champ] = F.vol[champ] ?? null;
   }
   // Fonction : le temps va dans la colonne de MA fonction
   const f = FONCTIONS[F.fonction];
@@ -693,6 +778,12 @@ export function initSaisie({ fermer }) {
   });
   $('#f-ifr').addEventListener('click', () => choisirIFR(!F.ifr));
   for (const s of ['#c-nuit', '#c-ifr', '#f-copi']) $(s).addEventListener('input', recap);
+  // v0.32 (R76) : appliquer la nuit calculée (seulement si on le demande)
+  $('#nuit-appl').addEventListener('click', () => {
+    if (!F || F.nuitProposee === null) return;
+    $('#c-nuit').value = hm(F.nuitProposee); F.nuitProposee = null; $('#nuit-calc').hidden = true; recap();
+  });
+  $('#c-nuit').addEventListener('input', () => { if (F && F.ancien) recalculerAncien(instants()); });
 
   // escales
   $('#via-add').addEventListener('click', () => ouvrirEscale(-1));
@@ -805,6 +896,18 @@ export function initSaisie({ fermer }) {
     if (!q) { const ins = $$('#ml input'); const el = ins[ins.length - 1]; el.focus(); el.setSelectionRange(el.value.length, el.value.length); }
   });
   $('#feu-m').addEventListener('click', () => { F.lignes = enleverFeu(F.lignes); rendreLignes(); });
+  // v0.32 (R79) : toucher le numéro souligné -> « Numéro du feu »
+  $('#fire-next').addEventListener('click', e => { if (e.target.closest('#feu-num')) ouvrirNumeroFeu(); });
+  $('#fn-m').addEventListener('click', () => { if (fnN > 1) { fnN--; rendreNumeroFeu(); } });
+  $('#fn-p').addEventListener('click', () => { fnN++; rendreNumeroFeu(); });
+  $('#fn-n').addEventListener('input', e => {
+    const d = e.target.value.replace(/\D/g, '').slice(0, 5);
+    if (d !== e.target.value) e.target.value = d;
+    fnN = Number(d) || 0; rendreNumeroFeu(); e.target.value = d;
+  });
+  $('#fn-n').addEventListener('focus', e => e.target.select());
+  $('#fn-non').addEventListener('click', () => { $('#fn-modal').hidden = true; });
+  $('#fn-oui').addEventListener('click', validerNumeroFeu);
 
   // compteurs : choix et ordre (réglage gardé pour les prochains vols)
   $('#ctr-open').addEventListener('click', () => { const p = $('#ctr-panel'); p.hidden = !p.hidden; $('#ctr-open').setAttribute('aria-expanded', String(!p.hidden)); });

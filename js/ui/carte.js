@@ -12,7 +12,8 @@
 // - v0.31 (R73) : fond Plan (OpenStreetMap) ou Photo (photos aériennes IGN, ORTHOIMAGERY.ORTHOPHOTOS), en ligne
 //   seulement ; jamais gardées dans le cache hors ligne (le service worker ne garde que les fichiers de l'app).
 
-import { $, esc, toast, ouvrirOutil, fermerOutil } from './commun.js';
+import { $, esc, toast, ouvrirOutil, fermerOutil, proposerFichier } from './commun.js';
+import { kmlDuVol } from '../kml.js';
 import { etat, reglage, enregistrerReglage, enregistrerAvions, lireTrace, ecrireTrace, avionDe, enregistrerVol, enConsultation, ecrireReglageDiscret } from '../etat.js';
 import { terrain } from '../terrains.js';
 import { aujourdhui, dateFr } from '../temps.js';
@@ -239,6 +240,7 @@ async function deplacerFeu(volId, i, lat, lon) {
   const c = await communeDe(lat, lon);
   const v = await changerFeux(volId, feux => {
     const f = feux[i];
+    if (f.communeNpf === undefined) f.communeNpf = f.commune || f.nom || ''; // commune d'origine : retrouve la ligne « FEU n°… »
     f.lat = lat; f.lon = lon; f.deplaceLe = new Date().toISOString();
     if (c.statut === 'ok') { f.commune = c.commune; delete f.communeAVenir; } else { f.commune = ''; f.communeAVenir = true; }
   });
@@ -325,8 +327,10 @@ function ouvrirBulle(L, carte, m, vol, i, conteneur) {
   if (!f) return;
   const div = document.createElement('div');
   div.className = 'feu-bulle';
-  div.innerHTML = `<b>${esc(nomFeu(f))}</b><p class="hint">Appui long sur la flamme pour la déplacer.</p><button type="button" class="feu-suppr">Supprimer ce feu</button>`;
-  div.querySelector('.feu-suppr').addEventListener('click', async () => {
+  div.innerHTML = `<b>${esc(nomFeu(f))}</b><button type="button" class="feu-ge">Envoyer vers Google Earth</button>`
+    + (peutModifierFeux(v) ? `<p class="hint">Appui long sur la flamme pour la déplacer.</p><button type="button" class="feu-suppr">Supprimer ce feu</button>` : '');
+  div.querySelector('.feu-ge').addEventListener('click', () => { carte.closePopup(); envoyerGoogleEarth(vol.id, i); });
+  div.querySelector('.feu-suppr')?.addEventListener('click', async () => {
     carte.closePopup();
     const ok = await confirmerFeu({ titre: 'Supprimer ce feu ?', oui: 'Oui, supprimer', danger: true,
       texte: `${nomFeu(f)} : la flamme est retirée de la carte. Les heures, les compteurs (Feux, largages) et la mission ne changent pas.` });
@@ -336,6 +340,15 @@ function ouvrirBulle(L, carte, m, vol, i, conteneur) {
   });
   L.DomEvent.disableClickPropagation(div);
   L.popup({ offset: [0, -16], closeButton: true, autoPan: true }).setLatLng(m.getLatLng()).setContent(div).openOn(carte);
+}
+
+// v0.32 (R81) : fichier KML (un feu ou tout le vol) -> menu Partager (téléphone, iPad) ou téléchargement (PC)
+async function envoyerGoogleEarth(volId, indice = null) {
+  const v = volParId(volId), k = v && kmlDuVol(v, indice);
+  if (!k) { toast('Aucune position de feu à envoyer'); return null; }
+  const r = await proposerFichier(new Blob([k.texte], { type: 'application/vnd.google-earth.kml+xml' }), k.nom, { partager: true });
+  if (r === 'telechargement') toast(`Fichier ${k.nom} enregistré (Téléchargements) : à importer dans Google Earth`, 3500);
+  return r;
 }
 
 // Après un changement : même vue (zoom et centre), feux à jour
@@ -380,7 +393,12 @@ async function dessiner(conteneur, vol, points, interactif) {
     if (!el) continue;
     el.dataset.feu = String(i);
     if (modifiable) rendreFeuModifiable(L, carte, m, vol, i, conteneur);
+    else if (interactif && vol && vol.id && volParId(vol.id)) {
+      L.DomEvent.disableClickPropagation(el);
+      el.addEventListener('click', () => ouvrirBulle(L, carte, m, vol, i, conteneur));
+    }
   }
+  if (conteneur.id === 'carte-grande') $('#cp-ge').hidden = !(vol && vol.id && volParId(vol.id) && feuxDuVol(vol).length);
   return carte;
 }
 
@@ -492,6 +510,7 @@ export function initCarte() {
     // feux déplacés ou supprimés : la petite carte de la saisie les montre aussi
     if (feuxChanges && volAffiche && volParId(volAffiche.id)) { feuxChanges = false; afficherCarteVol(volParId(volAffiche.id)); }
   });
+  $('#cp-ge').addEventListener('click', () => { if (volAffiche && volAffiche.id) envoyerGoogleEarth(volAffiche.id); });
   // v0.31 (R73) : Plan / Photo (choix gardé sur cet appareil) ; hors ligne : plan et court message
   $('#cp-fond').addEventListener('click', async e => {
     const b = e.target.closest('[data-fond]');

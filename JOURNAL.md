@@ -1,5 +1,43 @@
 # Journal des versions
 
+## v0.32 — 11/11/2026
+
+Remarques R76 à R79 et R81. carnet.php v5 et format NPF-Q400 (carnet-vol-npf v2) inchangés ; NAS et VPS non touchés.
+
+**R76 : heures bloc d'un ancien vol sans heures**
+- Ancien vol (temps de vol saisi, sans heures) : taper le départ calcule l'arrivée (départ + temps de vol), taper
+  l'arrivée calcule le départ ; le temps de vol ne change pas ; passage de minuit et heures LOC gérés.
+- Le calcul de nuit ne remplace JAMAIS le temps de nuit, l'IFR, les atterrissages ni les colonnes déjà saisis : s'il
+  trouve une autre nuit, message « Calcul de nuit : 1h00 (gardé : 0h00) » avec « Appliquer » (seulement si on veut).
+- Vols qui ont déjà leurs heures : inchangé.
+- Ouvrir puis enregistrer un vol sans rien changer ne modifie plus rien du tout (avant : la colonne avion d'un vol
+  importé de FlyLog passait de « 1h00 écrit » à « déduit de la fiche avion », même valeur comptée).
+
+**R77 : avion dans la saisie** : « M91 / F-XZZA / Dash 8 Q400 MRE » (nom / immatriculation / type) ; sans nom :
+« F-XAAB / type » ; texte long à la ligne puis « … », jamais sous les boutons i et +. Page d'accueil inchangée.
+
+**R78 : libellés de la saisie** (Départ, Arrivée, Bloc Départ / Arrivée, Copi / CdB…, Étiquette, Remarques ; Code OACI
+de la fenêtre Terrain intermédiaire) : couleur du texte, gras 600, 17 px, clair et sombre. Titres de blocs inchangés.
+
+**R79 : numéro du feu**
+- Règle inchangée : prochain n° = plus grand n° de feu de tout le carnet (toutes années) + 1.
+- Dans « Feux (prochain : n°59) » / « Feux (n°59) », le numéro souligné en pointillé se touche : fenêtre « Numéro du
+  feu » (– / + et saisie directe, aperçu « Ce vol / Feu suivant », Annuler / Valider). La ligne « FEU n°… » du vol prend
+  le nouveau numéro ; les vols suivants continuent à partir du plus grand numéro du carnet.
+- Numéro déjà dans un autre vol : message jaune, sans bloquer. Marche aussi pour un vol modifié plus tard.
+
+**R81 : « Envoyer vers Google Earth »** (Carte du vol plein écran : bulle d'une flamme, et bouton pour tous les feux du vol)
+- Fichier KML : « Feu n°12 / 2026 / VILLE SUR ESSAI » (sans commune : « Feu n°12 / 2026 »), icône flamme de Google
+  Earth, libellé orange ; fichier « Feu-12-2026-COMMUNE.kml » ou « Feux-JJ-MM-AAAA.kml ».
+- Menu Partager si le navigateur l'accepte (iPad), sinon téléchargement (PC ; Android : Chrome ne partage pas ce type
+  de fichier). Aucune connexion à Google, aucun appel réseau. Il n'existe pas d'interface publique pour écrire dans un
+  projet Google Earth : import à la main, expliqué dans GUIDE.md.
+
+**Tests**
+- `tests/navigateur/v032.mjs` (téléphone 390 et 360 px, PC, iPad WebKit, faux NAS v5, partage simulé, captures) ; tous
+  les tests existants (v04 : le numéro souligné n'est pas un bouton – / +) ; contrôle FlyLog local ; 55 vols réels
+  ouverts puis enregistrés sans changement : identiques ; fluidité avec le vrai carnet.
+
 ## v0.31 — 11/11/2026
 
 Remarques R70 à R74. carnet.php v5 et format NPF-Q400 (carnet-vol-npf v2) inchangés ; NAS et VPS non touchés.

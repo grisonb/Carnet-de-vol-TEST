@@ -98,7 +98,7 @@ try {
   const ifr = await p.evaluate(() => { const l = document.querySelector('#lbl-ifr'), m = l.closest('.mstep').getBoundingClientRect(), r = l.getBoundingClientRect();
     return l.scrollWidth <= l.clientWidth + 1 && r.right <= m.right && r.top >= m.top && getComputedStyle(l).whiteSpace !== 'normal' || (r.right <= m.right && r.height < 24); });
   verifier(ifr, 'libellé IFR entier (non coupé)');
-  const ecarts = await centre('.plus, .step button, .mstep .ctl button');
+  const ecarts = await centre('.plus, .step button:not(.feu-num), .mstep .ctl button'); // v0.32 : le n° du feu souligné n'est pas un bouton – / +
   verifier(ecarts.length > 8 && Math.max(...ecarts) <= 0.6, `signes « + » / « − » centrés (écart max ${Math.max(...ecarts).toFixed(2)} px)`);
   await p.fill('#f-dep', 'LFBD');
   verifier((await p.textContent('#n-dep')).includes('Bordeaux'), 'LFBD : Bordeaux reconnu');

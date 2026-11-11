@@ -74,6 +74,8 @@
         <div class="field"><label for="f-t1">Bloc Arrivée</label><input class="big tm" id="f-t1" type="text" inputmode="numeric" autocomplete="off" placeholder="hhmm"></div>
       </div>
       <p class="hint" id="f-j1" hidden>Arrivée le lendemain (J+1).</p>
+      <!-- v0.32 (R76) : ancien vol sans heures : l'autre heure bloc est calculée avec le temps de vol déjà saisi -->
+      <p class="hint" id="f-ancien" hidden>Ancien vol sans heures : tape le départ (ou l'arrivée), l'autre heure est calculée avec le temps de vol déjà saisi, qui ne change pas.</p>
       <div class="condrow">
         <div class="mstep"><span class="mlbl">Règles</span>
           <div class="swwrap"><span id="lbl-vfr" class="on">VFR</span><button type="button" class="sw" id="f-ifr" role="switch" aria-checked="false" aria-label="VFR ou IFR"><span></span></button><span id="lbl-ifr">IFR</span></div></div>
@@ -85,6 +87,8 @@
         <div class="mstep"><span class="mlbl">Att. Nuit</span><span class="ctl"><button type="button" data-s="attNuit" data-d="-1" aria-label="Atterrissages nuit moins"><svg class="ip" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10.75h16v2.5H4z"/></svg></button><output id="s-attNuit">0</output><button type="button" data-s="attNuit" data-d="1" aria-label="Atterrissages nuit plus"><svg class="ip" viewBox="0 0 24 24" aria-hidden="true"><path d="M10.75 4h2.5v16h-2.5zM4 10.75h16v2.5H4z"/></svg></button></span></div>
         <div class="mstep"><label class="mlbl" for="c-nuit">Temps nuit</label><input id="c-nuit" class="tin num" value="0h00" inputmode="numeric" autocomplete="off"></div>
       </div>
+      <!-- v0.32 (R76) : ancien vol : le calcul de nuit ne remplace jamais le temps saisi ; on le propose seulement -->
+      <p class="nuit-calc" id="nuit-calc" role="status" hidden><span id="nuit-calc-t"></span><button type="button" class="linkbtn" id="nuit-appl">Appliquer</button></p>
     </div>
 
     <div class="sec c-carte" id="carte-zone">
@@ -96,7 +100,7 @@
 
     <div class="sec c-av">
       <h3>Avion</h3>
-      <div class="acline"><button type="button" class="acbtn" id="ac-cur" aria-expanded="false" aria-controls="ac-sz" aria-label="Changer d'avion"><span class="t"><b id="ac-reg">—</b><span id="ac-type"></span><small id="ac-sub"></small></span></button><button type="button" class="ibtn" id="ac-fiche" aria-label="Fiche de l'avion (lecture)">i</button><button type="button" class="plus" id="ac-add" aria-label="Ajouter un avion"><svg class="ip" viewBox="0 0 24 24" aria-hidden="true"><path d="M10.75 4h2.5v16h-2.5zM4 10.75h16v2.5H4z"/></svg></button></div>
+      <div class="acline"><button type="button" class="acbtn" id="ac-cur" aria-expanded="false" aria-controls="ac-sz" aria-label="Changer d'avion"><span class="t"><b id="ac-reg">—</b><small id="ac-sub"></small><span id="ac-type"></span></span></button><button type="button" class="ibtn" id="ac-fiche" aria-label="Fiche de l'avion (lecture)">i</button><button type="button" class="plus" id="ac-add" aria-label="Ajouter un avion"><svg class="ip" viewBox="0 0 24 24" aria-hidden="true"><path d="M10.75 4h2.5v16h-2.5zM4 10.75h16v2.5H4z"/></svg></button></div>
       <div class="acsearch" id="ac-sz" hidden><input class="search" id="ac-q" autocapitalize="characters" type="search" autocomplete="off" placeholder="Chercher : immat, nom, type…" aria-label="Chercher un avion"><div id="ac-res" class="acres" hidden></div><button type="button" class="linkbtn" id="ac-all">Tous mes avions ›</button></div>
       <div class="tgrow"><span class="flabel">Étiquette</span><span id="tg-val" class="tgrow" style="display:contents"></span><button type="button" class="plus petit" id="tg-add" aria-label="Nouvelle étiquette pour cet avion"><svg class="ip" viewBox="0 0 24 24" aria-hidden="true"><path d="M10.75 4h2.5v16h-2.5zM4 10.75h16v2.5H4z"/></svg></button></div>
     </div>
@@ -417,9 +421,22 @@
   <div class="shead"><button type="button" class="xbtn" id="cp-x" aria-label="Fermer"><svg class="ix" viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></svg></button><h2 id="cp-t">Carte du vol</h2></div>
   <!-- v0.31 (R73) : fond Plan (OpenStreetMap) ou Photo (photos aériennes IGN, en ligne seulement) -->
   <div class="cp-outils"><div class="seg cp-fond" id="cp-fond" role="group" aria-label="Fond de carte"><button type="button" data-fond="plan" aria-pressed="true">Plan</button><button type="button" data-fond="photo" aria-pressed="false">Photo</button></div>
-    <span class="cp-msg" id="cp-msg" role="status"></span></div>
+    <span class="cp-msg" id="cp-msg" role="status"></span>
+    <!-- v0.32 (R81) : fichier KML des feux de ce vol (jamais d'envoi automatique) -->
+    <button type="button" class="cp-ge" id="cp-ge" hidden>Envoyer les feux de ce vol vers Google Earth</button></div>
   <div class="carte-grande" id="carte-grande"></div>
   <p class="carte-source">Données © adsb.lol, ODbL</p>
+</div></div>
+
+<!-- v0.32 (R79) : « Numéro du feu » (saisie, bloc Mission) -->
+<div class="modal" id="fn-modal" hidden role="dialog" aria-modal="true" aria-labelledby="fn-t" style="z-index:35"><div class="mbox fn-box">
+  <h3 id="fn-t">Numéro du feu</h3>
+  <div class="fn-choix"><button type="button" class="fn-pm" id="fn-m" aria-label="Numéro moins"><svg class="ip" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10.75h16v2.5H4z"/></svg></button>
+    <label class="fn-saisie"><span>n°</span><input id="fn-n" inputmode="numeric" autocomplete="off" maxlength="5" aria-label="Numéro du feu"></label>
+    <button type="button" class="fn-pm" id="fn-p" aria-label="Numéro plus"><svg class="ip" viewBox="0 0 24 24" aria-hidden="true"><path d="M10.75 4h2.5v16h-2.5zM4 10.75h16v2.5H4z"/></svg></button></div>
+  <div class="fn-apercu" id="fn-apercu"></div>
+  <div class="fn-alerte" id="fn-alerte" role="status" hidden></div>
+  <div class="row2"><button type="button" class="ghost annuler" id="fn-non">Annuler</button><button type="button" class="ghost vert" id="fn-oui">Valider</button></div>
 </div></div>
 
 <!-- v0.31 (R72) : « Déplacer le feu ici ? » / « Supprimer ce feu ? » (Carte du vol) -->

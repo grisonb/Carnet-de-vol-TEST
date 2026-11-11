@@ -629,3 +629,33 @@ body{padding-bottom:104px}
 .feu-bulle b{font-size:15px}
 .feu-bulle button{min-height:44px;border-radius:10px;border:0;background:var(--rouge-fond);color:#fff;font-weight:700;font-size:15px}
 .feu-bulle .hint{margin:0}
+/* v0.32 (R77) : bloc Avion de la saisie : « nom / immatriculation / type » ; texte long : à la ligne puis « … » */
+.acbtn .t{flex-wrap:wrap;row-gap:2px;column-gap:6px}
+.acbtn #ac-reg{order:1}
+.acbtn #ac-sub{order:2}
+.acbtn #ac-type{order:3;flex:1 1 auto;font-size:15px;font-weight:600;color:var(--ink)}
+.acbtn #ac-sub::before,.acbtn #ac-type:not(:empty)::before{content:"/";margin-right:6px;color:var(--muted);font-weight:500}
+/* v0.32 (R78) : libellés des champs de la saisie comme ceux des compteurs (v0.30) ; titres de blocs inchangés */
+#v-saisie .field>label,#v-saisie .flabel,#via-modal .field>label{color:var(--ink);font-weight:600;font-size:17px}
+/* v0.32 (R76) : nuit calculée proposée pour un ancien vol */
+.nuit-calc{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;margin:8px 0 0;padding:8px 12px;border-radius:12px;background:var(--hl-soft);border:1px solid var(--hl);color:var(--ink);font-size:15px;font-weight:600}
+.nuit-calc[hidden]{display:none}
+.nuit-calc .linkbtn{padding:4px 0;font-size:15px}
+/* v0.32 (R79) : numéro du feu souligné en pointillé (se touche) et fenêtre « Numéro du feu » */
+.step button.feu-num,.feu-num{width:auto;height:auto;box-shadow:none;display:inline-block;vertical-align:baseline;position:relative;border:0;background:none;padding:12px 6px;margin:-12px -3px;line-height:1.1;font:inherit;font-weight:700;color:var(--mi-ink,#a04d00);text-decoration:underline dotted 2px;text-underline-offset:3px;border-radius:6px;cursor:pointer;min-height:0}
+.fn-box{display:grid;gap:14px}
+.fn-choix{display:flex;align-items:center;justify-content:center;gap:12px}
+.fn-pm{width:52px;height:52px;border-radius:12px;border:1px solid var(--line);background:var(--surface2);display:grid;place-items:center;padding:0;color:var(--ink)}
+.fn-pm svg.ip{width:20px;height:20px}
+.fn-saisie{display:flex;align-items:center;justify-content:center;gap:2px;width:120px;height:52px;border:2px solid var(--mi-ink,#a04d00);border-radius:12px;background:var(--surface2)}
+.fn-saisie span{color:var(--muted);font-weight:700;font-size:17px}
+.fn-saisie input{width:70px;border:0;background:none;color:var(--ink);font-family:var(--f-num);font-weight:800;font-size:24px;text-align:left;padding:0;outline:none}
+.fn-apercu{background:var(--surface2);border-radius:12px;padding:10px 12px;font-size:15px;line-height:1.45;color:var(--ink)}
+.fn-alerte{background:#fff4d6;border:1px solid #e7c768;color:#5d4706;border-radius:12px;padding:10px 12px;font-size:14px;line-height:1.4}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .fn-alerte{background:#3a3010;border-color:#8a6d1f;color:#f5dc8a}}
+:root[data-theme="dark"] .fn-alerte{background:#3a3010;border-color:#8a6d1f;color:#f5dc8a}
+/* v0.32 (R81) : envoi vers Google Earth (fichier KML) */
+.cp-outils{flex-wrap:wrap}
+.cp-ge{pointer-events:auto;flex-basis:100%;margin:6px 0 0 52px;max-width:calc(100% - 52px);min-height:44px;padding:8px 14px;border-radius:12px;border:0;background:var(--surface);color:var(--ink);font-weight:700;font-size:15px;box-shadow:0 2px 6px rgba(0,0,0,.25);text-align:left}
+.cp-ge[hidden]{display:none}
+.feu-bulle .feu-ge{background:var(--primary);color:var(--primary-ink)}
