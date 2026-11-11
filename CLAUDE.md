@@ -150,6 +150,9 @@ Pas d'étape de compilation : les fichiers du dépôt sont servis tels quels.
   `.fl-bloc.t-feu|feu2|mi|ifr|sable` (`couleurTemps` dans js/ui/carnet.js : feu > Entraînement > IFR > sable, mêmes règles
   et mêmes couleurs CSS que les étiquettes) (R66). Plus de bouton flottant : `#fab` = « + » rond vert dans `.tabs`, à droite
   de « Plus » (actif depuis toutes les vues ; saisie modifiée : « Abandonner la saisie ? » puis nouveau vol, `apresAbandon`) (R67).
+- v0.36 : R88 `plusGrandFeu(vols, exclureId, avecSimulation)` : `avecSimulation` = vol de simulation (brouillonNpf,
+  `prochainFeu` / mise à jour NPF de la saisie avec `F.simulation`) -> les n° se suivent entre simulations ; vrai vol :
+  simulations ignorées (inchangé). NPF n'envoie aucun n° de feu.
 - v0.35 : R85 `estSimulation` / `volsReels` (modele.js) : vol `simulation: true` (NPF-Q400-RUN, `brouillonNpf`) exclu de
   `calculerTotaux`, `heuresDerniersJours`, `totalHdV`, onglet Totaux, PDF (plus.js), `plusGrandFeu`, `volAvecNumero`,
   `dernier` de la saisie, `doublons` (synchro.js), anti-doublon FlyLog ; gardé partout ailleurs ; bandeaux `.sim-bandeau`
@@ -259,6 +262,7 @@ BOMBING et TRANSPORT s'excluent sur un vol. Suggestions de missions masquées : 
 - `node tests/navigateur/v033.mjs` : style du KML (icône, taille, couleurs, XML valide), bouton « Google Earth » tout en bas (390 / 360 px, PC, iPad paysage / portrait, rien de caché), bulle, partage simulé, Android : téléchargement + message.
 - `node tests/navigateur/v034.mjs` : couleurs R86 / R87 (Feu, contour, Entraînement, GAAR et pastille des vols GAAR : texte blanc gras, contrastes clair / sombre ; IFR / sable / Appr / att. / autres pastilles / ligne de mission / bandeau SIMULATION inchangés), téléphone, PC, iPad.
 - `node tests/navigateur/v035.mjs` : vols de simulation NPF-Q400-RUN (faux NAS v5 : bandeaux, jamais comptés, PDF, n° de feu, défauts, doublons, CSV, Google Earth, synchro PC / iPad, suppression + Annuler ; vrai vol inchangé).
+- `node tests/navigateur/v036.mjs` : n° de feu des simulations (55 ; 56-57 ; vrai vol 55 ; 58 ; « + » vrai vol 56, simulation 59 ; jamais renumérotés), téléphone et iPad.
 - `node tests/navigateur/v024.mjs` : synchro dans les deux sens (passage en modification, conflits et 3 choix, doublon, NPF, hors ligne, >20 suppressions, annuler, mot de passe refusé).
 - `node tests/navigateur/fluidite.mjs` : 4070 vols inventés, processeur ralenti ×6.
 - `node outils/controle-import.mjs ../donnees-privees/flylog-decode-v1.csv ../donnees-privees/totaux-flylog-reference.json` :

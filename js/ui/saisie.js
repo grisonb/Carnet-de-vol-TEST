@@ -308,7 +308,7 @@ function verifierPersonne() { $('#pm-ok').disabled = !['#pm-pre', '#pm-nom', '#p
 // ---------- Missions et feux ----------
 // Règle inchangée : prochain n° = plus grand n° de feu de TOUT le carnet (toutes années) + 1, hors ce vol (missions.js).
 // v0.32 (R79) : sans feu dans ce vol, un numéro choisi dans « Numéro du feu » sert au prochain « + » (F.feuChoisi).
-function prochainFeu() { return F.feuChoisi ? F.feuChoisi - 1 : plusGrandFeu(etat.vols, F.vol?.id); }
+function prochainFeu() { return F.feuChoisi ? F.feuChoisi - 1 : plusGrandFeu(etat.vols, F.vol?.id, F.simulation); } // v0.36 (R88)
 function nbFeux() { return F.lignes.filter(l => l.nouveauFeu).length; }
 const numerosFeuxDuVol = () => F.lignes.filter(l => l.nouveauFeu > 0).map(l => l.nouveauFeu).sort((a, b) => a - b);
 function indicationFeu() {
@@ -325,7 +325,7 @@ function indicationFeu() {
 const remplacerNumero = (t, n) => t.replace(/(\bFEU\b[^+]*?n°\s*)(\d+)/i, `$1${n}`);
 // Vol (autre que celui-ci) qui a déjà ce numéro de feu
 function volAvecNumero(n) {
-  return etat.vols.find(v => v.id !== F.vol?.id && !estSimulation(v) && [...(v.missions || []), ...String(v.remarques || '').split(/\s+\+\s+|•/)].some(l => numeroFeu(l) === n)) || null;
+  return etat.vols.find(v => v.id !== F.vol?.id && (F.simulation || !estSimulation(v)) && [...(v.missions || []), ...String(v.remarques || '').split(/\s+\+\s+|•/)].some(l => numeroFeu(l) === n)) || null;
 }
 let fnN = 0;
 function rendreNumeroFeu() {
@@ -498,7 +498,7 @@ function appliquerNpf(n, vol) {
   if (vol) {
     const deja = F.lignes.filter(l => l.nouveauFeu).length;
     let lignes = F.lignes;
-    for (const f of b.npf.feuxTous.slice(deja)) lignes = ajouterFeu(lignes, plusGrandFeu(etat.vols, vol.id), f.commune || f.nom).lignes;
+    for (const f of b.npf.feuxTous.slice(deja)) lignes = ajouterFeu(lignes, plusGrandFeu(etat.vols, vol.id, F.simulation), f.commune || f.nom).lignes;
     F.lignes = lignes;
   } else F.lignes = b.lignes;
   if (b.remarques) $('#f-rem').value = b.remarques;

@@ -1,5 +1,20 @@
 # Journal des versions
 
+## v0.36 — 11/11/2026
+
+Remarque R88. carnet.php v5 et format NPF-Q400 inchangés ; NAS et VPS non touchés.
+
+**R88 : numéros de feu des vols de simulation**
+- NPF-Q400-RUN n'envoie pas de numéro (seulement heure, position, commune, nom de chaque feu : `feuxNpf`, js/npf.js) :
+  le Carnet le calcule à l'import (`brouillonNpf`, js/npf.js), à la mise à jour d'un vol NPF et au « + » de la saisie.
+- Vol de SIMULATION : prochain n° = plus grand n° des vrais vols ET des simulations + 1 (sim 1 : n°55 ; sim 2 : n°56,
+  n°57 ; sim 3 : n°58). L'alerte « n° déjà dans un autre vol » d'une simulation regarde aussi les simulations.
+- VRAI vol : inchangé, les simulations sont ignorées (après des simulations jusqu'au n°57, le vrai feu suivant est n°55).
+- Vols déjà enregistrés : jamais renumérotés.
+
+**Tests** : `tests/unitaires/v036.test.js`, `tests/navigateur/v036.mjs` (faux NAS v5 ; téléphone 390 px, iPad) ; tous les
+tests existants ; contrôle local : totaux et prochain n° de vrai feu identiques.
+
 ## v0.35 — 11/11/2026
 
 Remarques R85, R86 et R87. carnet.php v5 et format NPF-Q400 inchangés (le champ facultatif « simulation » existait déjà pour

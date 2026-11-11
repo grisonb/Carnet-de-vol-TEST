@@ -121,7 +121,7 @@ const entier = x => (Number.isInteger(x) && x >= 0 && x < 100 ? x : null);
 export function brouillonNpf(n, { avions = [], vols = [], personnes = [], terrain = () => null } = {}) {
   const feux = feuxNpf(n);
   let lignes = [];
-  const base = plusGrandFeu(vols);
+  const base = plusGrandFeu(vols, null, n.simulation === true); // v0.36 (R88) : simulation : suite des n° des simulations
   for (const f of feux) lignes = ajouterFeu(lignes, base, f.commune || f.nom).lignes;
   const att = entier(n.atterrissages), attJour = entier(n.atterrissagesJour), attNuit = entier(n.atterrissagesNuit);
   const av = avionDuVolNpf(n, avions);

@@ -15,11 +15,13 @@ export function numeroFeu(ligne) {
 
 export const estLigneFeu = ligne => /\bFEU\b/i.test(ligne || '');
 
-// Plus grand numéro de feu déjà écrit dans le carnet (on peut exclure un vol, celui qu'on modifie)
-export function plusGrandFeu(vols, exclureId = null) {
+// Plus grand numéro de feu déjà écrit dans le carnet (on peut exclure un vol, celui qu'on modifie).
+// v0.36 (R88) : pour un VRAI vol, les vols de simulation sont ignorés (v0.35) ; pour un vol de SIMULATION
+// (avecSimulation = true), on compte les vrais vols ET les vols de simulation : les n° continuent d'une simulation à l'autre.
+export function plusGrandFeu(vols, exclureId = null, avecSimulation = false) {
   let max = 0;
   for (const v of vols) {
-    if (v.id === exclureId || v.simulation === true) continue; // v0.35 (R85) : les vols de simulation ne comptent pas
+    if (v.id === exclureId || (v.simulation === true && !avecSimulation)) continue; // v0.35 (R85) / v0.36 (R88)
     // lignes de mission, et aussi les remarques (au cas où un feu y serait écrit)
     for (const l of [...(v.missions || []), ...String(v.remarques || '').split(/\s+\+\s+|•/)]) {
       const n = numeroFeu(l);
