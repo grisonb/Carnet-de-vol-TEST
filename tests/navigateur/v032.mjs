@@ -275,7 +275,7 @@ try {
   let k = await lireKmlPage(T, partages[0].texte);
   verifier(k.valide && k.points.length === 1 && k.points[0].nom === 'Feu n°12 / 2026 / VILLE SUR ESSAI' && k.points[0].coord === '2.4467,43.2512,0',
     `KML valide : « ${k.points[0].nom} » en ${k.points[0].coord} (longitude, latitude)`);
-  verifier(partages[0].texte.includes('firedept.png') && partages[0].texte.includes('<LabelStyle><color>ff1a8cff</color>'), 'épingle flamme (icône Google Earth « pompiers ») et libellé orange');
+  verifier(partages[0].texte.includes('id=2124') && partages[0].texte.includes('<LabelStyle><color>ff2dc0fb</color>'), 'épingle flamme de Google Earth et libellé (style v0.33)');
   await T.click('#cp-ge'); await attendre(T, 400);
   partages = await T.evaluate(() => globalThis.__partages);
   k = await lireKmlPage(T, partages[1].texte);

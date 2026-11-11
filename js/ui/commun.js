@@ -8,6 +8,8 @@ export const PLUS = '<svg class="ip" viewBox="0 0 24 24" aria-hidden="true"><pat
 export const MOINS = '<svg class="ip" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10.75h16v2.5H4z"/></svg>';
 // Croix des boutons « fermer / enlever » : dessinée (rond rouge, croix blanche en gras, voir .xbtn et .x)
 export const CROIX = '<svg class="ix" viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></svg>';
+// v0.33 (R83) : icône « partager » dessinée (trois points reliés)
+export const PARTAGE = '<svg class="ipart" viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 10.5l6.8-4M8.6 13.5l6.8 4"/></svg>';
 export const CRAYON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17.25V21h3.75L17.8 9.94l-3.75-3.75zM20.7 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75z"/></svg>';
 
 export const $ = s => document.querySelector(s);

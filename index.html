@@ -421,11 +421,11 @@
   <div class="shead"><button type="button" class="xbtn" id="cp-x" aria-label="Fermer"><svg class="ix" viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></svg></button><h2 id="cp-t">Carte du vol</h2></div>
   <!-- v0.31 (R73) : fond Plan (OpenStreetMap) ou Photo (photos aériennes IGN, en ligne seulement) -->
   <div class="cp-outils"><div class="seg cp-fond" id="cp-fond" role="group" aria-label="Fond de carte"><button type="button" data-fond="plan" aria-pressed="true">Plan</button><button type="button" data-fond="photo" aria-pressed="false">Photo</button></div>
-    <span class="cp-msg" id="cp-msg" role="status"></span>
-    <!-- v0.32 (R81) : fichier KML des feux de ce vol (jamais d'envoi automatique) -->
-    <button type="button" class="cp-ge" id="cp-ge" hidden>Envoyer les feux de ce vol vers Google Earth</button></div>
+    <span class="cp-msg" id="cp-msg" role="status"></span></div>
   <div class="carte-grande" id="carte-grande"></div>
-  <p class="carte-source">Données © adsb.lol, ODbL</p>
+  <!-- v0.33 (R83) : tout en bas, sous la carte (ne cache ni la carte ni le crédit) : fichier KML des feux de ce vol -->
+  <div class="cp-bas"><p class="carte-source">Données © adsb.lol, ODbL</p>
+    <button type="button" class="cp-ge" id="cp-ge" hidden aria-label="Envoyer les feux de ce vol vers Google Earth"><svg class="ipart" viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 10.5l6.8-4M8.6 13.5l6.8 4"/></svg><span>Google Earth</span></button></div>
 </div></div>
 
 <!-- v0.32 (R79) : « Numéro du feu » (saisie, bloc Mission) -->

@@ -150,6 +150,10 @@ Pas d'étape de compilation : les fichiers du dépôt sont servis tels quels.
   `.fl-bloc.t-feu|feu2|mi|ifr|sable` (`couleurTemps` dans js/ui/carnet.js : feu > Entraînement > IFR > sable, mêmes règles
   et mêmes couleurs CSS que les étiquettes) (R66). Plus de bouton flottant : `#fab` = « + » rond vert dans `.tabs`, à droite
   de « Plus » (actif depuis toutes les vues ; saisie modifiée : « Abandonner la saisie ? » puis nouveau vol, `apresAbandon`) (R67).
+- v0.33 : R82 style KML (js/kml.js : `ICONE_FLAMME` = icône Google Earth web n°`ICONE_ID` 2124 bleue, `ICONE_TAILLE` 0.8,
+  hotSpot 64/128, libellé `LIBELLE_COULEUR` ff2dc0fb). R83 `#cp-ge` dans `.cp-bas` (sous la carte, avec le crédit ;
+  `#carte-plein.avec-ge` réserve la place avant de créer la carte), icône `PARTAGE` (commun.js) ; Android (pas de partage
+  des .kml dans Chrome) : téléchargement + message.
 - v0.32 : R76 `F.ancien` (vol enregistré avec temps de vol, sans heures) : `heureAncienVol` calcule l'autre heure
   (temps de vol fixe), `recalculerAncien` ne touche JAMAIS nuit / IFR / att. / colonnes et propose `#nuit-calc`
   (« Appliquer »). `enregistrer()` garde la colonne avion telle quelle si sa valeur comptée ne change pas. R77 `#ac-cur` :
@@ -243,6 +247,7 @@ BOMBING et TRANSPORT s'excluent sur un vol. Suggestions de missions masquées : 
 - `node tests/navigateur/v030.mjs` : libellés des compteurs (taille, graisse, couleur, contraste clair/sombre), libellé long à 360 px, fenêtre Terrain intermédiaire (téléphone, PC, iPad).
 - `node tests/navigateur/v031.mjs` : orange Entraînement (contraste), période de la loupe (totaux du haut, Totaux et PDF inchangés), flammes (appui long, Annuler, commune par FAUX géocodage IGN, hors ligne, suppression, synchro PC, réimport NPF), fond Photo (FAUX IGN, crédit, hors ligne, rien en cache), terrains intermédiaires à 360 px ; iPad WebKit (service worker bloqué pour que Playwright voie les demandes).
 - `node tests/navigateur/v032.mjs` : ancien vol sans heures (départ / arrivée / minuit, nuit gardée + « Appliquer »), avion « nom / immat / type » (360 px), libellés (clair / sombre), numéro du feu (doublon, Annuler, vol suivant, vol ancien, synchro PC), KML Google Earth (partage simulé, téléchargement PC, aucun appel réseau), iPad.
+- `node tests/navigateur/v033.mjs` : style du KML (icône, taille, couleurs, XML valide), bouton « Google Earth » tout en bas (390 / 360 px, PC, iPad paysage / portrait, rien de caché), bulle, partage simulé, Android : téléchargement + message.
 - `node tests/navigateur/v024.mjs` : synchro dans les deux sens (passage en modification, conflits et 3 choix, doublon, NPF, hors ligne, >20 suppressions, annuler, mot de passe refusé).
 - `node tests/navigateur/fluidite.mjs` : 4070 vols inventés, processeur ralenti ×6.
 - `node outils/controle-import.mjs ../donnees-privees/flylog-decode-v1.csv ../donnees-privees/totaux-flylog-reference.json` :

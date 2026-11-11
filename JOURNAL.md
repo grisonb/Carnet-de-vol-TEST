@@ -1,5 +1,25 @@
 # Journal des versions
 
+## v0.33 — 11/11/2026
+
+Remarques R82 et R83. carnet.php v5 et format NPF-Q400 inchangés ; NAS et VPS non touchés.
+
+**R82 : style des feux dans le fichier Google Earth (KML)**, comme les feux du projet du pilote :
+- icône : l'épingle « flamme » de la bibliothèque d'icônes de Google Earth web (n° 2124), bleue #1976D2, écrite comme
+  Google Earth web l'écrit lui-même (adresse earth.google.com/earth/rpc/cc/icon, pointe de l'épingle sur le feu) ;
+- taille de l'icône « Petite » (0.8) ; libellé jaune #FBC02D, taille « Moyenne » (1).
+- Le Carnet ne charge jamais cette icône : c'est Google Earth qui la lit à l'import.
+
+**R83 : petit bouton « Google Earth »** (icône « partager » dessinée par l'app) tout en bas de la Carte du vol plein
+écran, sous la carte (ne cache ni la carte, ni le crédit, ni « © OpenStreetMap »), 44 px de haut ; même bouton dans
+la bulle d'une flamme. Fenêtre de partage du téléphone si le navigateur l'accepte (iPad). Chrome Android refuse les
+fichiers .kml (liste des types permis de Chromium : photos, vidéos, sons, PDF, textes) : téléchargement, puis message
+« Fichier téléchargé : ouvre-le dans Téléchargements puis Partager pour l'envoyer par mail ». Extension .kml gardée.
+GUIDE.md : envoi par mail, import dans le projet.
+
+**Tests** : `tests/navigateur/v033.mjs` (téléphone Android 390 et 360 px, PC, iPad paysage et portrait ; style du KML,
+place du bouton, partage simulé, téléchargement et message) ; v032 adapté au nouveau style ; tous les tests existants.
+
 ## v0.32 — 11/11/2026
 
 Remarques R76 à R79 et R81. carnet.php v5 et format NPF-Q400 (carnet-vol-npf v2) inchangés ; NAS et VPS non touchés.

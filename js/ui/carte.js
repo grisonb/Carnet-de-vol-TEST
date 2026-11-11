@@ -12,7 +12,7 @@
 // - v0.31 (R73) : fond Plan (OpenStreetMap) ou Photo (photos aériennes IGN, ORTHOIMAGERY.ORTHOPHOTOS), en ligne
 //   seulement ; jamais gardées dans le cache hors ligne (le service worker ne garde que les fichiers de l'app).
 
-import { $, esc, toast, ouvrirOutil, fermerOutil, proposerFichier } from './commun.js';
+import { $, esc, toast, ouvrirOutil, fermerOutil, proposerFichier, PARTAGE } from './commun.js';
 import { kmlDuVol } from '../kml.js';
 import { etat, reglage, enregistrerReglage, enregistrerAvions, lireTrace, ecrireTrace, avionDe, enregistrerVol, enConsultation, ecrireReglageDiscret } from '../etat.js';
 import { terrain } from '../terrains.js';
@@ -327,7 +327,7 @@ function ouvrirBulle(L, carte, m, vol, i, conteneur) {
   if (!f) return;
   const div = document.createElement('div');
   div.className = 'feu-bulle';
-  div.innerHTML = `<b>${esc(nomFeu(f))}</b><button type="button" class="feu-ge">Envoyer vers Google Earth</button>`
+  div.innerHTML = `<b>${esc(nomFeu(f))}</b><button type="button" class="feu-ge" aria-label="Envoyer ce feu vers Google Earth">${PARTAGE}<span>Google Earth</span></button>`
     + (peutModifierFeux(v) ? `<p class="hint">Appui long sur la flamme pour la déplacer.</p><button type="button" class="feu-suppr">Supprimer ce feu</button>` : '');
   div.querySelector('.feu-ge').addEventListener('click', () => { carte.closePopup(); envoyerGoogleEarth(vol.id, i); });
   div.querySelector('.feu-suppr')?.addEventListener('click', async () => {
@@ -347,7 +347,10 @@ async function envoyerGoogleEarth(volId, indice = null) {
   const v = volParId(volId), k = v && kmlDuVol(v, indice);
   if (!k) { toast('Aucune position de feu à envoyer'); return null; }
   const r = await proposerFichier(new Blob([k.texte], { type: 'application/vnd.google-earth.kml+xml' }), k.nom, { partager: true });
-  if (r === 'telechargement') toast(`Fichier ${k.nom} enregistré (Téléchargements) : à importer dans Google Earth`, 3500);
+  // v0.33 (R83) : Chrome Android ne partage pas les fichiers .kml (liste des types permis de Chromium) : téléchargement
+  if (r === 'telechargement') toast(/Android/i.test(navigator.userAgent)
+    ? 'Fichier téléchargé : ouvre-le dans Téléchargements puis Partager pour l’envoyer par mail'
+    : `Fichier ${k.nom} enregistré (Téléchargements) : à importer dans Google Earth`, 6000);
   return r;
 }
 
@@ -363,6 +366,11 @@ async function redessinerPlein(vol, conteneur) {
 async function dessiner(conteneur, vol, points, interactif) {
   const L = await chargerLeaflet();
   if (conteneur._carte) { conteneur._carte.remove(); conteneur._carte = null; }
+  // v0.33 (R83) : bouton « Google Earth » sous la carte (place réservée avant de créer la carte)
+  if (conteneur.id === 'carte-grande') {
+    const ge = !!(vol && vol.id && volParId(vol.id) && feuxDuVol(vol).length);
+    $('#cp-ge').hidden = !ge; $('#carte-plein').classList.toggle('avec-ge', ge);
+  }
   const carte = L.map(conteneur, {
     zoomControl: interactif, attributionControl: true, dragging: interactif, touchZoom: interactif,
     scrollWheelZoom: interactif, doubleClickZoom: interactif, boxZoom: false, keyboard: interactif, tap: false,
@@ -398,7 +406,6 @@ async function dessiner(conteneur, vol, points, interactif) {
       el.addEventListener('click', () => ouvrirBulle(L, carte, m, vol, i, conteneur));
     }
   }
-  if (conteneur.id === 'carte-grande') $('#cp-ge').hidden = !(vol && vol.id && volParId(vol.id) && feuxDuVol(vol).length);
   return carte;
 }
 

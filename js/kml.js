@@ -1,12 +1,22 @@
 // v0.32 (R81) : fichier KML des feux d'un vol, à importer dans le projet Google Earth « Feux » (à la main : il n'existe
 // pas d'interface publique pour écrire dans un projet Google Earth). Aucun appel réseau : le fichier est fabriqué ici.
+// v0.33 (R82) : style des feux du projet (épingle flamme bleue, petite ; libellé jaune).
 // Nom des points comme ceux du pilote : « Feu n°12 / 2026 / VILLE SUR ESSAI » (sans commune : « Feu n°12 / 2026 »).
 
 import { numeroFeu, estLigneFeu, normaliser } from './missions.js';
 
-// Icône « pompiers » (flamme) de la palette standard de Google Earth ; libellé orange (KML : aabbggrr)
-export const ICONE_FLAMME = 'http://maps.google.com/mapfiles/kml/shapes/firedept.png';
-const ORANGE_KML = 'ff1a8cff';
+// v0.33 (R82) : même style que les feux du projet Google Earth du pilote.
+// Icône : l'épingle « flamme » de la bibliothèque d'icônes de Google Earth web (n° 2124), en bleu #1976D2 : Google Earth
+// web écrit ses icônes ainsi (couleur dans l'adresse, pas de <color> d'icône) ; la pointe de l'épingle est sur le point
+// (hotSpot 64 / 128, comme dans les fichiers exportés par Google Earth web). Taille « Petite » : 0.8 (« Moyenne » = 1,
+// sans <scale> dans ses fichiers). Libellé : jaune #FBC02D (KML : aabbggrr), taille « Moyenne (par défaut) » = 1.
+// Le Carnet ne charge jamais cette icône : c'est Google Earth qui la lit à l'import.
+export const ICONE_ID = 2124;
+export const ICONE_COULEUR = '1976d2';
+export const ICONE_FLAMME = `https://earth.google.com/earth/rpc/cc/icon?color=${ICONE_COULEUR}&id=${ICONE_ID}&scale=4`;
+export const ICONE_TAILLE = 0.8;
+export const LIBELLE_COULEUR = 'ff2dc0fb';
+export const LIBELLE_TAILLE = 1;
 
 const xml = t => String(t ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 export const communeMajuscules = c => String(c || '').trim().toUpperCase().replace(/[-‐‑–—_]+/g, ' ').replace(/\s+/g, ' ').trim();
@@ -63,7 +73,7 @@ export function texteKml(titre, points) {
 <kml xmlns="http://www.opengis.net/kml/2.2">
 <Document>
 <name>${xml(titre)}</name>
-<Style id="feu"><IconStyle><scale>1.2</scale><Icon><href>${ICONE_FLAMME}</href></Icon></IconStyle><LabelStyle><color>${ORANGE_KML}</color><scale>1.1</scale></LabelStyle></Style>
+<Style id="feu"><IconStyle><scale>${ICONE_TAILLE}</scale><Icon><href>${xml(ICONE_FLAMME)}</href></Icon><hotSpot x="64" y="128" xunits="pixels" yunits="insetPixels"/></IconStyle><LabelStyle><color>${LIBELLE_COULEUR}</color><scale>${LIBELLE_TAILLE}</scale></LabelStyle></Style>
 ${points.map(p => `<Placemark>
 <name>${xml(p.nom)}</name>
 <styleUrl>#feu</styleUrl>
