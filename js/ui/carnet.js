@@ -9,7 +9,7 @@ import { etat, avionDe, reglage, enregistrerReglage } from '../etat.js';
 import { activerGlisser } from './glisser.js';
 import { demanderSuppression, initSuppression } from './suppression.js';
 import { BANDE_GENERAL, choixParType, valeurBande, basculerChoix, deplacerChoix } from '../bande.js';
-import { hm, heureH, dateFr, aujourdhui, MOIS, arriveeLendemain } from '../temps.js';
+import { hm, heureH, dateFr, aujourdhui, MOIS, arriveeLendemain, dateValide } from '../temps.js';
 import { heuresLocales } from '../fuseaux.js';
 import { fuseau } from '../terrains.js';
 import { FONCTIONS, COMPTEURS, identiteAvion } from '../modele.js';
@@ -51,10 +51,56 @@ export function ligneHeures(v) {
   return `${heureH(l.dep)} LOC → ${heureH(l.arr)} LOC${l.jPlus > 0 ? ` (J+${l.jPlus})` : ''}`;
 }
 
-// Date affichée : date locale du départ en mode LOC
+// Date affichée : date locale du départ en mode LOC (gardée par vol : la période la relit pour chaque vol)
+const datesAffichees = new WeakMap();
 export function dateAffichee(v) {
-  if (v.mode !== 'utc' && v.hDep) return heuresLocales(v.date, v.hDep, v.hArr || v.hDep, fuseau(v.dep), fuseau(v.arr)).dateLocDep;
-  return v.date;
+  let d = datesAffichees.get(v);
+  if (d === undefined) {
+    d = v.mode !== 'utc' && v.hDep ? heuresLocales(v.date, v.hDep, v.hArr || v.hDep, fuseau(v.dep), fuseau(v.arr)).dateLocDep : v.date;
+    datesAffichees.set(v, d);
+  }
+  return d;
+}
+
+// ---------- v0.31 (R71) : période de la loupe ----------
+// « JJ/MM/AAAA » (ou JJMMAAAA, J/M/AAAA) -> « AAAA-MM-JJ » ; null si incomplète ou impossible
+export function lireJour(t) {
+  const s = String(t || '').trim();
+  let m = s.match(/^(\d{1,2})[/.\-](\d{1,2})[/.\-](\d{4})$/) || s.match(/^(\d{2})(\d{2})(\d{4})$/);
+  if (!m) return null;
+  const iso = `${m[3]}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}`;
+  return dateValide(iso) ? iso : null;
+}
+// Chiffres tapés -> « JJ/MM/AAAA » au fil de la frappe
+export function formaterJour(t) {
+  const s = String(t || '');
+  // seulement des chiffres, avec les « / » déjà mis par l'app (JJ/MM/…) ; « 1/2/2025 » tapé à la main reste tel quel
+  if (!/^\d{0,2}$|^\d{2}\/?\d{0,2}$|^\d{2}\/\d{2}\/?\d*$|^\d+$/.test(s)) return s;
+  const c = s.replace(/\//g, '').slice(0, 8);
+  return c.length > 4 ? `${c.slice(0, 2)}/${c.slice(2, 4)}/${c.slice(4)}` : c.length > 2 ? `${c.slice(0, 2)}/${c.slice(2)}` : c;
+}
+// Période voulue : null (aucune) | { du, au, texte } | { erreur }
+export function periodeDe(duTexte, auTexte, auj = aujourdhui()) {
+  const du = lireJour(duTexte), au = lireJour(auTexte);
+  if (!du && !au) return null;
+  if (du && au && au < du) return { erreur: 'La date « Au » est avant la date « Du » : rien n\'est filtré.' };
+  const fin = au || auj;
+  return { du: du || '0000-01-01', au: fin,
+    texte: du ? `Période : du ${dateFr(du)} au ${dateFr(fin)}${au ? '' : ' (aujourd\'hui)'}` : `Période : jusqu'au ${dateFr(fin)}` };
+}
+let periode = null;
+const dansPeriode = v => { const d = dateAffichee(v) || ''; return d >= periode.du && d <= periode.au; };
+function lirePeriode() {
+  const p = periodeDe($('#p-du').value, $('#p-au').value);
+  periode = p && !p.erreur ? p : null;
+  $('#p-err').hidden = !(p && p.erreur);
+  $('#p-err').textContent = p && p.erreur ? p.erreur : '';
+  $('#periode-bandeau').hidden = !periode;
+  $('#pb-txt').textContent = periode ? periode.texte : '';
+}
+export function effacerPeriode() {
+  $('#p-du').value = ''; $('#p-au').value = '';
+  lirePeriode();
 }
 
 // v0.28 (R66) : couleur de la pastille du temps de vol = couleur de l'étiquette qui donne le type du vol, avec les
@@ -88,7 +134,8 @@ export function carteVol(v, voir = false) {
   const feu = pastilleFeu(v);
   if (feu) puces.push(`<span class="chip ${feu.plein ? 'feu' : 'feu2'}">${esc(feu.texte)}</span>`);
   const regles = pastillesRegles(v, reglage('regles'));
-  for (const p of regles) puces.push(`<span class="chip mi">${esc(p)}</span>`);
+  // v0.31 (R70) : l'étiquette « Entraînement » a son orange franc (classe ent), comme la pastille du temps de vol
+  for (const p of regles) puces.push(`<span class="chip mi${p.toUpperCase() === 'ENTRAÎNEMENT' ? ' ent' : ''}">${esc(p)}</span>`);
   for (const c of COMPTEURS) {
     const n = v.compteurs && v.compteurs[c.cle];
     if (n) puces.push(`<span class="chip hl">${n} ${esc(c.court)}</span>`);
@@ -186,7 +233,8 @@ export function oublierPlace() { place = null; }
 
 // Liste complète ouverte sur un vol (depuis un résultat de recherche)
 export function voirDansCarnet(id) {
-  $('#q').value = ''; $('#q').hidden = true; $('#q-open').setAttribute('aria-expanded', 'false');
+  $('#q').value = ''; $('#q').hidden = true; $('#periode').hidden = true; $('#q-open').setAttribute('aria-expanded', 'false');
+  effacerPeriode(); // « Voir dans le carnet » : tout le carnet
   rafraichirCarnet({ versVol: id });
 }
 
@@ -206,15 +254,18 @@ export function allerAuDernierVol() {
 }
 
 // ---------- Bande d'heures (mêmes calculs que l'écran Totaux) ----------
-let cacheTotaux = { revision: -1, t: null };
+// v0.31 (R71) : avec une période, la bande d'heures et le TOTAL du haut ne comptent que ses vols
+let cacheTotaux = { cle: '', t: null };
+const cleTotaux = () => `${etat.revision}|${periode ? periode.du + '|' + periode.au : ''}`;
+const volsDuHaut = () => (periode ? etat.vols.filter(dansPeriode) : etat.vols);
 function totauxCarnet() {
-  if (cacheTotaux.revision !== etat.revision) cacheTotaux = { revision: etat.revision, t: calculerTotaux(etat.vols, etat.avions) };
+  if (cacheTotaux.cle !== cleTotaux()) cacheTotaux = { cle: cleTotaux(), t: calculerTotaux(volsDuHaut(), etat.avions) };
   return cacheTotaux.t;
 }
 // Totaux à jour : bande affichée tout de suite ; sinon calculée juste après l'affichage de la liste
 let bandeEnAttente = false;
 function rendreBande() {
-  if (cacheTotaux.revision === etat.revision) return dessinerBande();
+  if (cacheTotaux.cle === cleTotaux()) return dessinerBande();
   if (bandeEnAttente) return;
   bandeEnAttente = true;
   setTimeout(() => { bandeEnAttente = false; dessinerBande(); }, 0);
@@ -248,21 +299,25 @@ export function rafraichirCarnet({ haut = false, versVol = null, retour = false 
   const auj = aujourdhui();
   if (haut) place = null;
   else if (!versVol && !retour && !$('#v-carnet').hidden) place = lirePlace();
+  lirePeriode();
+  const base = volsDuHaut();
   rendreBande();
-  $('#h-total').textContent = hm(totalHdV(etat.vols));
-  $('#h-quick').innerHTML = [3, 7, 30].map(n =>
+  $('#h-total').textContent = hm(totalHdV(base));
+  // v0.31 (R71) : 3 / 7 / 30 jours comptent à partir d'aujourd'hui : masqués pendant une période
+  $('#h-quick').hidden = !!periode;
+  if (!periode) $('#h-quick').innerHTML = [3, 7, 30].map(n =>
     `<div><span class="lbl">${n} jours</span><b>${hm(heuresDerniersJours(etat.vols, n, auj))}</b></div>`).join('');
   // Une date (06/05/25, 05/2025, 2025…) : les vols de cette date (date affichée sur la carte) ; sinon recherche texte
   const brut = $('#q').value, parDate = filtreDate(lireDate(brut)), q = normaliser(brut);
-  resultats = parDate ? etat.vols.filter(v => parDate(dateAffichee(v) || '')) : q ? etat.vols.filter(v => texteRecherche(v).includes(q)) : etat.vols;
-  enRecherche = resultats !== etat.vols;
+  resultats = parDate ? base.filter(v => parDate(dateAffichee(v) || '')) : q ? base.filter(v => texteRecherche(v).includes(q)) : base;
+  enRecherche = !!(parDate || q); // « Voir dans le carnet » : seulement pour une recherche (pas pour une période seule)
   // Fenêtre : commence au vol visé (ou au vol mémorisé) s'il est loin dans la liste, sinon au début
   const cible = versVol || (place && place.id);
   const i = cible ? resultats.findIndex(v => v.id === cible) : -1;
   debut = i >= PAQUET ? i - 2 : 0;
   affiches = debut; moisCourant = '';
   $('#list').innerHTML = resultats.length ? ''
-    : `<p class="hint">${etat.vols.length ? 'Aucun vol ne correspond.' : 'Aucun vol pour l\'instant. Touche « + Nouveau vol », ou importe FlyLog depuis l\'écran Plus.'}</p>`;
+    : `<p class="hint">${etat.vols.length ? (periode ? 'Aucun vol ne correspond sur cette période.' : 'Aucun vol ne correspond.') : 'Aucun vol pour l\'instant. Touche « + Nouveau vol », ou importe FlyLog depuis l\'écran Plus.'}</p>`;
   $('#list-debut').hidden = debut <= 0;
   afficherPaquet();
   if (!$('#v-carnet').hidden) {
@@ -284,10 +339,21 @@ export function initCarnet(ouvrir) {
   $('#q').addEventListener('input', () => { clearTimeout(attente); attente = setTimeout(() => rafraichirCarnet({ haut: true }), 120); });
   // Touche loupe / Entrée du clavier : ferme le clavier pour laisser voir les résultats (le texte reste) (R39)
   $('#q').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); $('#q').blur(); } });
-  // Loupe : ouvre la recherche ; la refermer efface la recherche
+  // v0.31 (R71) : période (Du / Au) : chiffres mis en forme JJ/MM/AAAA au fil de la frappe
+  for (const id of ['#p-du', '#p-au']) {
+    $(id).addEventListener('input', e => {
+      const f = formaterJour(e.target.value);
+      if (f !== e.target.value) e.target.value = f;
+      clearTimeout(attente); attente = setTimeout(() => rafraichirCarnet({ haut: true }), 120);
+    });
+    $(id).addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); e.target.blur(); } });
+  }
+  $('#pb-x').addEventListener('click', () => { effacerPeriode(); rafraichirCarnet({ haut: true }); });
+  // Loupe : ouvre la recherche ; la refermer efface la recherche (la période reste, bandeau avec sa croix)
   $('#q-open').addEventListener('click', () => {
     const ouvrir = $('#q').hidden;
     $('#q').hidden = !ouvrir;
+    $('#periode').hidden = !ouvrir;
     $('#q-open').setAttribute('aria-expanded', String(ouvrir));
     if (ouvrir) $('#q').focus();
     else if ($('#q').value) { $('#q').value = ''; rafraichirCarnet({ haut: true }); }

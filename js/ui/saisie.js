@@ -153,9 +153,13 @@ function colonneAuto() {
 // le vol garde le TOTAL (vol.approches = arrivée + terrains intermédiaires : Totaux, PDF, CSV inchangés).
 const approchesEscales = escales => (escales || []).reduce((s, e) => s + (Number(e.approches) || 0), 0);
 let vmEdit = -1, VM = { attJour: 1, attNuit: 0, approches: 0 };
+const pastilleNombre = (n, lib) => `<span class="vc-p${n ? '' : ' zero'}"><b>${n}</b> ${lib}</span>`;
 function rendreEscales() {
   $('#via-list').innerHTML = F.escales.map((v, i) =>
-    `<button type="button" class="viachip${v.code ? '' : ' sans-code'}" data-vi="${i}">${v.code ? drapeau(terrain(v.code)?.pays) : ''}<b>${esc(v.code || 'Code ?')}</b> ${esc(terrain(v.code)?.nom || v.nom || '')} · ${v.attJour + v.attNuit} att.${v.attNuit ? ` (${v.attNuit} nuit)` : ''}${v.approches ? ` · ${v.approches} appr.` : ''}</button>`).join('');
+    `<button type="button" class="viachip${v.code ? '' : ' sans-code'}" data-vi="${i}">${v.code ? drapeau(terrain(v.code)?.pays) : ''}<b>${esc(v.code || 'Code ?')}</b> `
+    + `<span class="vc-nom">${esc(terrain(v.code)?.nom || v.nom || '')}</span>`
+    // v0.31 (R74) : chaque nombre dans une pastille à droite (toujours visible, 0 en gris) ; le nom long est raccourci « … »
+    + `<span class="vc-n">${pastilleNombre(v.attJour + v.attNuit, 'att.')}${v.attNuit ? pastilleNombre(v.attNuit, 'nuit') : ''}${pastilleNombre(Number(v.approches) || 0, 'appr.')}</span></button>`).join('');
 }
 function nomVM() {
   const c = $('#vm-icao').value.toUpperCase();
@@ -425,6 +429,10 @@ function appliquerNpf(n, vol) {
   if (b.copilote) { F.fonction = 'cdb'; $('#f-copi').value = b.copilotePersonne ? nomPersonne(b.copilotePersonne) : b.copilote; }
   $('#npf-copi-add').hidden = !F.npf.copiInconnu;
   $('#npf-copi-add').textContent = `+ Ajouter ${F.npf.copiInconnu} à mes personnes`;
+  // v0.31 (R72) : flammes déplacées ou supprimées à la main sur ce vol : gardées, sauf si on demande de reprendre celles de NPF
+  F.npf.feuxRetouches = !!(vol && vol.feuxRetouches);
+  F.npf.reprendreFeux = false;
+  majBoutonFeuxNpf();
   $('#f-title').textContent = vol ? 'Mettre à jour le vol' : 'Vol NPF-Q400 à vérifier';
   $('#f-sub').textContent = 'Brouillon : rien n\'est enregistré tant que tu n\'appuies pas sur Enregistrer.';
   $('#save').textContent = vol ? 'Enregistrer la mise à jour' : 'Enregistrer le vol';
@@ -437,10 +445,19 @@ function appliquerNpf(n, vol) {
     + (sansCode ? ` · ${sansCode} pélicandrome${sansCode > 1 ? 's' : ''} sans code OACI : touche l'escale pour le compléter` : '')
     + (aVerifier ? ' · terrain sans position : vérifie jour / nuit de ses atterrissages' : '')
     + (F.npf.copiInconnu ? ` · copilote ${F.npf.copiInconnu} inconnu` : '')
+    + (F.npf.feuxRetouches ? ' · tu as déplacé ou supprimé des flammes sur ce vol : tes positions sont gardées' : '')
     + (!b.arr ? (F.arrPos ? ' · arrivée sans code OACI : complète-la (sa position GPS sert au jour / nuit en attendant)' : ' · arrivée à compléter') : '')
     + '. Complète ce qui manque (fonction, atterrissages…).';
   return b;
 }
+
+function majBoutonFeuxNpf() {
+  const b = $('#npf-feux');
+  b.hidden = !(F.npf && F.npf.feuxRetouches);
+  b.textContent = F.npf && F.npf.reprendreFeux ? 'Garder mes positions des feux' : 'Reprendre les positions des feux envoyées par NPF-Q400';
+}
+// Positions des feux du brouillon NPF : celles du vol si on les a retouchées (et qu'on ne demande pas celles de NPF)
+const feuxDuBrouillon = (vol, feuxNpf) => (F.npf && F.npf.feuxRetouches && !F.npf.reprendreFeux && vol ? vol.feuxPositions || [] : feuxNpf);
 
 // ---------- Ouverture ----------
 // opts.npf : vol reçu de NPF-Q400 (format « carnet-vol-npf ») à ouvrir en brouillon ; vol = le vol déjà enregistré
@@ -532,7 +549,7 @@ export function ouvrirSaisie(vol, opts = {}) {
   F.empreinte = empreinte();
   // carte du vol enregistré (sans jamais toucher aux heures) ; brouillon NPF : positions des feux reçues
   afficherCarteVol(brouillon ? { ...(vol || {}), date: brouillon.date, hDep: brouillon.hDep, hArr: brouillon.hArr, dep: brouillon.dep || (vol && vol.dep) || '',
-    arr: brouillon.arr || (vol && vol.arr) || '', escales: F.escales, avionId: F.avionId, feuxPositions: brouillon.npf.feux,
+    arr: brouillon.arr || (vol && vol.arr) || '', escales: F.escales, avionId: F.avionId, feuxPositions: feuxDuBrouillon(vol, brouillon.npf.feux),
     arriveePosition: F.arrPos, brouillon: true } : (vol || null));
 }
 
@@ -602,7 +619,17 @@ async function enregistrer() {
   if (!F.vol) v.source = 'saisie';
   // Vol reçu de NPF-Q400 : son id (pas de doublon), la date de l'export et les positions des feux (Carte du vol)
   const npf = F.npf;
-  if (npf) { v.npfId = npf.id; v.npfExporteLe = npf.exporteLe; v.feuxPositions = npf.feux.map(f => ({ ...f })); }
+  // v0.31 (R72) : feux déplacés / supprimés sur la Carte du vol pendant que ce vol était ouvert : la dernière version enregistrée
+  const actuel = F.vol && etat.vols.find(x => x.id === F.vol.id);
+  if (actuel) {
+    if (actuel.feuxPositions) v.feuxPositions = structuredClone(actuel.feuxPositions); else delete v.feuxPositions;
+    if (actuel.feuxRetouches) v.feuxRetouches = true;
+  }
+  if (npf) {
+    v.npfId = npf.id; v.npfExporteLe = npf.exporteLe;
+    // Flammes retouchées à la main : gardées, sauf si on a demandé de reprendre celles envoyées par NPF-Q400
+    if (!(npf.feuxRetouches && !npf.reprendreFeux)) { v.feuxPositions = npf.feux.map(f => ({ ...f })); delete v.feuxRetouches; }
+  }
   // Position GPS de l'arrivée (NPF) : gardée seulement si le code tapé n'est pas un terrain connu (Carte du vol)
   if (F.arrPos && !terrain(arr)) v.arriveePosition = { ...F.arrPos }; else delete v.arriveePosition;
   await enregistrerVol(v);
@@ -642,6 +669,13 @@ export function initSaisie({ fermer }) {
   // Brouillon NPF : « Ignorer ce vol » (confirmation) le retire du NAS sans rien enregistrer
   // Brouillon NPF : copilote inconnu -> « + Ajouter ZZY à mes personnes » (fiche pré-remplie avec le trigramme)
   $('#npf-copi-add').addEventListener('click', () => { $('#f-copi').value = F.npf.copiInconnu; ouvrirPersonne(null); });
+  $('#npf-feux').addEventListener('click', () => {
+    if (!F || !F.npf) return;
+    F.npf.reprendreFeux = !F.npf.reprendreFeux;
+    majBoutonFeuxNpf();
+    afficherCarteVol({ ...(F.vol || {}), date: $('#f-date').value, dep: $('#f-dep').value, arr: $('#f-arr').value, escales: F.escales, avionId: F.avionId,
+      feuxPositions: feuxDuBrouillon(F.vol, F.npf.feux), arriveePosition: F.arrPos, brouillon: true, id: undefined });
+  });
   document.addEventListener('personnes-modifiees', () => {
     if (F && F.npf && F.npf.copiInconnu && trouverPersonne(F.npf.copiInconnu)) { F.npf.copiInconnu = ''; $('#npf-copi-add').hidden = true; }
   });

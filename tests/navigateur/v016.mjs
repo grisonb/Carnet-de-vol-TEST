@@ -105,7 +105,7 @@ try {
     add: !document.getElementById('npf-copi-add').hidden && document.getElementById('npf-copi-add').textContent, txt: document.getElementById('npf-txt').textContent,
     nuit: document.getElementById('c-nuit').value }));
   verifier(b.ac.includes('M73') && b.ac.includes(m73.immat), 'avion trouvé par son nom « M73 » : ' + b.ac);
-  verifier(b.via.length === 4 && /LFHO.*2 att\./.test(b.via[0]) && /LFLU.*1 att\./.test(b.via[1]) && /LFHO.*1 att\. \(1 nuit\)/.test(b.via[2]),
+  verifier(b.via.length === 4 && /LFHO.*2 att\./.test(b.via[0]) && /LFLU.*1 att\./.test(b.via[1]) && /LFHO.*1 att\. 1 nuit/.test(b.via[2]),
     'escales dans l\'ordre LFHO ×2 → LFLU → LFHO (dont 1 atterrissage de nuit) : ' + b.via.slice(0, 3).join(' | '));
   verifier(b.sansCode === 1 && b.via[3].includes('Code ?') && b.via[3].includes('PELICANDROME-SANS-CODE') && b.txt.includes('sans code OACI'),
     'pélicandrome sans code OACI : son nom s\'affiche, à compléter (pas de blocage) : ' + b.via[3]);
@@ -122,7 +122,7 @@ try {
   await p.click('#via-list .viachip.sans-code'); await p.waitForSelector('#via-modal:not([hidden])');
   await p.fill('#vm-icao', 'LFMV'); await p.click('#vm-ok');
   const via4 = await p.$$eval('#via-list .viachip', l => l.map(x => x.innerText.replace(/\s+/g, ' ').trim())[3]);
-  verifier(via4.startsWith('LFMV') && via4.includes('(1 nuit)') && !(await p.$('#via-list .viachip.sans-code')), 'code complété : LFMV, ses atterrissages gardés : ' + via4);
+  verifier(via4.startsWith('LFMV') && via4.includes('1 nuit') && !(await p.$('#via-list .viachip.sans-code')), 'code complété : LFMV, ses atterrissages gardés : ' + via4);
   await p.click('#save'); await p.waitForSelector('#v-carnet:not([hidden])'); await attendre(500);
   let vols = await tout('vols');
   const vp = vols.find(v => v.npfId === 'npf-p');

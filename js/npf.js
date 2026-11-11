@@ -160,7 +160,10 @@ export function differencesNpf(vol, b, avionDuVol) {
   ajout('Escales', (vol.escales || []).map(libelleEscale).join(' → '), b.escales.map(libelleEscale).join(' → '));
   if (b.copilote) ajout('Copilote', vol.nomCopi, b.copilotePersonne ? (b.copilotePersonne.tri || b.copilote) : b.copilote);
   ajout('Feux', String(vol.feux || 0), String(b.npf.nbFeux));
-  ajout('Positions des feux', String((vol.feuxPositions || []).length), String(b.npf.feux.length));
+  // v0.31 (R72) : flammes déplacées ou supprimées à la main : gardées, sauf si on demande de reprendre celles de NPF
+  if (vol.feuxRetouches) d.push({ champ: 'Positions des feux', avant: `${(vol.feuxPositions || []).length} (déplacées ou supprimées à la main)`,
+    apres: `gardées (NPF-Q400 en envoie ${b.npf.feux.length} : tu peux les reprendre dans le brouillon)` });
+  else ajout('Positions des feux', String((vol.feuxPositions || []).length), String(b.npf.feux.length));
   if (b.remarques) ajout('Remarques', vol.remarques, b.remarques);
   return d;
 }

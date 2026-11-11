@@ -140,7 +140,7 @@ try {
   await escale('LFMD', 1);
   await T.click('[data-s="approches"][data-d="1"]');
   const chips = await T.$$eval('#via-list .viachip', l => l.map(x => x.textContent.replace(/\s+/g, ' ').trim()));
-  verifier(chips[0].endsWith('· 2 appr.') && chips[1].endsWith('· 1 appr.'), `terrains intermédiaires : ${chips.join(' | ')}`);
+  verifier(chips[0].endsWith('2 appr.') && chips[1].endsWith('1 appr.'), `terrains intermédiaires : ${chips.join(' | ')}`);
   verifier(await T.textContent('#s-approches') === '1', 'compteur « Appr » principal = arrivée seulement (1)');
   verifier((await T.textContent('#rec-x')).includes('4 (arrivée 1 + terrains intermédiaires 3)'), 'récapitulatif : total 4');
   await T.screenshot({ path: join(CAPT, 'v027-03-tel-saisie-escales.png'), fullPage: true });
@@ -169,7 +169,9 @@ try {
   }, ancien);
   verifier(restaure.ok && restaure.approches === 3 && restaure.r63 === 4, 'sauvegarde restaurée : ancien vol 3 (inchangé), nouveau vol 4 (gardé)');
   await T.click(`#list .flight[data-id="ancien-r63"]`); await T.waitForSelector('#v-saisie:not([hidden])'); await attendre(T, 200);
-  verifier(await T.textContent('#s-approches') === '3' && !(await T.textContent('#via-list')).includes('appr.'), 'ancien vol ouvert : ses 3 approches sur l\'arrivée, terrain intermédiaire à 0');
+  // v0.31 (R74) : le 0 du terrain intermédiaire s'affiche en gris (« 0 appr. »)
+  verifier(await T.textContent('#s-approches') === '3' && (await T.$$eval('#via-list .vc-p', l => l.filter(p => p.classList.contains('zero') && p.textContent === '0 appr.').length)) === 1,
+    'ancien vol ouvert : ses 3 approches sur l\'arrivée, terrain intermédiaire à 0 (en gris)');
   await T.click('#cancel');
 
   console.log('R63 : synchro vers le PC (et retour)');

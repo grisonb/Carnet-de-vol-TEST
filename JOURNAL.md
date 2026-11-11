@@ -1,5 +1,48 @@
 # Journal des versions
 
+## v0.31 — 11/11/2026
+
+Remarques R70 à R74. carnet.php v5 et format NPF-Q400 (carnet-vol-npf v2) inchangés ; NAS et VPS non touchés.
+
+**R70 : orange « Entraînement » plus franc**
+- Étiquette « Entraînement » et pastille du temps de vol des vols d'entraînement : fond #f0a050, texte #3f1c02
+  (contraste 7,1). Thème sombre : fond #d97b2b, texte #1f0d00 (contraste 6,1). Les autres couleurs ne changent pas
+  (les autres étiquettes de règles, comme GAAR, gardent leur orange clair).
+
+**R71 : période dans la loupe**
+- Deux dates « Du » et « Au » (JJ/MM/AAAA, bornes comprises, date du vol affichée sur la carte) ; « Du » seule :
+  jusqu'à aujourd'hui ; « Au » avant « Du » : message, rien n'est filtré. Se combine avec la recherche texte.
+- Seuls le TOTAL HdV et la bande d'heures du Carnet suivent la période ; les cumuls 3 / 7 / 30 jours sont masqués
+  pendant une période. Onglet Totaux, PDF, CSV et sauvegardes : tout le carnet.
+- Bandeau « Période : du … au … » avec une croix qui revient à tout le carnet.
+
+**R72 : déplacer ou supprimer une flamme (Carte du vol en plein écran)**
+- Appui long (0,6 s) sur une flamme : elle suit le doigt ; en la lâchant, « Déplacer le feu ici ? » (Déplacer / Annuler).
+- Toucher une flamme : bulle « Supprimer ce feu », avec confirmation.
+- Commune recalculée par le géocodage inverse de l'IGN (Géoplateforme, gratuit, sans clé : commune de la parcelle
+  cadastrale la plus proche) ; hors ligne : position gardée, commune recalculée au retour du réseau (par l'appareil
+  qui a déplacé la flamme).
+- Heures, compteurs (Feux, largages) et mission ne changent jamais. Le changement part au NAS et vers les autres
+  appareils comme toute modification.
+- Même vol NPF-Q400 envoyé de nouveau : les flammes déplacées ou supprimées sont gardées ; « Ce qui change » et le
+  brouillon le disent, avec un bouton « Reprendre les positions des feux envoyées par NPF-Q400 » (seulement si on le
+  demande).
+
+**R73 : fond photo aérienne**
+- Carte du vol en plein écran : bouton « Plan / Photo » (choix gardé sur l'appareil). Photo = photos aériennes IGN
+  (ORTHOIMAGERY.ORTHOPHOTOS, Licence Ouverte Etalab), crédit « © IGN » ; La Réunion couverte (essai réel).
+- En ligne seulement ; hors ligne : plan et « Photo aérienne disponible en ligne seulement ». Les photos ne sont
+  jamais gardées dans le cache hors ligne.
+
+**R74 : étiquettes des terrains intermédiaires**
+- Chaque nombre (att., nuit, appr.) dans une pastille à droite, en gras foncé ; 0 en gris ; nom long raccourci « … »
+  pour que les nombres restent visibles (360 px compris) ; thème sombre lisible.
+
+**Tests**
+- `tests/navigateur/v031.mjs` (téléphone 390 et 360 px, PC, iPad WebKit, faux NAS v5, faux services IGN, captures) ;
+  tous les tests existants (v016 et v027 lisent les nombres des terrains intermédiaires dans leurs pastilles) ;
+  contrôle FlyLog local ; fluidité avec le vrai carnet, avec et sans période.
+
 ## v0.30 — 10/11/2026
 
 Remarque R69. carnet.php v5 et format NPF (carnet-vol-npf v2) inchangés ; NAS et VPS non touchés.

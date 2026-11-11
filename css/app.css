@@ -255,7 +255,7 @@ select{font:inherit}
 .month{margin:12px 4px 6px}
 /* Pastilles des vols en couleur */
 .chip.fn{background:#efe8f6;border-color:transparent;color:#6a3d9a;font-weight:600}
-.chip.mi,.fl-bloc.t-mi{background:#fdeedd;border-color:transparent;color:#a04d00;font-weight:600}
+.chip.mi{background:#fdeedd;border-color:transparent;color:#a04d00;font-weight:600}
 .chip.ifr,.fl-bloc.t-ifr{background:#e6eef7;border-color:transparent;color:#1f4e79;font-weight:600}
 .chip.nuit{background:#263238;border-color:transparent;color:#fff;font-weight:600}
 /* Saisie : date étroite + LOC/UTC sur la même ligne */
@@ -323,13 +323,13 @@ svg.ip{width:20px;height:20px;fill:currentColor;display:block;margin:auto}
   :root:not([data-theme="light"]) .c-vol{--primary:#6ea8e0;--tint:#1a2a3c}:root:not([data-theme="light"]) .c-av{--primary:#4db6ac;--tint:#15302d}
   :root:not([data-theme="light"]) .c-fn{--primary:#b39ddb;--tint:#2a2236}:root:not([data-theme="light"]) .c-mi{--primary:#ffa04d;--tint:#38281a}
   :root:not([data-theme="light"]) .c-tp{--primary:#81c784;--tint:#1c2f1d}:root:not([data-theme="light"]) .c-rq{--primary:#90a4ae;--tint:#232c31}
-  :root:not([data-theme="light"]) .chip.fn{background:#2a2236;color:#b39ddb}:root:not([data-theme="light"]) .chip.mi,:root:not([data-theme="light"]) .fl-bloc.t-mi{background:#38281a;color:#ffa04d}
+  :root:not([data-theme="light"]) .chip.fn{background:#2a2236;color:#b39ddb}:root:not([data-theme="light"]) .chip.mi{background:#38281a;color:#ffa04d}
   :root:not([data-theme="light"]) .chip.ifr,:root:not([data-theme="light"]) .fl-bloc.t-ifr{background:#1a2a3c;color:#6ea8e0}:root:not([data-theme="light"]) .chip.nuit{background:#000;color:#cfd8dc}
 }
 :root[data-theme="dark"] .c-vol{--primary:#6ea8e0;--tint:#1a2a3c}:root[data-theme="dark"] .c-av{--primary:#4db6ac;--tint:#15302d}
 :root[data-theme="dark"] .c-fn{--primary:#b39ddb;--tint:#2a2236}:root[data-theme="dark"] .c-mi{--primary:#ffa04d;--tint:#38281a}
 :root[data-theme="dark"] .c-tp{--primary:#81c784;--tint:#1c2f1d}:root[data-theme="dark"] .c-rq{--primary:#90a4ae;--tint:#232c31}
-:root[data-theme="dark"] .chip.fn{background:#2a2236;color:#b39ddb}:root[data-theme="dark"] .chip.mi,:root[data-theme="dark"] .fl-bloc.t-mi{background:#38281a;color:#ffa04d}
+:root[data-theme="dark"] .chip.fn{background:#2a2236;color:#b39ddb}:root[data-theme="dark"] .chip.mi{background:#38281a;color:#ffa04d}
 :root[data-theme="dark"] .chip.ifr,:root[data-theme="dark"] .fl-bloc.t-ifr{background:#1a2a3c;color:#6ea8e0}:root[data-theme="dark"] .chip.nuit{background:#000;color:#cfd8dc}
 .sfab .main{width:42px;height:42px;border-radius:50%;padding:0;display:grid;place-items:center}
 #fiche.ro input::placeholder{color:transparent}
@@ -593,3 +593,39 @@ body{padding-bottom:104px}
 .step small.hint{font-size:14px;font-weight:500;color:#3b4a5a}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .step small.hint{color:#c3cfdb}}
 :root[data-theme="dark"] .step small.hint{color:#c3cfdb}
+
+/* v0.31 (R70) : « Entraînement » (étiquette et pastille du temps de vol) en orange franc ; autres couleurs inchangées */
+.chip.mi.ent,.fl-bloc.t-mi{background:#f0a050;border-color:transparent;color:#3f1c02;font-weight:600}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .chip.mi.ent,:root:not([data-theme="light"]) .fl-bloc.t-mi{background:#d97b2b;color:#1f0d00}}
+:root[data-theme="dark"] .chip.mi.ent,:root[data-theme="dark"] .fl-bloc.t-mi{background:#d97b2b;color:#1f0d00}
+/* v0.31 (R74) : étiquette d'un terrain intermédiaire : nom raccourci « … », nombres en pastilles toujours visibles à droite */
+.vialist .viachip{max-width:100%;min-width:0}
+.viachip .vc-nom{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.viachip .vc-n{display:flex;gap:4px;flex:none}
+.viachip .vc-p{background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:1px 7px;font-size:13px;color:var(--ink);white-space:nowrap}
+.viachip .vc-p b{font-family:var(--f-num);font-weight:800;font-size:15px;color:var(--ink)}
+.viachip .vc-p.zero,.viachip .vc-p.zero b{color:var(--muted);font-weight:600}
+/* v0.31 (R71) : période dans la loupe + bandeau « Période : du … au … » */
+.periode{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0 0 8px}
+.periode .pchamp{display:flex;align-items:center;gap:6px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:0 0 0 10px;min-width:0}
+.periode .pchamp span{font-weight:700;color:var(--ink);font-size:15px}
+.periode input{flex:1;min-width:0;border:0;background:none;color:var(--ink);font:inherit;font-family:var(--f-num);font-size:17px;padding:11px 8px 11px 2px;outline-offset:-2px;border-radius:12px}
+.periode #p-err{grid-column:1 / -1;margin:0;font-size:14px}
+.periode-bandeau{display:flex;align-items:center;gap:8px;margin:8px 0 0;padding:6px 6px 6px 14px;border-radius:12px;background:var(--hl-soft);border:1px solid var(--hl);color:var(--ink);font-weight:700;font-size:15px}
+.periode-bandeau[hidden]{display:none}
+.periode-bandeau span{flex:1;min-width:0}
+.periode-bandeau .xbtn{flex:none;margin:0}
+/* v0.31 (R73) : Plan / Photo sur la Carte du vol plein écran */
+.cp-outils{position:absolute;left:16px;right:16px;top:66px;z-index:2;display:flex;align-items:center;gap:8px;pointer-events:none}
+.cp-outils .seg{pointer-events:auto;display:inline-flex;margin:8px 0 0 52px;box-shadow:0 2px 6px rgba(0,0,0,.25);border-radius:12px;overflow:hidden}
+.cp-fond button{min-height:40px;padding:6px 14px;font-weight:700;font-size:15px;border:0;background:var(--surface);color:var(--ink)}
+.cp-fond button[aria-pressed="true"]{background:var(--primary);color:var(--primary-ink)}
+.cp-msg{pointer-events:auto;margin-top:8px;background:var(--surface);color:var(--ink);border-radius:10px;padding:6px 10px;font-size:14px;font-weight:600;box-shadow:0 2px 6px rgba(0,0,0,.2)}
+.cp-msg:empty{display:none}
+/* v0.31 (R72) : flamme déplaçable (appui long) et bulle « Supprimer ce feu » */
+.carte-feu{touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+.carte-feu.feu-deplace svg{transform:scale(1.6) translateY(-6px);filter:drop-shadow(0 4px 4px rgba(0,0,0,.45));transition:transform .12s}
+.feu-bulle{display:grid;gap:8px;min-width:170px;font-family:var(--f-body)}
+.feu-bulle b{font-size:15px}
+.feu-bulle button{min-height:44px;border-radius:10px;border:0;background:var(--rouge-fond);color:#fff;font-weight:700;font-size:15px}
+.feu-bulle .hint{margin:0}

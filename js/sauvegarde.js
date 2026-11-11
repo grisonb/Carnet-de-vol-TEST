@@ -12,7 +12,8 @@ export const FORMAT = 'carnet-de-vol-sauvegarde';
 // (mots de passe, adresse du NAS, état de la copie NAS : propres à ce téléphone)
 export const REGLAGES_PRIVES = ['cartesMotDePasse', 'nasAdresse', 'nasMotDePasse', 'nasAuto', 'nasEtat',
   'synchroRole', 'synchroEtat', 'synchroAppareil', // v0.23 : rôle et état de la synchro, propres à chaque appareil
-  'synchroHistorique']; // v0.24 : versions remplacées par la synchro (30 jours)
+  'synchroHistorique', // v0.24 : versions remplacées par la synchro (30 jours)
+  'carteFond', 'feuxCommunesEnAttente']; // v0.31 : fond Plan / Photo de cet appareil ; communes de feux déplacés hors ligne
 
 // contenu : { vols, avions, personnes, suppressions, reglages: [{cle, valeur}] }
 export function creerSauvegarde(contenu, maintenant = new Date().toISOString()) {

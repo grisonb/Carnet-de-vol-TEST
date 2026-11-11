@@ -150,6 +150,17 @@ Pas d'étape de compilation : les fichiers du dépôt sont servis tels quels.
   `.fl-bloc.t-feu|feu2|mi|ifr|sable` (`couleurTemps` dans js/ui/carnet.js : feu > Entraînement > IFR > sable, mêmes règles
   et mêmes couleurs CSS que les étiquettes) (R66). Plus de bouton flottant : `#fab` = « + » rond vert dans `.tabs`, à droite
   de « Plus » (actif depuis toutes les vues ; saisie modifiée : « Abandonner la saisie ? » puis nouveau vol, `apresAbandon`) (R67).
+- v0.31 : R70 étiquette « Entraînement » `.chip.mi.ent` + pastille `.fl-bloc.t-mi` (#f0a050 / #3f1c02 ; sombre #d97b2b / #1f0d00).
+  R71 période de la loupe (`#p-du`, `#p-au`, `periodeDe`, `lireJour`, `formaterJour` dans js/ui/carnet.js ; `dateAffichee`
+  mémorisée par vol) : seuls #h-total et la bande suivent (`volsDuHaut`), #h-quick masqué, bandeau `#periode-bandeau`.
+  R72 flammes (js/ui/carte.js, plein écran seulement, pas en consultation) : appui long 0,6 s = déplacement (pointer
+  events), toucher = bulle « Supprimer ce feu », fenêtre `#feu-modal` ; `communeDe` = géocodage inverse IGN
+  (`CARNET_GEOCODAGE`, index=parcel puis address) ; hors ligne : `communeAVenir` + réglage privé `feuxCommunesEnAttente`
+  (`recalculerCommunes` au retour du réseau) ; vol marqué `feuxRetouches` : la mise à jour NPF garde ses flammes sauf
+  `#npf-feux` (« Reprendre… ») ; `enregistrer()` de la saisie reprend `feuxPositions` de la dernière version enregistrée.
+  R73 `poserFond` : Plan (OSM) / Photo (`CARNET_TUILES_PHOTO`, WMTS IGN ORTHOIMAGERY.ORTHOPHOTOS, « © IGN »),
+  réglage privé `carteFond` ; jamais en cache (le service worker ne garde que les fichiers de l'app). R74 `.viachip` :
+  `.vc-nom` (« … ») + `.vc-n` pastilles `.vc-p` (`.zero` en gris).
 - v0.30 (R69) : libellés des compteurs de la saisie (`.step>span:first-child`, `.mlbl`) en `--ink`, 600, 17 px ; « (n°…) » (`.step small.hint`) 14 px gris foncé (clair/sombre) ; `.step .ctl` ne rétrécit pas.
 - v0.29 (R68) : `couleurTemps` rend `feu` pour TOUT vol feu (plus de pastille `t-feu2` en contour) ; l'étiquette `.chip.feu2` reste en contour.
 - Photos d'Internet (v0.21, R34) : `js/photos-web.js` (Commons : catégorie « immat (aircraft) » puis titres ; Planespotters)
@@ -222,6 +233,7 @@ BOMBING et TRANSPORT s'excluent sur un vol. Suggestions de missions masquées : 
 - `node tests/navigateur/v028.mjs` : étiquette « N appr. », pastille du temps (couleurs = étiquettes, route longue sans chevauchement), « + » de la barre du bas (19 px, 360 px, garde d'abandon, Enregistrer non recouvert), téléphone, PC, iPad paysage et portrait.
 - `node tests/navigateur/v029.mjs` : pastille du temps pleine (couleur « Feu n°… ») pour tout vol feu, « Feu » repris compris, en clair et en sombre (téléphone, PC, iPad).
 - `node tests/navigateur/v030.mjs` : libellés des compteurs (taille, graisse, couleur, contraste clair/sombre), libellé long à 360 px, fenêtre Terrain intermédiaire (téléphone, PC, iPad).
+- `node tests/navigateur/v031.mjs` : orange Entraînement (contraste), période de la loupe (totaux du haut, Totaux et PDF inchangés), flammes (appui long, Annuler, commune par FAUX géocodage IGN, hors ligne, suppression, synchro PC, réimport NPF), fond Photo (FAUX IGN, crédit, hors ligne, rien en cache), terrains intermédiaires à 360 px ; iPad WebKit (service worker bloqué pour que Playwright voie les demandes).
 - `node tests/navigateur/v024.mjs` : synchro dans les deux sens (passage en modification, conflits et 3 choix, doublon, NPF, hors ligne, >20 suppressions, annuler, mot de passe refusé).
 - `node tests/navigateur/fluidite.mjs` : 4070 vols inventés, processeur ralenti ×6.
 - `node outils/controle-import.mjs ../donnees-privees/flylog-decode-v1.csv ../donnees-privees/totaux-flylog-reference.json` :
