@@ -1,6 +1,9 @@
-// v0.34 : R84 rouge « Feu » franc (choix C) : étiquette « Feu n°… » et pastille du temps de tout vol feu #e5534b / #2a0503,
-// « Feu » en contour (bord #e5534b, texte rouge foncé), thème sombre ; contrastes ≥ 4,5 ; Entraînement, IFR, sable,
-// ligne de mission et couleurs de la saisie inchangés. Téléphone (Chromium 390 px, clair et sombre), PC (Chromium 1280 px),
+// v0.34 (R84), mis à jour en v0.35 par R86 (texte BLANC gras, remplace R70 et R84) : Feu « n°… » et pastille de tout vol
+// feu #d32f2f / blanc (≥ 4,5) ; « Feu » en contour bord et texte #d32f2f (sombre : #ef5350 / #ff8a80) ; Entraînement et sa
+// pastille #c8650f / blanc gras (3,9 : choix du pilote) ; GAAR framboise #d81b60 / blanc (≥ 4,5), pastille du temps d'un vol
+// GAAR aussi (R87 : feu, puis GAAR, puis Entraînement, puis IFR, sinon sable) ; mêmes fonds en sombre,
+// distincts de la carte sombre ; IFR, sable, Appr, att., autres pastilles, ligne de mission, saisie et bandeau SIMULATION
+// inchangés. Téléphone (Chromium 390 px, clair et sombre), PC (Chromium 1280 px),
 // iPad (WebKit 1080 × 810, clair et sombre). Vols INVENTÉS. Captures : tests/navigateur/captures/v034-*.png (non commitées).
 // Usage : node tests/navigateur/v034.mjs
 process.env.PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS = '1';
@@ -21,8 +24,13 @@ const VOLS = [
   vol('v-feu', '14', '10:00', { missions: ['FEU n°60 ESSAI'], feux: 1 }),       // « Feu n°60 » plein
   vol('v-rep', '13', '10:00', { missions: ['FEU n°60 ESSAI'], feux: 0 }),       // feu repris : « Feu » en contour, pastille pleine
   vol('v-ent', '12', '10:00', { missions: ['ENT. OPS'] }),                      // entraînement (orange R70, inchangé)
+  vol('v-gaar', '11', '14:00', { hArr: '15:12', missions: ['GAAR ESSAI', 'XTRA ESSAI'], approches: 2 }), // GAAR (framboise) + pastille d'une règle perso (inchangée)
+  vol('v-gaar-ifr', '11', '12:00', { hArr: '13:12', missions: ['GAAR ESSAI'], tempsIFR: 30 }),          // R87 : GAAR + IFR -> framboise
+  vol('v-gaar-feu', '11', '08:00', { hArr: '09:12', missions: ['GAAR ESSAI', 'FEU n°61 ESSAI'], feux: 1 }), // R87 : GAAR + feu -> feu
+  vol('v-gaar-ent', '11', '06:00', { hArr: '07:12', missions: ['GAAR ESSAI', 'ENT. OPS'] }),          // R87 : GAAR + entraînement -> framboise
   vol('v-ifr', '11', '10:00', { missions: ['TRANSIT ESSAI'], tempsIFR: 40 }),   // IFR (inchangé)
   vol('v-sable', '10', '10:00', { missions: ['TRANSIT ESSAI'] }),               // autre (inchangé)
+  vol('v-sim', '09', '10:00', { missions: ['FEU n°70 ESSAI'], feux: 1, simulation: true }), // simulation (R85) : bandeau inchangé
 ];
 
 const srv = await serveur();
@@ -39,7 +47,8 @@ async function appareil(nom, moteur, options) {
   await p.goto(srv.url); await p.waitForSelector('body[data-pret="1"]');
   await p.evaluate(async ([a, vols]) => {
     const db = await new Promise(ok => { const r = indexedDB.open('carnet-de-vol'); r.onsuccess = () => ok(r.result); });
-    const t = db.transaction(['avions', 'vols'], 'readwrite'); t.objectStore('avions').put(a); for (const v of vols) t.objectStore('vols').put(v);
+    const t = db.transaction(['avions', 'vols', 'reglages'], 'readwrite'); t.objectStore('avions').put(a); for (const v of vols) t.objectStore('vols').put(v);
+    t.objectStore('reglages').put({ cle: 'regles', valeur: [{ debut: 'ENT.', pastille: 'Entraînement' }, { debut: 'GAAR', pastille: 'GAAR' }, { debut: 'XTRA', pastille: 'Perso' }] });
     await new Promise(ok => { t.oncomplete = ok; }); db.close();
   }, [AVION, VOLS]);
   await p.reload(); await p.waitForSelector('body[data-pret="1"]');
@@ -57,47 +66,62 @@ const mesurer = p => p.evaluate(ids => {
   for (const id of ids) {
     const c = document.querySelector(`.flight[data-id="${id}"]`), b = c.querySelector('.fl-bloc');
     r[id] = { classe: ([...b.classList].find(k => k.startsWith('t-')) || '').slice(2), pastille: st(b), feu: st(c.querySelector('.chip.feu')), feu2: st(c.querySelector('.chip.feu2')),
-      ent: st(c.querySelector('.chip.mi.ent')), ifr: st(c.querySelector('.chip.ifr')), mission: st(c.querySelector('.fl-rem')), carte: getComputedStyle(c).backgroundColor };
+      ent: st(c.querySelector('.chip.mi.ent')), gaar: st(c.querySelector('.chip.mi.gaar')), perso: st([...c.querySelectorAll('.chip.mi')].find(x => x.textContent === 'Perso')),
+      ifr: st(c.querySelector('.chip.ifr')), appr: st(c.querySelector('.chip.appr')), att: st([...c.querySelectorAll('.chip')].find(x => / att\.$/.test(x.textContent))),
+      sim: st(c.querySelector('.fl-sim')), mission: st(c.querySelector('.fl-rem')), carte: getComputedStyle(c).backgroundColor };
   }
   const rs = getComputedStyle(document.documentElement);
   r.vars = { feu: rs.getPropertyValue('--feu').trim(), feuSoft: rs.getPropertyValue('--feu-soft').trim() };
   return r;
 }, VOLS.map(v => v.id));
 
+const BLANC = 'rgb(255, 255, 255)', ROUGE = 'rgb(211, 47, 47)', ORANGE = 'rgb(200, 101, 15)', FRAMBOISE = 'rgb(216, 27, 96)';
 const ATTENDU = {
-  clair: { feuFond: 'rgb(229, 83, 75)', feuEncre: 'rgb(42, 5, 3)', contourEncre: 'rgb(179, 38, 30)', entFond: 'rgb(240, 160, 80)', entEncre: 'rgb(63, 28, 2)',
-    vars: { feu: '#c62828', feuSoft: '#fde3e1' } },
-  sombre: { feuFond: 'rgb(229, 83, 75)', feuEncre: 'rgb(31, 3, 2)', contourEncre: 'rgb(255, 138, 128)', entFond: 'rgb(217, 123, 43)', entEncre: 'rgb(31, 13, 0)',
-    vars: { feu: '#ef5350', feuSoft: '#3a1c1c' } },
+  clair: { contourBord: ROUGE, contourEncre: ROUGE, vars: { feu: '#c62828', feuSoft: '#fde3e1' } },
+  sombre: { contourBord: 'rgb(239, 83, 80)', contourEncre: 'rgb(255, 138, 128)', vars: { feu: '#ef5350', feuSoft: '#3a1c1c' } },
 };
-let reference = null; // IFR, sable et ligne de mission mesurés en v0.33 (fichier CSS d'avant) : voir plus bas
+const gras = x => Number(x.graisse) >= 700;
 function controler(nom, theme, m, avant) {
-  const a = ATTENDU[theme], f = m['v-feu'], r = m['v-rep'];
-  const cF = contraste(f.feu.fond, f.feu.encre), cP = contraste(f.pastille.fond, f.pastille.encre), cC = contraste(r.carte, r.feu2.encre);
-  verifier(f.feu.fond === a.feuFond && f.feu.encre === a.feuEncre && cF >= 4.5, `${nom} ${theme} : « Feu n°60 » ${f.feu.fond} / ${f.feu.encre}, contraste ${cF.toFixed(2)}`);
-  verifier(f.classe === 'feu' && f.pastille.fond === a.feuFond && f.pastille.encre === a.feuEncre && cP >= 4.5, `${nom} ${theme} : pastille du temps feu pleine, contraste ${cP.toFixed(2)}`);
-  verifier(r.feu2 && r.feu2.fond === 'rgba(0, 0, 0, 0)' && r.feu2.bord === a.feuFond && r.feu2.encre === a.contourEncre && cC >= 4.5,
+  const a = ATTENDU[theme], f = m['v-feu'], r = m['v-rep'], e = m['v-ent'], g = m['v-gaar'];
+  const c = (x, y) => contraste(x, y), cartes = m['v-feu'].carte;
+  const cF = c(f.feu.fond, f.feu.encre), cC = c(r.carte, r.feu2.encre), cE = c(e.ent.fond, e.ent.encre), cG = c(g.gaar.fond, g.gaar.encre);
+  verifier(f.feu.fond === ROUGE && f.feu.encre === BLANC && gras(f.feu) && cF >= 4.5, `${nom} ${theme} : « Feu n°60 » #d32f2f / blanc gras, contraste ${cF.toFixed(2)}`);
+  verifier(f.classe === 'feu' && f.pastille.fond === ROUGE && f.pastille.encre === BLANC && gras(f.pastille), `${nom} ${theme} : pastille du temps feu #d32f2f / blanc gras`);
+  verifier(r.classe === 'feu' && r.pastille.fond === ROUGE && r.pastille.encre === BLANC, `${nom} ${theme} : feu repris : pastille pleine identique`);
+  verifier(r.feu2 && r.feu2.fond === 'rgba(0, 0, 0, 0)' && r.feu2.bord === a.contourBord && r.feu2.encre === a.contourEncre && gras(r.feu2) && cC >= 4.5,
     `${nom} ${theme} : « Feu » en contour : bord ${r.feu2.bord}, texte ${r.feu2.encre} sur ${r.carte}, contraste ${cC.toFixed(2)}`);
-  verifier(r.classe === 'feu' && r.pastille.fond === a.feuFond && r.pastille.encre === a.feuEncre, `${nom} ${theme} : feu repris : pastille pleine identique`);
-  verifier(m['v-ent'].classe === 'mi' && m['v-ent'].ent.fond === a.entFond && m['v-ent'].ent.encre === a.entEncre && m['v-ent'].pastille.fond === a.entFond,
-    `${nom} ${theme} : Entraînement inchangé (${m['v-ent'].ent.fond})`);
+  verifier(e.classe === 'mi' && e.ent.fond === ORANGE && e.ent.encre === BLANC && gras(e.ent) && e.pastille.fond === ORANGE && e.pastille.encre === BLANC && gras(e.pastille) && cE >= 3.9,
+    `${nom} ${theme} : Entraînement (étiquette et pastille) #c8650f / blanc gras 700, contraste ${cE.toFixed(2)} (choix du pilote)`);
+  verifier(g.gaar && g.gaar.fond === FRAMBOISE && g.gaar.encre === BLANC && gras(g.gaar) && cG >= 4.5, `${nom} ${theme} : GAAR framboise #d81b60 / blanc gras, contraste ${cG.toFixed(2)}`);
+  // R87 : pastille du temps : feu, puis GAAR, puis Entraînement, puis IFR, sinon sable
+  const past = id => m[id].pastille, framboise = x => x.fond === FRAMBOISE && x.encre === BLANC && gras(x);
+  verifier(m['v-gaar'].classe === 'gaar' && framboise(past('v-gaar')), `${nom} ${theme} : vol GAAR seul : pastille framboise`);
+  verifier(m['v-gaar-ifr'].classe === 'gaar' && framboise(past('v-gaar-ifr')) && m['v-gaar-ifr'].ifr, `${nom} ${theme} : GAAR + IFR : pastille framboise (étiquette IFR toujours là)`);
+  verifier(m['v-gaar-feu'].classe === 'feu' && past('v-gaar-feu').fond === ROUGE && m['v-gaar-feu'].gaar.fond === FRAMBOISE, `${nom} ${theme} : GAAR + feu : pastille couleur feu`);
+  verifier(m['v-gaar-ent'].classe === 'gaar' && framboise(past('v-gaar-ent')) && m['v-gaar-ent'].ent.fond === ORANGE, `${nom} ${theme} : GAAR + entraînement : pastille framboise (GAAR)`);
+  const distincts = [ROUGE, ORANGE, FRAMBOISE].map(x => c(x, cartes));
+  verifier(distincts.every(x => x >= 3), `${nom} ${theme} : les trois fonds se distinguent de la carte (${distincts.map(x => x.toFixed(1)).join(' / ')})`);
   verifier(m.vars.feu === a.vars.feu && m.vars.feuSoft === a.vars.feuSoft, `${nom} ${theme} : rouge de la saisie, du champ Mission et des messages inchangé (--feu ${m.vars.feu})`);
   if (avant) {
-    verifier(JSON.stringify(m['v-ifr'].ifr) === JSON.stringify(avant['v-ifr'].ifr) && JSON.stringify(m['v-ifr'].pastille) === JSON.stringify(avant['v-ifr'].pastille)
-      && JSON.stringify(m['v-sable'].pastille) === JSON.stringify(avant['v-sable'].pastille), `${nom} ${theme} : IFR et sable identiques à la v0.33`);
-    verifier(VOLS.every(v => JSON.stringify(m[v.id].mission) === JSON.stringify(avant[v.id].mission)), `${nom} ${theme} : ligne de mission sous la carte identique à la v0.33`);
+    const meme = (x, y) => JSON.stringify(x) === JSON.stringify(y);
+    verifier(meme(m['v-ifr'].ifr, avant['v-ifr'].ifr) && meme(m['v-ifr'].pastille, avant['v-ifr'].pastille) && meme(m['v-sable'].pastille, avant['v-sable'].pastille)
+      && meme(g.appr, avant['v-gaar'].appr) && meme(g.att, avant['v-gaar'].att) && meme(g.perso, avant['v-gaar'].perso)
+      && meme(m['v-gaar-ifr'].ifr, avant['v-gaar-ifr'].ifr),
+      `${nom} ${theme} : IFR, sable, « Appr », « att. » et autre pastille de règle identiques à avant`);
+    verifier(VOLS.every(v => meme(m[v.id].mission, avant[v.id].mission)) && meme(m['v-sim'].sim, avant['v-sim'].sim), `${nom} ${theme} : ligne de mission et bandeau SIMULATION identiques à avant`);
   }
 }
 
+let reference = null;
 try {
-  // Référence : la même page avec la feuille de style d'avant R84 (règles v0.34 retirées) = couleurs de la v0.33
+  // Référence : la même page sans les règles R86 = couleurs d'avant (pour vérifier que le reste ne change pas)
   const T = await appareil('téléphone', nav, { viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
-  const sansR84 = async () => T.evaluate(() => {
+  const sansR86 = async () => T.evaluate(() => {
     for (const ss of document.styleSheets) {
       let regles; try { regles = ss.cssRules; } catch { continue; }
       for (let i = regles.length - 1; i >= 0; i--) {
         const t = regles[i].cssText;
-        if (/chip\.feu|t-feu/.test(t) && /229, 83, 75|#e5534b|#b3261e|#ff8a80|#1f0302|179, 38, 30|255, 138, 128|31, 3, 2/i.test(t)) ss.deleteRule(i);
+        if (/chip\.feu|t-feu|chip\.mi\.(ent|gaar)|t-mi|t-gaar/.test(t) && /#d32f2f|#c8650f|#d81b60|#ef5350|#ff8a80|211, 47, 47|200, 101, 15|216, 27, 96/i.test(t)) ss.deleteRule(i);
       }
     }
   });
@@ -106,11 +130,11 @@ try {
     await T.emulateMedia({ colorScheme: theme === 'clair' ? 'light' : 'dark' });
     reference[theme] = await mesurer(T);
   }
-  await sansR84();
+  await sansR86();
   for (const theme of ['clair', 'sombre']) {
     await T.emulateMedia({ colorScheme: theme === 'clair' ? 'light' : 'dark' });
     const avant = await mesurer(T);
-    verifier(avant['v-feu'].feu.fond !== reference[theme]['v-feu'].feu.fond, `référence ${theme} : la page sans R84 a bien l'ancien rouge (${avant['v-feu'].feu.fond})`);
+    verifier(avant['v-feu'].feu.fond !== reference[theme]['v-feu'].feu.fond && avant['v-gaar'].gaar.fond !== FRAMBOISE, `référence ${theme} : la page sans R86 a bien les anciennes couleurs (${avant['v-feu'].feu.fond}, GAAR ${avant['v-gaar'].gaar.fond})`);
     reference[theme].avant = avant;
   }
   await T.reload(); await T.waitForSelector('body[data-pret="1"]');
@@ -120,7 +144,7 @@ try {
     await T.emulateMedia({ colorScheme: theme === 'clair' ? 'light' : 'dark' });
     controler('téléphone', theme, await mesurer(T), reference[theme].avant);
     await T.screenshot({ path: join(CAPT, `v034-0${theme === 'clair' ? 1 : 2}-tel-390-${theme}.png`) });
-    // la liste entière : feu, feu repris, entraînement, IFR (et vol ordinaire)
+    // la liste entière : feu, feu repris, entraînement, GAAR, IFR, vol ordinaire, simulation
     await T.locator('#list').screenshot({ path: join(CAPT, `v034-0${theme === 'clair' ? 5 : 6}-tel-390-liste-${theme}.png`) });
   }
   console.log('Thème choisi dans l\'app (data-theme)');
@@ -146,10 +170,12 @@ try {
     controler('iPad', theme, await mesurer(I), reference[theme].avant);
   }
   await I.screenshot({ path: join(CAPT, 'v034-04-ipad-sombre.png') });
+  await I.emulateMedia({ colorScheme: 'light' });
+  await I.locator('#list').screenshot({ path: join(CAPT, 'v034-07-ipad-liste-clair.png') });
 
   verifier(!bloquees.length, 'aucun appel hors de cet ordinateur' + (bloquees.length ? ' : ' + [...new Set(bloquees)].slice(0, 5).join(' ') : ''));
   verifier(!erreurs.length, 'aucune erreur JavaScript' + (erreurs.length ? ' : ' + erreurs.slice(0, 5).join(' | ') : ''));
-  console.log('\nv0.34 réussie.');
+  console.log('\nv0.34 / R86 réussie.');
 } catch (e) {
   console.error(e.message);
   process.exitCode = 1;

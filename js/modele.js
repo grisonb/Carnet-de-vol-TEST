@@ -127,6 +127,12 @@ export function cleDoublon(vol, immat) {
 // R46 / R58 : terrains proposés pour un nouveau vol. Départ = arrivée du dernier vol (sinon la base) ; arrivée = la base
 // LFTW, sauf si le départ est FMEP (détachement à La Réunion) : arrivée FMEP.
 export const BASE = 'LFTW';
+
+// v0.35 (R85) : vol de SIMULATION envoyé par NPF-Q400-RUN (« simulation »: true ; champ absent pour un vrai vol).
+// Il reste dans le carnet (sauvegarde, copie NAS, synchro, CSV) mais ne compte JAMAIS : totaux, PDF, n° des feux,
+// valeurs par défaut d'un nouveau vol, doublons.
+export const estSimulation = v => !!v && v.simulation === true;
+export const volsReels = vols => vols.filter(v => !estSimulation(v));
 export const arriveeParDefaut = dep => (String(dep || '').trim().toUpperCase() === 'FMEP' ? 'FMEP' : BASE);
 
 // Du plus récent au plus ancien : date, heure de départ, puis ordre d'enregistrement

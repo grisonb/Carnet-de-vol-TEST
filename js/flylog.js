@@ -108,6 +108,7 @@ export function analyserFlyLog(contenu, existant = {}, types = indexTypes(), mai
   const parId = new Map((existant.avions || []).map(a => [a.id, a]));
   const deja = new Map();
   for (const v of existant.vols || []) {
+    if (v.simulation === true) continue; // v0.35 (R85) : un vol de simulation ne cache jamais un vrai vol
     const k = cleDoublon(v, parId.get(v.avionId)?.immat || '');
     deja.set(k, (deja.get(k) || 0) + 1);
   }

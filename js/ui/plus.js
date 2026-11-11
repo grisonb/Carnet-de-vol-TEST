@@ -10,7 +10,7 @@ import { creerSauvegarde, texteSauvegarde, lireSauvegarde, nomFichier, texteTabl
 import { paginer, dessinerPDF, totauxVides, totauxPDF } from '../pdf.js';
 import { hm, aujourdhui, dateFr } from '../temps.js';
 import { TYPES, MOTEUR, SURFACE, typesAffiches } from '../types-avion.js';
-import { nomPersonne } from '../modele.js';
+import { nomPersonne, volsReels } from '../modele.js';
 import { VERSION } from '../version.js';
 import { ouvrirRegles } from './regles.js';
 import { ouvrirFlotte, typesConnus, definirTypes } from './avions.js';
@@ -63,7 +63,7 @@ function ecranPDF() {
     const tit = $('#xp-tit').value.trim();
     if (tit !== reglage('titulaire')) await enregistrerReglage('titulaire', tit);
     const p = lirePeriode(), auj = aujourdhui();
-    const tous = chrono(etat.vols);
+    const tous = chrono(volsReels(etat.vols)); // v0.35 (R85) : jamais de vol de simulation dans le carnet EASA
     const vols = filtrerPeriode(tous, p, auj);
     const { du, au } = bornesPeriode(p, auj);
     const avant = du ? tous.filter(v => v.date < du) : [];

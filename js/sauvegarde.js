@@ -127,6 +127,7 @@ export const COLONNES_TABLEUR = [
   ['Remarques et visas', v => v.remarques],
   ['Note personnelle', v => v.notePerso],
   ['Origine', v => (v.source === 'flylog' ? 'FlyLog' : 'Saisie')],
+  ['Simulation', v => oui(v.simulation === true)], // v0.35 (R85) : vol de simulation (NPF-Q400-RUN)
   ['Identifiant', v => v.id],
   ['Modifié le', v => v.modifieLe],
 ];

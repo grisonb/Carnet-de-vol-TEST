@@ -23,6 +23,15 @@ function majBandeau() {
   const n = attente.length;
   b.hidden = !n;
   b.textContent = n ? `${n} vol${n > 1 ? 's' : ''} à importer depuis NPF-Q400 ›` : '';
+  // v0.35 (R85) : vols de simulation (NPF-Q400-RUN) parmi eux : bandeau rouge
+  const k = attente.filter(x => x.simulation === true).length;
+  b.classList.toggle('avec-sim', k > 0);
+  if (k) {
+    const s = document.createElement('span');
+    s.className = 'sim-bandeau sim-ligne';
+    s.textContent = k === n ? 'SIMULATION VOL' : `SIMULATION VOL : ${k} sur ${n}`;
+    b.append(s);
+  }
 }
 
 // Demande discrète des vols en attente sur le NAS
@@ -94,7 +103,7 @@ export function ecranVolsNpf() {
   const lignes = attente.map(n => {
     const r = resumeNpf(n, avions()), deja = volDejaEnregistre(etat.vols, n.id);
     return `<div class="npf-ligne"><button type="button" class="pitem npfv" data-npf="${esc(n.id)}">
-        <b>${esc(r.date)} · ${esc(r.avion)}</b><span>${esc(r.trajet)}</span><span class="num">${esc(r.bloc)}</span>
+        ${r.simulation ? '<span class="sim-bandeau sim-ligne">SIMULATION VOL</span>' : ''}<b>${esc(r.date)} · ${esc(r.avion)}</b><span>${esc(r.trajet)}</span><span class="num">${esc(r.bloc)}</span>
         ${r.feux ? `<span class="npf-feux">${r.feux} feu${r.feux > 1 ? 'x' : ''}</span>` : ''}
         ${deja ? '<span class="npf-maj">Déjà dans le carnet : mise à jour</span>' : ''}
         ${r.avionConnu ? '' : `<span class="npf-inc">${r.avionsMemeNom ? 'Plusieurs avions de ce nom : à choisir' : 'Avion à choisir ou à ajouter'}</span>`}</button>

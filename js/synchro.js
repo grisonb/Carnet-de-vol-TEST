@@ -239,6 +239,7 @@ export function doublons(vols, cleDe, depuis, vus = []) {
   const groupes = new Map(), paires = [], dejaVus = new Set(vus);
   const recent = v => (v.creeLe || '') >= (depuis || '9999');
   for (const v of vols) {
+    if (v.simulation === true) continue; // v0.35 (R85) : un vol de simulation n'est jamais un doublon
     for (const k of [cleDe(v), v.npfId ? 'npf|' + v.npfId : null]) {
       if (!k) continue;
       if (!groupes.has(k)) groupes.set(k, []);

@@ -454,6 +454,8 @@ async function pleinEcran() {
   if (e.code !== 'ok' && !positionsNpf(volAffiche)) return;
   feuxChanges = false;
   $('#carte-plein').hidden = false;
+  // v0.35 (R85) : vol de simulation : bandeau rouge (place réservée sous le titre, la carte descend d'autant)
+  $('#cp-sim').hidden = volAffiche.simulation !== true; $('#carte-plein').classList.toggle('avec-sim', volAffiche.simulation === true);
   $('#cp-t').textContent = `${dateFr(volAffiche.date)} · ${[volAffiche.dep, ...(volAffiche.escales || []).map(x => x.code), volAffiche.arr].filter(Boolean).join(' → ')}`;
   await dessiner($('#carte-grande'), volAffiche, e.code === 'ok' ? e.stockee.points : [], true);
 }

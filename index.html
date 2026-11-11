@@ -54,6 +54,8 @@
       <div style="text-align:center"><h2 id="f-title" style="font-size:18px">Nouveau vol</h2><div class="hint" id="f-sub"></div></div>
       <span style="width:72px"></span>
     </div>
+    <!-- v0.35 (R85) : vol de simulation (NPF-Q400-RUN) : ne compte dans aucun total -->
+    <div class="sim-bandeau" id="f-sim" hidden role="note">SIMULATION VOL<small>Ne compte dans aucun total ni dans le PDF</small></div>
     <div class="npf-zone" id="npf-zone" hidden><p id="npf-txt"></p><button type="button" class="linkbtn" id="npf-copi-add" hidden></button><button type="button" class="linkbtn" id="npf-feux" hidden></button><button type="button" class="linkbtn npf-ign" id="npf-ign">Ignorer ce vol</button></div>
 
     <div class="sec c-vol">
@@ -419,6 +421,7 @@
 <!-- Carte du vol en plein écran (zoom au doigt) -->
 <div class="sheet" id="carte-plein" hidden role="dialog" aria-modal="true" aria-labelledby="cp-t" style="z-index:33"><div class="carte-plein-in">
   <div class="shead"><button type="button" class="xbtn" id="cp-x" aria-label="Fermer"><svg class="ix" viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></svg></button><h2 id="cp-t">Carte du vol</h2></div>
+  <div class="sim-bandeau cp-sim" id="cp-sim" hidden role="note">SIMULATION VOL</div>
   <!-- v0.31 (R73) : fond Plan (OpenStreetMap) ou Photo (photos aériennes IGN, en ligne seulement) -->
   <div class="cp-outils"><div class="seg cp-fond" id="cp-fond" role="group" aria-label="Fond de carte"><button type="button" data-fond="plan" aria-pressed="true">Plan</button><button type="button" data-fond="photo" aria-pressed="false">Photo</button></div>
     <span class="cp-msg" id="cp-msg" role="status"></span></div>

@@ -4,7 +4,7 @@ import { $, $$, esc, segs, choisir, toast, toastAction, codeAvecDrapeau, PLUS, M
 import { etat, reglage, enregistrerReglage, ecrireReglageDiscret, enregistrerVol, supprimerVol, enregistrerPersonne, supprimerPersonne,
   listeMissions, trouverPersonne, enregistrerAvion, enConsultation } from '../etat.js';
 import { ouvrirAjoutTerrain } from './terrain-perso.js';
-import { volVide, FONCTIONS, TEMPS_FONCTION, COMPTEURS, colonnesAvion, personneVide, nomPersonne, ligneAvion,
+import { estSimulation, volVide, FONCTIONS, TEMPS_FONCTION, COMPTEURS, colonnesAvion, personneVide, nomPersonne, ligneAvion,
   etiquettesDeLAvion, etiquettesPourAvion, basculerEtiquette, fonctionsPossibles, champPersonneVisible, compteursAffiches, BASE, arriveeParDefaut } from '../modele.js';
 import { supprimerVolAvecAnnuler } from './suppression.js';
 import { afficherCarteVol } from './carte.js';
@@ -325,7 +325,7 @@ function indicationFeu() {
 const remplacerNumero = (t, n) => t.replace(/(\bFEU\b[^+]*?n°\s*)(\d+)/i, `$1${n}`);
 // Vol (autre que celui-ci) qui a déjà ce numéro de feu
 function volAvecNumero(n) {
-  return etat.vols.find(v => v.id !== F.vol?.id && [...(v.missions || []), ...String(v.remarques || '').split(/\s+\+\s+|•/)].some(l => numeroFeu(l) === n)) || null;
+  return etat.vols.find(v => v.id !== F.vol?.id && !estSimulation(v) && [...(v.missions || []), ...String(v.remarques || '').split(/\s+\+\s+|•/)].some(l => numeroFeu(l) === n)) || null;
 }
 let fnN = 0;
 function rendreNumeroFeu() {
@@ -480,6 +480,7 @@ function appliquerNpf(n, vol) {
   const b = brouillonNpf(n, { avions: [...etat.avions.values()], vols: vol ? etat.vols.filter(v => v.id !== vol.id) : etat.vols,
     personnes: etat.personnes, terrain });
   F.arrPos = b.arriveePosition && !b.arr ? b.arriveePosition : null; // arrivée sans code : position GPS envoyée par NPF
+  F.simulation = b.simulation === true; // v0.35 (R85) : vol de simulation NPF-Q400-RUN
   F.npf = { id: b.npf.id, exporteLe: b.npf.exporteLe, feux: b.npf.feux, vol: n, avionInconnu: b.avion ? '' : b.rechercheAvion,
     copiInconnu: b.copilote && !b.copilotePersonne ? b.copilote : '' };
   F.mode = 'utc';
@@ -541,14 +542,15 @@ const feuxDuBrouillon = (vol, feuxNpf) => (F.npf && F.npf.feuxRetouches && !F.np
 // opts.npf : vol reçu de NPF-Q400 (format « carnet-vol-npf ») à ouvrir en brouillon ; vol = le vol déjà enregistré
 // avec le même id NPF (mise à jour) ou null.
 export function ouvrirSaisie(vol, opts = {}) {
-  const dernier = etat.vols[0];
+  // v0.35 (R85) : valeurs par défaut d'un nouveau vol : jamais tirées d'un vol de simulation
+  const dernier = etat.vols.find(x => !estSimulation(x));
   const v = vol ? structuredClone(vol) : volVide();
   F = { vol: vol || null, mode: vol ? (vol.mode || 'loc') : 'loc', escales: (v.escales || []).map(e => ({ ...e })),
     avionId: v.avionId, etiquettes: [...(v.etiquettes || [])], fonction: v.fonction || 'cdb',
     lignes: lignesPourSaisie(v), compteurs: { ...v.compteurs }, s: { approches: Math.max(0, (v.approches || 0) - approchesEscales(v.escales)), attJour: v.attJour, attNuit: v.attNuit },
     ifr: !!v.regleIFR, bloc: v.tempsTotal || v.simTemps || 0, heuresInconnues: !!vol && !(vol.hDep && vol.hArr), charge: true, npf: null,
     // v0.32 (R76) : ancien vol = enregistré avec un temps de vol mais sans heures bloc
-    feuChoisi: 0,
+    feuChoisi: 0, simulation: estSimulation(vol), // v0.35 (R85)
     ancien: vol && !(vol.hDep && vol.hArr) && (vol.tempsTotal || vol.simTemps) > 0 ? { temps: vol.tempsTotal || vol.simTemps } : null, nuitProposee: null,
     arrPos: v.arriveePosition ? { ...v.arriveePosition } : null };
   $('#npf-zone').hidden = true;
@@ -627,12 +629,13 @@ export function ouvrirSaisie(vol, opts = {}) {
   }
   F.charge = false;
   $('#f-ancien').hidden = !(F.ancien && !brouillon);
+  $('#f-sim').hidden = !F.simulation;
   recap(); apercu();
   F.empreinte = empreinte();
   // carte du vol enregistré (sans jamais toucher aux heures) ; brouillon NPF : positions des feux reçues
   afficherCarteVol(brouillon ? { ...(vol || {}), date: brouillon.date, hDep: brouillon.hDep, hArr: brouillon.hArr, dep: brouillon.dep || (vol && vol.dep) || '',
     arr: brouillon.arr || (vol && vol.arr) || '', escales: F.escales, avionId: F.avionId, feuxPositions: feuxDuBrouillon(vol, brouillon.npf.feux),
-    arriveePosition: F.arrPos, brouillon: true } : (vol || null));
+    arriveePosition: F.arrPos, brouillon: true, simulation: F.simulation } : (vol || null));
 }
 
 // ---------- Changements non enregistrés (flèche retour : « Abandonner la saisie ? ») ----------
@@ -717,6 +720,8 @@ async function enregistrer() {
   }
   // Position GPS de l'arrivée (NPF) : gardée seulement si le code tapé n'est pas un terrain connu (Carte du vol)
   if (F.arrPos && !terrain(arr)) v.arriveePosition = { ...F.arrPos }; else delete v.arriveePosition;
+  // v0.35 (R85) : la marque « simulation » est gardée ; un vrai vol n'a pas ce champ
+  if (F.simulation) v.simulation = true; else delete v.simulation;
   await enregistrerVol(v);
   if (npf) volNpfEnregistre(npf.id);
   // nouvelle personne tapée sans passer par « + » : on l'ajoute à la liste
@@ -726,7 +731,7 @@ async function enregistrer() {
     if (/^[A-Z]{3}$/i.test(qui)) p.tri = qui.toUpperCase(); else p.nom = qui;
     await enregistrerPersonne(p);
   }
-  toast(npf ? (F.vol ? 'Vol mis à jour' : 'Vol NPF-Q400 enregistré') : F.vol ? 'Vol modifié' : 'Vol enregistré');
+  toast(npf ? (F.vol ? 'Vol mis à jour' : F.simulation ? 'Vol de simulation enregistré (hors totaux)' : 'Vol NPF-Q400 enregistré') : F.vol ? 'Vol modifié' : 'Vol enregistré');
   F = null;
   quitter();
 }
@@ -759,7 +764,7 @@ export function initSaisie({ fermer }) {
     F.npf.reprendreFeux = !F.npf.reprendreFeux;
     majBoutonFeuxNpf();
     afficherCarteVol({ ...(F.vol || {}), date: $('#f-date').value, dep: $('#f-dep').value, arr: $('#f-arr').value, escales: F.escales, avionId: F.avionId,
-      feuxPositions: feuxDuBrouillon(F.vol, F.npf.feux), arriveePosition: F.arrPos, brouillon: true, id: undefined });
+      feuxPositions: feuxDuBrouillon(F.vol, F.npf.feux), arriveePosition: F.arrPos, brouillon: true, simulation: F.simulation, id: undefined });
   });
   document.addEventListener('personnes-modifiees', () => {
     if (F && F.npf && F.npf.copiInconnu && trouverPersonne(F.npf.copiInconnu)) { F.npf.copiInconnu = ''; $('#npf-copi-add').hidden = true; }

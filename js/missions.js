@@ -19,7 +19,7 @@ export const estLigneFeu = ligne => /\bFEU\b/i.test(ligne || '');
 export function plusGrandFeu(vols, exclureId = null) {
   let max = 0;
   for (const v of vols) {
-    if (v.id === exclureId) continue;
+    if (v.id === exclureId || v.simulation === true) continue; // v0.35 (R85) : les vols de simulation ne comptent pas
     // lignes de mission, et aussi les remarques (au cas où un feu y serait écrit)
     for (const l of [...(v.missions || []), ...String(v.remarques || '').split(/\s+\+\s+|•/)]) {
       const n = numeroFeu(l);

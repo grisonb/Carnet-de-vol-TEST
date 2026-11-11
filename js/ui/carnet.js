@@ -12,7 +12,7 @@ import { BANDE_GENERAL, choixParType, valeurBande, basculerChoix, deplacerChoix 
 import { hm, heureH, dateFr, aujourdhui, MOIS, arriveeLendemain, dateValide } from '../temps.js';
 import { heuresLocales } from '../fuseaux.js';
 import { fuseau } from '../terrains.js';
-import { FONCTIONS, COMPTEURS, identiteAvion } from '../modele.js';
+import { FONCTIONS, COMPTEURS, identiteAvion, estSimulation } from '../modele.js';
 import { pastilleFeu, pastillesRegles, texteMissions, normaliser } from '../missions.js';
 import { heuresDerniersJours, totalHdV, calculerTotaux } from '../totaux.js';
 import { lireDate, filtreDate } from '../recherche.js';
@@ -104,10 +104,12 @@ export function effacerPeriode() {
 }
 
 // v0.28 (R66) : couleur de la pastille du temps de vol = couleur de l'étiquette qui donne le type du vol, avec les
-// MÊMES règles que les étiquettes de la carte : feu (pastilleFeu), puis Entraînement (règle de
+// MÊMES règles que les étiquettes de la carte : feu (pastilleFeu), puis GAAR (v0.35, R87), puis Entraînement (règle de
 // pastille « Entraînement », par défaut les missions qui commencent par « ENT. »), puis IFR (temps IFR), sinon sable.
 export function couleurTemps(feu, regles, v) {
   if (feu) return 'feu'; // v0.29 (R68) : TOUT vol feu (« Feu n°… » plein ou « Feu » en contour) : pastille pleine, couleur « Feu n°… »
+  // v0.35 (R87) : étiquette « GAAR » (même règle que l'étiquette : pastillesRegles) : framboise, avant Entraînement
+  if (regles.some(p => p.toUpperCase() === 'GAAR')) return 'gaar';
   if (regles.some(p => p.toUpperCase() === 'ENTRAÎNEMENT')) return 'mi';
   if (v.tempsIFR) return 'ifr';
   return 'sable';
@@ -135,7 +137,8 @@ export function carteVol(v, voir = false) {
   if (feu) puces.push(`<span class="chip ${feu.plein ? 'feu' : 'feu2'}">${esc(feu.texte)}</span>`);
   const regles = pastillesRegles(v, reglage('regles'));
   // v0.31 (R70) : l'étiquette « Entraînement » a son orange franc (classe ent), comme la pastille du temps de vol
-  for (const p of regles) puces.push(`<span class="chip mi${p.toUpperCase() === 'ENTRAÎNEMENT' ? ' ent' : ''}">${esc(p)}</span>`);
+  // v0.35 (R86) : « GAAR » a sa couleur (framboise) ; les autres pastilles de règles gardent l'orange pâle commun
+  for (const p of regles) puces.push(`<span class="chip mi${p.toUpperCase() === 'ENTRAÎNEMENT' ? ' ent' : p.toUpperCase() === 'GAAR' ? ' gaar' : ''}">${esc(p)}</span>`);
   for (const c of COMPTEURS) {
     const n = v.compteurs && v.compteurs[c.cle];
     if (n) puces.push(`<span class="chip hl">${n} ${esc(c.court)}</span>`);
@@ -149,8 +152,8 @@ export function carteVol(v, voir = false) {
   const mission = texteMissions(v);
   const duree = v.tempsTotal || v.simTemps || 0;
   // la carte se glisse vers la gauche pour faire apparaître « Supprimer » (avec confirmation)
-  return `<div class="swrow flrow"><button type="button" class="swdel" data-fdel="${esc(v.id)}" tabindex="-1">Supprimer</button><button type="button" class="flight swfront" data-id="${esc(v.id)}">
-    <div class="fl-top"><span class="fl-route${taille}">${route}</span><span class="fl-bloc t-${couleurTemps(feu, regles, v)}">${hm(duree)}</span></div>
+  return `<div class="swrow flrow"><button type="button" class="swdel" data-fdel="${esc(v.id)}" tabindex="-1">Supprimer</button><button type="button" class="flight swfront${estSimulation(v) ? ' sim' : ''}" data-id="${esc(v.id)}">
+    ${estSimulation(v) ? '<div class="sim-bandeau fl-sim">SIMULATION VOL<small>hors totaux</small></div>' : ''}<div class="fl-top"><span class="fl-route${taille}">${route}</span><span class="fl-bloc t-${couleurTemps(feu, regles, v)}">${hm(duree)}</span></div>
     <div class="fl-id">${ligne}</div>
     <div class="fl-meta num">${esc(ligneHeures(v))}</div>
     <div class="chips">${puces.join('')}</div>

@@ -595,17 +595,36 @@ body{padding-bottom:104px}
 :root[data-theme="dark"] .step small.hint{color:#c3cfdb}
 
 /* v0.31 (R70) : « Entraînement » (étiquette et pastille du temps de vol) en orange franc ; autres couleurs inchangées */
-.chip.mi.ent,.fl-bloc.t-mi{background:#f0a050;border-color:transparent;color:#3f1c02;font-weight:600}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .chip.mi.ent,:root:not([data-theme="light"]) .fl-bloc.t-mi{background:#d97b2b;color:#1f0d00}}
-:root[data-theme="dark"] .chip.mi.ent,:root[data-theme="dark"] .fl-bloc.t-mi{background:#d97b2b;color:#1f0d00}
-/* v0.34 (R84) : rouge « Feu » franc (choix C) : étiquette « Feu n°… » et pastille du temps de tout vol feu : #e5534b / #2a0503
-   (contraste 5,06) ; sombre : même rouge, texte #1f0302 (5,29). « Feu » en contour : bord #e5534b, texte #b3261e sur fond
-   clair (6,54) ; sombre : texte #ff8a80 (7,05). Le reste (--feu : saisie, champ Mission, messages) ne change pas. */
-.chip.feu,.fl-bloc.t-feu{background:#e5534b;border-color:transparent;color:#2a0503;font-weight:600}
-.chip.feu2{border-color:#e5534b;color:#b3261e;background:none;font-weight:600}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .chip.feu,:root:not([data-theme="light"]) .fl-bloc.t-feu{color:#1f0302}:root:not([data-theme="light"]) .chip.feu2{color:#ff8a80}}
-:root[data-theme="dark"] .chip.feu,:root[data-theme="dark"] .fl-bloc.t-feu{color:#1f0302}
-:root[data-theme="dark"] .chip.feu2{color:#ff8a80}
+/* (couleurs de R70 remplacées par R86, plus bas) */
+/* v0.35 (R85) : vol de SIMULATION (NPF-Q400-RUN) : bandeau rouge plein, texte blanc gras (contraste 5,6) */
+.sim-bandeau{display:block;background:#c62828;color:#fff;font-weight:800;letter-spacing:.06em;text-align:center;border-radius:10px;padding:8px 12px;font-size:16px;line-height:1.2}
+.sim-bandeau[hidden]{display:none}
+.sim-bandeau small{display:block;font-size:13px;font-weight:600;letter-spacing:0;opacity:.95}
+#f-sim{margin:4px 0 10px}
+.flight.sim{border:2px solid #c62828}
+.fl-sim{margin:-6px -6px 10px;padding:6px 10px;font-size:15px}
+.fl-sim small{display:inline;margin-left:8px;font-size:13px}
+.sim-ligne{display:inline-block;align-self:flex-start;margin:0 0 4px;padding:3px 10px;font-size:14px}
+.npf-bandeau .sim-ligne{display:block;margin:8px 0 0;text-align:center}
+.carte-plein-in .cp-sim{position:absolute;left:16px;right:16px;top:66px;z-index:3;padding:6px 10px;font-size:15px}
+#carte-plein.avec-sim .carte-grande{top:104px}
+#carte-plein.avec-sim .cp-outils{top:104px}
+/* v0.35 (R86, remplace R70 et R84) : étiquettes et pastilles du temps en TEXTE BLANC GRAS, mêmes fonds en clair et en sombre
+   (ils restent bien visibles sur la carte sombre #17222e : 3,2 à 4,1).
+   Feu « n°… » + pastille de tout vol feu : #d32f2f (5,0). « Feu » en contour : bord et texte #d32f2f (5,0 sur blanc) ;
+   sombre : bord #ef5350, texte #ff8a80 (7,1). Entraînement + pastille : #c8650f (3,9 : choix du pilote, texte en gras 700).
+   GAAR (étiquette ; règle par défaut de missions.js, avant : orange pâle commun .chip.mi) : framboise #d81b60 (4,9) ;
+   R87 : pastille du temps d'un vol GAAR (.fl-bloc.t-gaar) de la même couleur (ordre : feu, GAAR, Entraînement, IFR, sable).
+   Inchangés : autres pastilles de règles (.chip.mi), IFR, sable, Appr, att., ligne de mission, saisie, --feu. */
+.chip.feu,.fl-bloc.t-feu,:root:not([data-theme="light"]) .chip.feu,:root:not([data-theme="light"]) .fl-bloc.t-feu{background:#d32f2f;border-color:transparent;color:#fff;font-weight:700}
+.chip.mi.ent,.fl-bloc.t-mi,:root:not([data-theme="light"]) .chip.mi.ent,:root:not([data-theme="light"]) .fl-bloc.t-mi{background:#c8650f;border-color:transparent;color:#fff;font-weight:700}
+.chip.mi.gaar,.fl-bloc.t-gaar,:root:not([data-theme="light"]) .chip.mi.gaar,:root:not([data-theme="light"]) .fl-bloc.t-gaar{background:#d81b60;border-color:transparent;color:#fff;font-weight:700}
+.chip.feu2{border-color:#d32f2f;color:#d32f2f;background:none;font-weight:700}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .chip.feu2{border-color:#ef5350;color:#ff8a80}}
+:root[data-theme="dark"] .chip.feu,:root[data-theme="dark"] .fl-bloc.t-feu{background:#d32f2f;color:#fff}
+:root[data-theme="dark"] .chip.mi.ent,:root[data-theme="dark"] .fl-bloc.t-mi{background:#c8650f;color:#fff}
+:root[data-theme="dark"] .chip.mi.gaar,:root[data-theme="dark"] .fl-bloc.t-gaar{background:#d81b60;color:#fff}
+:root[data-theme="dark"] .chip.feu2{border-color:#ef5350;color:#ff8a80}
 /* v0.31 (R74) : étiquette d'un terrain intermédiaire : nom raccourci « … », nombres en pastilles toujours visibles à droite */
 .vialist .viachip{max-width:100%;min-width:0}
 .viachip .vc-nom{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}

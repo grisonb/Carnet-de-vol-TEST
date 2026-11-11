@@ -1,5 +1,38 @@
 # Journal des versions
 
+## v0.35 — 11/11/2026
+
+Remarques R85, R86 et R87. carnet.php v5 et format NPF-Q400 inchangés (le champ facultatif « simulation » existait déjà pour
+le Carnet : les champs inconnus étaient ignorés) ; NAS et VPS non touchés.
+
+**R85 : vols de SIMULATION envoyés par NPF-Q400-RUN** (« simulation »: true ; champ absent pour un vrai vol)
+- Gardé du brouillon à l'enregistrement (`vol.simulation = true`). Bandeau rouge « SIMULATION VOL » : bandeau « N vols à
+  importer » (« SIMULATION VOL : 1 sur 2 »), liste des vols NPF, haut du brouillon et de l'écran du vol, Carte du vol
+  plein écran, carte de la liste (cadre rouge, « hors totaux »).
+- Ne compte JAMAIS : TOTAL HdV, bande d'heures, 3/7/30 jours, onglet Totaux (nombre de vols compris), heures par avion,
+  PDF EASA, prochain n° de feu (et alerte de doublon de n°), départ / avion / mode proposés pour un nouveau vol,
+  doublons de la synchro et de l'import FlyLog.
+- Reste dans : sauvegarde, copie NAS, synchro (avec sa marque), CSV (colonne « Simulation » = oui) ; suppression normale
+  (glissé + Annuler). Google Earth : chaque point commence par « SIMULATION – ».
+- Vrai vol NPF (sans le champ) : strictement inchangé.
+
+**R86 : étiquettes et pastilles en texte BLANC gras** (remplace R70 et R84)
+- Feu « n°… » et pastille du temps de tout vol feu (feu repris compris) : #d32f2f / blanc (5,0). « Feu » en contour :
+  bord et texte #d32f2f (5,0 sur blanc) ; sombre : #ef5350 / #ff8a80 (7,1).
+- Entraînement (étiquette et pastille) : #c8650f / blanc gras 700 (3,9 : choix du pilote).
+- GAAR (étiquette) : framboise #d81b60 / blanc (4,9). Avant : orange pâle commun à toutes les pastilles de règles
+  (`.chip.mi`) ; les autres pastilles de règles le gardent.
+- Mêmes fonds en sombre (bien distincts de la carte sombre). IFR, sable, Appr, att., ligne de mission, saisie, bandeau
+  SIMULATION inchangés.
+
+**R87 : pastille du temps de vol des vols GAAR** : framboise #d81b60 / blanc (clair et sombre), avec la même règle que
+l'étiquette « GAAR ». Ordre : feu, puis GAAR, puis Entraînement, puis IFR, sinon sable (GAAR + feu -> feu ; GAAR + IFR ou
+GAAR + entraînement -> framboise).
+
+**Tests** : `tests/navigateur/v035.mjs` (faux NAS v5 : vrai vol et simulation à 2 feux ; téléphone, PC, iPad) ;
+`v034.mjs` vérifie maintenant R86 et R87 (couleurs, graisse, contrastes clair / sombre, cas GAAR, reste inchangé) ; `v031.mjs` adapté
+(Entraînement et GAAR de R86) ; tous les tests existants.
+
 ## v0.34 — 11/11/2026
 
 Remarque R84. carnet.php v5 et format NPF-Q400 inchangés ; NAS et VPS non touchés.

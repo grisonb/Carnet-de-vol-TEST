@@ -179,9 +179,10 @@ async function ouvrirCartePlein(p, idVol) {
 // R70 : étiquette et pastille Entraînement (clair ou sombre)
 async function controlerEntrainement(p, vue, sombre) {
   const e = await couleurs(p, '.flight[data-id="v-ent"] .chip.mi.ent'), b = await couleurs(p, '.flight[data-id="v-ent"] .fl-bloc');
-  if (!sombre) verifier(e.fond === 'rgb(240, 160, 80)' && e.texte === 'rgb(63, 28, 2)', `${vue} : étiquette « Entraînement » #f0a050 / #3f1c02`);
+  // v0.35 (R86) : l'orange de R70 est remplacé par #c8650f, texte blanc gras (contraste 3,9 : choix du pilote)
+  if (!sombre) verifier(e.fond === 'rgb(200, 101, 15)' && e.texte === 'rgb(255, 255, 255)', `${vue} : étiquette « Entraînement » #c8650f / blanc (R86)`);
   verifier(e.fond === b.fond && e.texte === b.texte, `${vue} : pastille du temps de vol de la même couleur (${b.fond} / ${b.texte})`);
-  verifier(e.contraste >= (sombre ? 4.5 : 7), `${vue} : contraste mesuré ${e.contraste} (au moins ${sombre ? '4,5' : '7'})`);
+  verifier(e.contraste >= 3.9, `${vue} : contraste mesuré ${e.contraste} (3,9 voulu par le pilote, texte gras)`);
   return e;
 }
 
@@ -190,9 +191,9 @@ try {
   const T = tel.p, cdp = await tel.ctx.newCDPSession(T);
 
   console.log('R70 : orange « Entraînement »');
-  const gaarAvant = await couleurs(T, '.flight[data-id="v-00"] .chip.mi');
+  const gaarAvant = await couleurs(T, '.flight[data-id="v-00"] .chip.mi.gaar');
   await controlerEntrainement(T, 'clair', false);
-  verifier(gaarAvant.fond === 'rgb(253, 238, 221)' && (await couleurs(T, '.flight[data-id="v-ent"] .chip.ifr')).fond === 'rgb(230, 238, 247)', 'autres couleurs inchangées (étiquette GAAR, IFR)');
+  verifier(gaarAvant.fond === 'rgb(216, 27, 96)' && (await couleurs(T, '.flight[data-id="v-ent"] .chip.ifr')).fond === 'rgb(230, 238, 247)', 'GAAR framboise (R86), IFR inchangé');
   await T.locator('.flight[data-id="v-ent"]').screenshot({ path: join(CAPT, 'v031-01-tel-entrainement-clair.png') });
   await T.emulateMedia({ colorScheme: 'dark' });
   await controlerEntrainement(T, 'sombre', true);

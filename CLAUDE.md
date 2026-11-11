@@ -150,6 +150,13 @@ Pas d'étape de compilation : les fichiers du dépôt sont servis tels quels.
   `.fl-bloc.t-feu|feu2|mi|ifr|sable` (`couleurTemps` dans js/ui/carnet.js : feu > Entraînement > IFR > sable, mêmes règles
   et mêmes couleurs CSS que les étiquettes) (R66). Plus de bouton flottant : `#fab` = « + » rond vert dans `.tabs`, à droite
   de « Plus » (actif depuis toutes les vues ; saisie modifiée : « Abandonner la saisie ? » puis nouveau vol, `apresAbandon`) (R67).
+- v0.35 : R85 `estSimulation` / `volsReels` (modele.js) : vol `simulation: true` (NPF-Q400-RUN, `brouillonNpf`) exclu de
+  `calculerTotaux`, `heuresDerniersJours`, `totalHdV`, onglet Totaux, PDF (plus.js), `plusGrandFeu`, `volAvecNumero`,
+  `dernier` de la saisie, `doublons` (synchro.js), anti-doublon FlyLog ; gardé partout ailleurs ; bandeaux `.sim-bandeau`
+  (`#f-sim`, `#cp-sim` + `#carte-plein.avec-sim`, `.fl-sim`, `.sim-ligne` du bandeau / liste NPF) ; CSV « Simulation » ;
+  KML « SIMULATION – ». R86 texte blanc gras : feu #d32f2f, contour #d32f2f (sombre #ef5350 / #ff8a80), Entraînement
+  #c8650f, `.chip.mi.gaar` #d81b60 (carnet.js) ; autres `.chip.mi` inchangées. R87 `couleurTemps` : feu > GAAR (`t-gaar`, framboise)
+  > Entraînement > IFR > sable.
 - v0.34 : R84 `.chip.feu`, `.fl-bloc.t-feu` en #e5534b / #2a0503 (sombre texte #1f0302) ; `.chip.feu2` bord #e5534b, texte
   #b3261e (sombre #ff8a80). Variables `--feu` / `--feu-soft` (saisie, messages) inchangées.
 - v0.33 : R82 style KML (js/kml.js : `ICONE_FLAMME` = icône Google Earth web n°`ICONE_ID` 2124 bleue, `ICONE_TAILLE` 0.8,
@@ -250,7 +257,8 @@ BOMBING et TRANSPORT s'excluent sur un vol. Suggestions de missions masquées : 
 - `node tests/navigateur/v031.mjs` : orange Entraînement (contraste), période de la loupe (totaux du haut, Totaux et PDF inchangés), flammes (appui long, Annuler, commune par FAUX géocodage IGN, hors ligne, suppression, synchro PC, réimport NPF), fond Photo (FAUX IGN, crédit, hors ligne, rien en cache), terrains intermédiaires à 360 px ; iPad WebKit (service worker bloqué pour que Playwright voie les demandes).
 - `node tests/navigateur/v032.mjs` : ancien vol sans heures (départ / arrivée / minuit, nuit gardée + « Appliquer »), avion « nom / immat / type » (360 px), libellés (clair / sombre), numéro du feu (doublon, Annuler, vol suivant, vol ancien, synchro PC), KML Google Earth (partage simulé, téléchargement PC, aucun appel réseau), iPad.
 - `node tests/navigateur/v033.mjs` : style du KML (icône, taille, couleurs, XML valide), bouton « Google Earth » tout en bas (390 / 360 px, PC, iPad paysage / portrait, rien de caché), bulle, partage simulé, Android : téléchargement + message.
-- `node tests/navigateur/v034.mjs` : rouge « Feu » franc (étiquette pleine, contour, pastille), contrastes clair / sombre, Entraînement / IFR / sable / ligne de mission inchangés (téléphone, PC, iPad).
+- `node tests/navigateur/v034.mjs` : couleurs R86 / R87 (Feu, contour, Entraînement, GAAR et pastille des vols GAAR : texte blanc gras, contrastes clair / sombre ; IFR / sable / Appr / att. / autres pastilles / ligne de mission / bandeau SIMULATION inchangés), téléphone, PC, iPad.
+- `node tests/navigateur/v035.mjs` : vols de simulation NPF-Q400-RUN (faux NAS v5 : bandeaux, jamais comptés, PDF, n° de feu, défauts, doublons, CSV, Google Earth, synchro PC / iPad, suppression + Annuler ; vrai vol inchangé).
 - `node tests/navigateur/v024.mjs` : synchro dans les deux sens (passage en modification, conflits et 3 choix, doublon, NPF, hors ligne, >20 suppressions, annuler, mot de passe refusé).
 - `node tests/navigateur/fluidite.mjs` : 4070 vols inventés, processeur ralenti ×6.
 - `node outils/controle-import.mjs ../donnees-privees/flylog-decode-v1.csv ../donnees-privees/totaux-flylog-reference.json` :

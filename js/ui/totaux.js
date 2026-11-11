@@ -2,6 +2,7 @@
 
 import { $, esc, segs } from './commun.js';
 import { etat } from '../etat.js';
+import { volsReels } from '../modele.js';
 import { hm, aujourdhui, dateFr } from '../temps.js';
 import { RUBRIQUES, calculerTotaux, filtrerPeriode, heuresDerniersJours, totalHdV, bornesPeriode } from '../totaux.js';
 
@@ -21,7 +22,7 @@ export function rafraichirTotaux() {
   if (periode.genre === 'annee' && !periode.annee) periode.annee = sel.value;
   if (periode.genre === 'dates') { periode.du = $('#per-du').value; periode.au = $('#per-au').value; }
 
-  const vols = filtrerPeriode(etat.vols, periode, auj);
+  const vols = filtrerPeriode(volsReels(etat.vols), periode, auj); // v0.35 (R85) : les vols de simulation ne comptent pas
   const b = bornesPeriode(periode, auj);
   $('#per-txt').textContent = periode.genre === 'tout' ? `Tout le carnet · ${nombre(vols.length)} vols`
     : `${b.du ? 'Du ' + dateFr(b.du) : 'Depuis le début'} ${b.au ? 'au ' + dateFr(b.au) : "jusqu'à aujourd'hui"} · ${nombre(vols.length)} vols`;

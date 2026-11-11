@@ -1,6 +1,6 @@
 // Totaux : accueil (TOTAL HdV, 3/7/30 jours), écran Totaux, Contrôle import.
 
-import { colonnesAvion, COMPTEURS } from './modele.js';
+import { colonnesAvion, COMPTEURS, estSimulation } from './modele.js';
 import { ajouterJours } from './temps.js';
 
 export const RUBRIQUES = [
@@ -75,7 +75,7 @@ export function ajouterVol(t, v, avions) {
 
 export function calculerTotaux(vols, avions) {
   const t = totauxVides();
-  for (const v of vols) ajouterVol(t, v, avions);
+  for (const v of vols) if (!estSimulation(v)) ajouterVol(t, v, avions); // v0.35 (R85) : simulation jamais comptée
   return t;
 }
 
@@ -83,11 +83,11 @@ export function calculerTotaux(vols, avions) {
 export function heuresDerniersJours(vols, n, aujourdhui) {
   const debut = ajouterJours(aujourdhui, -(n - 1));
   let m = 0;
-  for (const v of vols) if (v.date >= debut && v.date <= aujourdhui) m += v.tempsTotal || 0;
+  for (const v of vols) if (!estSimulation(v) && v.date >= debut && v.date <= aujourdhui) m += v.tempsTotal || 0;
   return m;
 }
 
-export const totalHdV = vols => vols.reduce((s, v) => s + (v.tempsTotal || 0), 0);
+export const totalHdV = vols => vols.reduce((s, v) => s + (estSimulation(v) ? 0 : v.tempsTotal || 0), 0);
 
 // Période : { genre: 'tout' } | { genre: 'annee', annee } | { genre: '12m' } | { genre: 'dates', du, au }
 export function bornesPeriode(p, aujourdhui) {

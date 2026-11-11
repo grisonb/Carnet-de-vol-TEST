@@ -128,6 +128,7 @@ export function brouillonNpf(n, { avions = [], vols = [], personnes = [], terrai
   const copi = copiloteNpf(n, personnes);
   return {
     version: n.version,
+    ...(n.simulation === true ? { simulation: true } : {}), // v0.35 (R85) : NPF-Q400-RUN ; absent pour un vrai vol
     npf: { id: n.id, exporteLe: texte(n.exporteLe), feux: positionsFeux(feux), nbFeux: feux.length, feuxTous: feux },
     date: n.date, hDep: n.blocDepart, hArr: n.blocArrivee, bloc: dureeBloc(n),
     dep: codeOACI(n.depart), arr: codeOACI(n.arrivee), escales: escalesNpf(n, terrain), arriveePosition: positionArrivee(n),
@@ -180,6 +181,6 @@ export function resumeNpf(n, avions) {
     date: dateFr(n.date), avion: [nom, immat].filter(Boolean).join(' '),
     trajet: trajet.length ? trajet.join(' → ') : 'Terrains à compléter',
     bloc: `${n.blocDepart} → ${n.blocArrivee} UTC${dureeBloc(n) + minutesDuJour(n.blocDepart) >= 1440 ? ' (J+1)' : ''} · ${hm(dureeBloc(n))}`,
-    feux: feuxNpf(n).length, avionConnu: !!a, avionsMemeNom: av.plusieurs,
+    feux: feuxNpf(n).length, avionConnu: !!a, avionsMemeNom: av.plusieurs, ...(n.simulation === true ? { simulation: true } : {}), // v0.35 (R85)
   };
 }

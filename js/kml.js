@@ -53,7 +53,8 @@ export function pointsFeux(vol, indice = null) {
     .filter(({ f, i }) => (indice === null || i === indice) && typeof f.lat === 'number' && typeof f.lon === 'number')
     .map(({ f, i }) => {
       const commune = f.communeAVenir ? '' : (f.commune || '');
-      return { nom: nomPoint(nums[i], annee, commune), lat: f.lat, lon: f.lon, numero: nums[i], commune };
+      // v0.35 (R85) : vol de simulation : chaque point commence par « SIMULATION – »
+      return { nom: (vol.simulation === true ? 'SIMULATION – ' : '') + nomPoint(nums[i], annee, commune), lat: f.lat, lon: f.lon, numero: nums[i], commune };
     });
 }
 
