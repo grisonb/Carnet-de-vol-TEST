@@ -598,6 +598,14 @@ body{padding-bottom:104px}
 .chip.mi.ent,.fl-bloc.t-mi{background:#f0a050;border-color:transparent;color:#3f1c02;font-weight:600}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .chip.mi.ent,:root:not([data-theme="light"]) .fl-bloc.t-mi{background:#d97b2b;color:#1f0d00}}
 :root[data-theme="dark"] .chip.mi.ent,:root[data-theme="dark"] .fl-bloc.t-mi{background:#d97b2b;color:#1f0d00}
+/* v0.34 (R84) : rouge « Feu » franc (choix C) : étiquette « Feu n°… » et pastille du temps de tout vol feu : #e5534b / #2a0503
+   (contraste 5,06) ; sombre : même rouge, texte #1f0302 (5,29). « Feu » en contour : bord #e5534b, texte #b3261e sur fond
+   clair (6,54) ; sombre : texte #ff8a80 (7,05). Le reste (--feu : saisie, champ Mission, messages) ne change pas. */
+.chip.feu,.fl-bloc.t-feu{background:#e5534b;border-color:transparent;color:#2a0503;font-weight:600}
+.chip.feu2{border-color:#e5534b;color:#b3261e;background:none;font-weight:600}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .chip.feu,:root:not([data-theme="light"]) .fl-bloc.t-feu{color:#1f0302}:root:not([data-theme="light"]) .chip.feu2{color:#ff8a80}}
+:root[data-theme="dark"] .chip.feu,:root[data-theme="dark"] .fl-bloc.t-feu{color:#1f0302}
+:root[data-theme="dark"] .chip.feu2{color:#ff8a80}
 /* v0.31 (R74) : étiquette d'un terrain intermédiaire : nom raccourci « … », nombres en pastilles toujours visibles à droite */
 .vialist .viachip{max-width:100%;min-width:0}
 .viachip .vc-nom{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}

@@ -1,5 +1,18 @@
 # Journal des versions
 
+## v0.34 — 11/11/2026
+
+Remarque R84. carnet.php v5 et format NPF-Q400 inchangés ; NAS et VPS non touchés.
+
+**R84 : rouge « Feu » plus franc** (choix C de la maquette, comme R70 pour l'orange Entraînement)
+- Étiquette « Feu n°… » et pastille du temps de vol de tout vol feu (feu repris compris, pastille pleine) : fond
+  #e5534b, texte #2a0503 (contraste 5,06) ; thème sombre : même rouge, texte #1f0302 (5,29).
+- Étiquette « Feu » en contour (feu repris) : bord #e5534b, texte #b3261e (6,54 sur fond clair) ; sombre : #ff8a80 (7,05).
+- Inchangés : orange Entraînement, IFR, sable, ligne de mission sous la carte, rouge de la saisie (champ Mission, messages).
+
+**Tests** : `tests/navigateur/v034.mjs` (téléphone 390 px clair / sombre et thème choisi dans l'app, PC, iPad clair /
+sombre ; couleurs et contrastes mesurés ; IFR, sable et ligne de mission comparés à la v0.33) ; tous les tests existants.
+
 ## v0.33 — 11/11/2026
 
 Remarques R82 et R83. carnet.php v5 et format NPF-Q400 inchangés ; NAS et VPS non touchés.
