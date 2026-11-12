@@ -144,10 +144,10 @@ export function carteVol(v, voir = false) {
     if (n) puces.push(`<span class="chip hl">${n} ${esc(c.court)}</span>`);
   }
   const att = (v.attJour || 0) + (v.attNuit || 0);
-  if (att) puces.push(`<span class="chip">${att} att.</span>`);
+  if (att) puces.push(`<span class="chip">${att} att</span>`);
   if (v.tempsIFR) puces.push(`<span class="chip ifr">IFR ${hm(v.tempsIFR)}</span>`);
   // v0.28 (R65) : approches du vol (total : arrivée + terrains intermédiaires), juste après l'IFR
-  if (v.approches > 0) puces.push(`<span class="chip appr">${v.approches} appr.</span>`);
+  if (v.approches > 0) puces.push(`<span class="chip appr">${v.approches} appr</span>`);
   if (v.tempsNuit) puces.push(`<span class="chip nuit">Nuit ${hm(v.tempsNuit)}</span>`);
   const mission = texteMissions(v);
   const duree = v.tempsTotal || v.simTemps || 0;

@@ -105,7 +105,7 @@ try {
     add: !document.getElementById('npf-copi-add').hidden && document.getElementById('npf-copi-add').textContent, txt: document.getElementById('npf-txt').textContent,
     nuit: document.getElementById('c-nuit').value }));
   verifier(b.ac.includes('M73') && b.ac.includes(m73.immat), 'avion trouvé par son nom « M73 » : ' + b.ac);
-  verifier(b.via.length === 4 && /LFHO.*2 att\./.test(b.via[0]) && /LFLU.*1 att\./.test(b.via[1]) && /LFHO.*1 att\. 1 nuit/.test(b.via[2]),
+  verifier(b.via.length === 4 && /LFHO.*2 att\b/.test(b.via[0]) && /LFLU.*1 att\b/.test(b.via[1]) && /LFHO.*1 att 1 nuit/.test(b.via[2]), // v0.37 (R89) : « att » sans point
     'escales dans l\'ordre LFHO ×2 → LFLU → LFHO (dont 1 atterrissage de nuit) : ' + b.via.slice(0, 3).join(' | '));
   verifier(b.sansCode === 1 && b.via[3].includes('Code ?') && b.via[3].includes('PELICANDROME-SANS-CODE') && b.txt.includes('sans code OACI'),
     'pélicandrome sans code OACI : son nom s\'affiche, à compléter (pas de blocage) : ' + b.via[3]);

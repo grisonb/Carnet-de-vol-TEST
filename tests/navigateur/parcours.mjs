@@ -144,7 +144,8 @@ try {
   console.log('Compteurs selon l\'avion (DH8D seulement)');
   verifier(await p.isHidden('#feu-row') && await p.isHidden('#ctr-zone') && await p.locator('#ctrs .step').count() === 0, 'avion non-DH8D : aucun compteur (ni Feux)');
   await p.click('#ac-cur'); await p.fill('#ac-q', 'xzzb'); await p.click('#ac-res .acitem');
-  verifier(await p.isVisible('#feu-row') && await p.isVisible('#ctr-zone') && await p.locator('#ctrs .step').count() === 2, 'DH8D : Feux et compteurs affichés');
+  // v0.37 (R91) : la ligne « Feux » est rangée dans la liste des compteurs : on compte les compteurs hors Feux
+  verifier(await p.isVisible('#feu-row') && await p.isVisible('#ctr-zone') && await p.locator('#ctrs .step:not(#feu-row)').count() === 2, 'DH8D : Feux et compteurs affichés');
 
   console.log('Mission avec feu');
   await p.fill('#m-q', 'rodez');
@@ -160,11 +161,11 @@ try {
   verifier(await p.locator('#ml input').count() === 2, 'mission choisie dans les suggestions');
   verifier((await p.textContent('#m-prev')).includes('LFMN-LFKJ-LFMD • FEU n°8 RODEZ + ENT. TEST'), 'aperçu « Remarque du carnet »');
   await p.click('#ctr-open');
-  await p.click('#ctr-panel [data-tg="2"]');
-  verifier(await p.locator('#ctrs .step').count() === 3, 'compteur supplémentaire affiché (choix des compteurs)');
+  await p.click('#ctr-panel [data-tg][aria-label="Largages copi Dash"]'); // v0.37 : par son nom (« Feux » est maintenant dans la liste)
+  verifier(await p.locator('#ctrs .step:not(#feu-row)').count() === 3, 'compteur supplémentaire affiché (choix des compteurs)'); // v0.37 : hors Feux
   await p.click('[data-c="largCdbDash"][data-d="1"]'); await p.click('[data-c="largCdbDash"][data-d="1"]');
   await p.click('#ac-cur'); await p.fill('#ac-q', 'xtst'); await p.click('#ac-res .acitem');
-  verifier(await p.isVisible('#feu-row') && await p.locator('#ctrs .step').count() === 1 && await p.isHidden('#ctr-zone'),
+  verifier(await p.isVisible('#feu-row') && await p.locator('#ctrs .step:not(#feu-row)').count() === 1 && await p.isHidden('#ctr-zone'), // v0.37 : hors Feux
     'retour sur un avion non-DH8D : les compteurs déjà remplis restent visibles (rien n\'est perdu)');
   verifier((await p.textContent('#rec-x')).includes('XYZ'), 'temps du carnet : nom de l\'instructeur');
   verifier((await p.textContent('#r-col-l')) === 'Mono-pilote SE', 'temps du carnet : colonne avion');

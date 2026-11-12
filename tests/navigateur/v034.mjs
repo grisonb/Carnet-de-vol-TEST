@@ -67,7 +67,7 @@ const mesurer = p => p.evaluate(ids => {
     const c = document.querySelector(`.flight[data-id="${id}"]`), b = c.querySelector('.fl-bloc');
     r[id] = { classe: ([...b.classList].find(k => k.startsWith('t-')) || '').slice(2), pastille: st(b), feu: st(c.querySelector('.chip.feu')), feu2: st(c.querySelector('.chip.feu2')),
       ent: st(c.querySelector('.chip.mi.ent')), gaar: st(c.querySelector('.chip.mi.gaar')), perso: st([...c.querySelectorAll('.chip.mi')].find(x => x.textContent === 'Perso')),
-      ifr: st(c.querySelector('.chip.ifr')), appr: st(c.querySelector('.chip.appr')), att: st([...c.querySelectorAll('.chip')].find(x => / att\.$/.test(x.textContent))),
+      ifr: st(c.querySelector('.chip.ifr')), appr: st(c.querySelector('.chip.appr')), att: st([...c.querySelectorAll('.chip')].find(x => / att$/.test(x.textContent))),
       sim: st(c.querySelector('.fl-sim')), mission: st(c.querySelector('.fl-rem')), carte: getComputedStyle(c).backgroundColor };
   }
   const rs = getComputedStyle(document.documentElement);
@@ -107,7 +107,7 @@ function controler(nom, theme, m, avant) {
     verifier(meme(m['v-ifr'].ifr, avant['v-ifr'].ifr) && meme(m['v-ifr'].pastille, avant['v-ifr'].pastille) && meme(m['v-sable'].pastille, avant['v-sable'].pastille)
       && meme(g.appr, avant['v-gaar'].appr) && meme(g.att, avant['v-gaar'].att) && meme(g.perso, avant['v-gaar'].perso)
       && meme(m['v-gaar-ifr'].ifr, avant['v-gaar-ifr'].ifr),
-      `${nom} ${theme} : IFR, sable, « Appr », « att. » et autre pastille de règle identiques à avant`);
+      `${nom} ${theme} : IFR, sable, « Appr », « att » et autre pastille de règle identiques à avant`);
     verifier(VOLS.every(v => meme(m[v.id].mission, avant[v.id].mission)) && meme(m['v-sim'].sim, avant['v-sim'].sim), `${nom} ${theme} : ligne de mission et bandeau SIMULATION identiques à avant`);
   }
 }

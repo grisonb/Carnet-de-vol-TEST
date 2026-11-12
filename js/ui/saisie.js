@@ -5,7 +5,7 @@ import { etat, reglage, enregistrerReglage, ecrireReglageDiscret, enregistrerVol
   listeMissions, trouverPersonne, enregistrerAvion, enConsultation } from '../etat.js';
 import { ouvrirAjoutTerrain } from './terrain-perso.js';
 import { estSimulation, volVide, FONCTIONS, TEMPS_FONCTION, COMPTEURS, colonnesAvion, personneVide, nomPersonne, ligneAvion,
-  etiquettesDeLAvion, etiquettesPourAvion, basculerEtiquette, fonctionsPossibles, champPersonneVisible, compteursAffiches, BASE, arriveeParDefaut } from '../modele.js';
+  etiquettesDeLAvion, etiquettesPourAvion, basculerEtiquette, fonctionsPossibles, champPersonneVisible, compteursAffiches, compteursRanges, BASE, arriveeParDefaut } from '../modele.js';
 import { supprimerVolAvecAnnuler } from './suppression.js';
 import { afficherCarteVol } from './carte.js';
 import { hm, lireDuree, lireHeure, minutesDuJour, ajouterJours, dateValide, aujourdhui, dateFr, heureH } from '../temps.js';
@@ -192,7 +192,7 @@ function rendreEscales() {
     `<button type="button" class="viachip${v.code ? '' : ' sans-code'}" data-vi="${i}">${v.code ? drapeau(terrain(v.code)?.pays) : ''}<b>${esc(v.code || 'Code ?')}</b> `
     + `<span class="vc-nom">${esc(terrain(v.code)?.nom || v.nom || '')}</span>`
     // v0.31 (R74) : chaque nombre dans une pastille à droite (toujours visible, 0 en gris) ; le nom long est raccourci « … »
-    + `<span class="vc-n">${pastilleNombre(v.attJour + v.attNuit, 'att.')}${v.attNuit ? pastilleNombre(v.attNuit, 'nuit') : ''}${pastilleNombre(Number(v.approches) || 0, 'appr.')}</span></button>`).join('');
+    + `<span class="vc-n">${pastilleNombre(v.attJour + v.attNuit, 'att')}${v.attNuit ? pastilleNombre(v.attNuit, 'nuit') : ''}${pastilleNombre(Number(v.approches) || 0, 'appr')}</span></button>`).join('');
 }
 function nomVM() {
   const c = $('#vm-icao').value.toUpperCase();
@@ -219,6 +219,22 @@ function afficherLigneAvion(a) {
   $('#ac-reg').textContent = l.debut; $('#ac-type').textContent = l.modele; $('#ac-sub').textContent = l.fin;
   // v0.32 (R77) : affiché « nom / immatriculation / type » (ordre et « / » par le style ; page d'accueil inchangée)
   $('#ac-cur').setAttribute('aria-label', `Avion : ${[l.debut, l.fin, l.modele].filter(Boolean).join(' / ')}. Toucher pour changer d'avion`);
+  ajusterAvion();
+}
+// v0.37 (R90) : « nom / immatriculation / type » sur UNE ligne : la police se réduit par paliers jusqu'à ce que tout tienne
+// (jamais sous 12 px) ; « … » sur le type seulement en dernier recours. Les boutons « i » et « + » ne bougent pas.
+const AC_MIN = 12 / 22; // 22 px = taille du nom : en dessous, chaque partie est bloquée à 12 px
+function ajusterAvion() {
+  const t = document.querySelector('#ac-cur .t');
+  if (!t || !t.clientWidth) return; // saisie cachée : refait quand elle s'affiche (ResizeObserver)
+  t.classList.remove('coupe');
+  for (let k = 1; ; k -= 0.03) {
+    const kk = Math.max(k, AC_MIN);
+    t.style.setProperty('--ac-k', kk.toFixed(3));
+    if (t.scrollWidth <= t.clientWidth + 0.5) return;
+    if (kk <= AC_MIN) break;
+  }
+  t.classList.add('coupe');
 }
 function ouvrirChoixAvion(o) {
   $('#ac-sz').hidden = !o; $('#ac-cur').setAttribute('aria-expanded', String(o));
@@ -413,16 +429,24 @@ function rendreLibelles() {
 // Compteurs affichés selon le type d'avion (règles dans modele.js : DH8D seulement pour l'instant) ;
 // un compteur déjà non nul sur ce vol reste toujours visible (rien n'est perdu)
 function rendreCompteurs() {
-  const conf = reglage('compteurs');
-  const noms = Object.fromEntries(COMPTEURS.map(c => [c.cle, c.nom]));
+  const conf = compteursRanges(reglage('compteurs')); // v0.37 (R91) : « Feux » rangé avec les autres
+  const noms = { feux: 'Feux', ...Object.fromEntries(COMPTEURS.map(c => [c.cle, c.nom])) };
   const aff = compteursAffiches(avion(), { feux: nbFeux(), compteurs: F.compteurs });
-  $('#feu-row').hidden = !aff.feux;
+  const ligneFeu = $('#feu-row');
+  ligneFeu.hidden = !aff.feux;
   $('#ctr-zone').hidden = !aff.reglable;
   if (!aff.reglable) { $('#ctr-panel').hidden = true; $('#ctr-open').setAttribute('aria-expanded', 'false'); }
-  $('#ctrs').innerHTML = conf.filter(c => (c.on && aff.compteurs.has(c.cle)) || F.compteurs[c.cle]).map(c =>
+  // la ligne « Feux » (ses boutons, son « prochain : n°… ») est déplacée telle quelle à sa place parmi les compteurs
+  $('#ctrs').before(ligneFeu);
+  const visibles = conf.filter(c => c.cle !== 'feux' && ((c.on && aff.compteurs.has(c.cle)) || F.compteurs[c.cle]));
+  const avantFeu = conf.slice(0, conf.findIndex(c => c.cle === 'feux')).filter(c => visibles.includes(c)).length;
+  $('#ctrs').innerHTML = visibles.map(c =>
     `<div class="step"><span>${esc(noms[c.cle])}</span><span class="ctl"><button type="button" data-c="${c.cle}" data-d="-1" aria-label="${esc(noms[c.cle])} moins">${MOINS}</button><output id="c-${c.cle}">${F.compteurs[c.cle] || 0}</output><button type="button" data-c="${c.cle}" data-d="1" aria-label="${esc(noms[c.cle])} plus">${PLUS}</button></span></div>`).join('');
+  // (cachée, pour un avion sans compteurs : elle reste hors de la liste, comme avant)
+  const ici = $('#ctrs').children[avantFeu];
+  if (aff.feux) { if (ici) ici.before(ligneFeu); else $('#ctrs').append(ligneFeu); }
   $('#ctr-panel').innerHTML = '<p class="hint">Allume les compteurs à afficher dans la saisie, et range-les avec les flèches.</p>'
-    + conf.map((c, i) => `<div class="prow"><span class="arrows"><button type="button" data-mv="${i}" data-d="-1" aria-label="Monter" ${i ? '' : 'disabled'}>↑</button><button type="button" data-mv="${i}" data-d="1" aria-label="Descendre" ${i < conf.length - 1 ? '' : 'disabled'}>↓</button></span><span class="pname">${esc(noms[c.cle])}</span><button type="button" class="sw" role="switch" aria-checked="${c.on}" data-tg="${i}" aria-label="${esc(noms[c.cle])}"><span></span></button></div>`).join('');
+    + conf.map((c, i) => `<div class="prow"><span class="arrows"><button type="button" data-mv="${i}" data-d="-1" aria-label="Monter" ${i ? '' : 'disabled'}>↑</button><button type="button" data-mv="${i}" data-d="1" aria-label="Descendre" ${i < conf.length - 1 ? '' : 'disabled'}>↓</button></span><span class="pname">${esc(noms[c.cle])}</span>${c.cle === 'feux' ? '<span class="sw-place" title="Toujours affiché"></span>' : `<button type="button" class="sw" role="switch" aria-checked="${c.on}" data-tg="${i}" aria-label="${esc(noms[c.cle])}"><span></span></button>`}</div>`).join('');
 }
 
 // ---------- Temps du carnet (récapitulatif EASA) ----------
@@ -738,6 +762,9 @@ async function enregistrer() {
 
 // ---------- Branchements ----------
 export function initSaisie({ fermer }) {
+  // v0.37 (R90) : la ligne Avion se réajuste quand sa largeur change (saisie affichée, rotation, PC) et quand la police est prête
+  if (window.ResizeObserver) new ResizeObserver(() => ajusterAvion()).observe($('#ac-cur'));
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(ajusterAvion);
   quitter = fermer;
   champOACI('#f-dep', '#f-arr'); champOACI('#f-arr', '#f-t0');
   champHeure('#f-t0', '#f-t1'); champHeure('#f-t1', null);
@@ -918,7 +945,7 @@ export function initSaisie({ fermer }) {
   $('#ctr-open').addEventListener('click', () => { const p = $('#ctr-panel'); p.hidden = !p.hidden; $('#ctr-open').setAttribute('aria-expanded', String(!p.hidden)); });
   $('#ctr-panel').addEventListener('click', async e => {
     const t = e.target.closest('[data-tg]'), m = e.target.closest('[data-mv]');
-    const conf = reglage('compteurs').map(c => ({ ...c }));
+    const conf = compteursRanges(reglage('compteurs')); // v0.37 (R91) : avec « Feux » (sans interrupteur)
     if (t) conf[Number(t.dataset.tg)].on = !conf[Number(t.dataset.tg)].on;
     else if (m) { const i = Number(m.dataset.mv), j = i + Number(m.dataset.d); [conf[i], conf[j]] = [conf[j], conf[i]]; }
     else return;

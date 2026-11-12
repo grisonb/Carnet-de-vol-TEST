@@ -65,10 +65,10 @@ try {
   const T = await appareil('téléphone', nav, { viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
   const c = Object.fromEntries(await Promise.all(VOLS.map(async v => [v.id, await carte(T, v.id)])));
   // R65
-  verifier(!c['v-zero'].chips.some(x => /appr\./.test(x)), 'vol sans approche : pas d\'étiquette « appr. »');
-  verifier(c['v-autre'].chips.includes('2 appr.') && c['v-autre'].chips.indexOf('2 appr.') === c['v-autre'].chips.indexOf('1 att.') + 1, 'VFR 2 approches : « 2 appr. » à la place de l\'IFR (après « 1 att. »)');
+  verifier(!c['v-zero'].chips.some(x => / appr$/.test(x)), 'vol sans approche : pas d\'étiquette « appr »');
+  verifier(c['v-autre'].chips.includes('2 appr') && c['v-autre'].chips.indexOf('2 appr') === c['v-autre'].chips.indexOf('1 att') + 1, 'VFR 2 approches : « 2 appr » à la place de l\'IFR (après « 1 att. »)');
   const ci = c['v-ifr'].chips;
-  verifier(ci.indexOf('3 appr.') === ci.indexOf('IFR 1h36') + 1, `IFR avec approches à l'arrivée et sur un terrain intermédiaire : « IFR 1h36 » puis « 3 appr. » (${ci.join(' | ')})`);
+  verifier(ci.indexOf('3 appr') === ci.indexOf('IFR 1h36') + 1, `IFR avec approches à l'arrivée et sur un terrain intermédiaire : « IFR 1h36 » puis « 3 appr » (${ci.join(' | ')})`);
   verifier(c['v-ifr'].refAppr && c['v-ifr'].refAppr !== c['v-ifr'].refIfr && c['v-ifr'].refAppr.split('|')[0] === 'rgb(226, 242, 238)', `couleur propre (vert-de-gris clair) : ${c['v-ifr'].refAppr}`);
   // R66
   verifier(c['v-feu'].classe === 'feu' && c['v-feu'].fond === c['v-feu'].refFeu, `feu (+ IFR) : couleur de l'étiquette « Feu n°… » (${c['v-feu'].fond})`);

@@ -265,7 +265,7 @@ try {
     return { texte: c.innerText.replace(/\s+/g, ' '), coupe: nom.scrollWidth > nom.clientWidth, nVisible: n.right <= r.right + 0.5 && n.right <= innerWidth,
       pastilles: [...c.querySelectorAll('.vc-p')].map(p => ({ t: p.textContent, zero: p.classList.contains('zero'), couleur: getComputedStyle(p.querySelector('b')).color, graisse: getComputedStyle(p.querySelector('b')).fontWeight })) };
   }));
-  verifier(via[0].pastilles.map(x => x.t).join(' | ') === '3 att. | 1 nuit | 0 appr.' && via[1].pastilles.map(x => x.t).join(' | ') === '1 att. | 1 appr.', `nombres en pastilles : ${via.map(v => v.pastilles.map(x => x.t).join(' · ')).join(' / ')}`);
+  verifier(via[0].pastilles.map(x => x.t).join(' | ') === '3 att | 1 nuit | 0 appr' && via[1].pastilles.map(x => x.t).join(' | ') === '1 att | 1 appr', `nombres en pastilles : ${via.map(v => v.pastilles.map(x => x.t).join(' · ')).join(' / ')}`);
   verifier(via[0].pastilles[2].zero && via[0].pastilles[2].couleur !== via[0].pastilles[0].couleur && via[0].pastilles[0].graisse === '800', `0 en gris (${via[0].pastilles[2].couleur}), autres en gras foncé (${via[0].pastilles[0].couleur}, 800)`);
   verifier(via[0].coupe && via.every(v => v.nVisible), '390 px : nom très long raccourci « … », nombres visibles');
   await T.locator('.sec.c-route, #via-list').first().screenshot({ path: join(CAPT, 'v031-05-tel-terrains.png') }).catch(() => T.locator('#via-list').screenshot({ path: join(CAPT, 'v031-05-tel-terrains.png') }));

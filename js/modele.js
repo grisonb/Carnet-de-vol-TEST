@@ -14,6 +14,12 @@ export const COMPTEURS = [
 
 // Réglage par défaut des compteurs de la saisie (ordre + affiché ou non), comme la maquette
 export const COMPTEURS_DEFAUT = COMPTEURS.map(c => ({ cle: c.cle, on: c.cle === 'largCdbDash' || c.cle === 'largInstrCdbDash' }));
+// v0.37 (R91) : « Feux » se range parmi les compteurs (réglage « compteurs » : entrée { cle: 'feux' }, toujours allumée).
+// Réglage d'avant (sans cette entrée) : « Feux » en premier, comme jusqu'ici.
+export function compteursRanges(conf) {
+  const l = (conf || []).map(c => (c.cle === 'feux' ? { cle: 'feux', on: true } : { ...c }));
+  return l.some(c => c.cle === 'feux') ? l : [{ cle: 'feux', on: true }, ...l];
+}
 
 export const FONCTIONS = {
   cdb: { bouton: 'CdB', autre: 'Copi', puce: 'CDB', puceAutre: 'Copi', champ: 'nomCopi', temps: 'tempsCdB',

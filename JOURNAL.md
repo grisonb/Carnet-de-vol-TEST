@@ -1,5 +1,24 @@
 # Journal des versions
 
+## v0.37 — 12/11/2026
+
+Remarques R89, R90 et R91. carnet.php v5 et format NPF-Q400 inchangés ; NAS et VPS non touchés.
+
+**R89 : « att » et « appr » sans point** sur les cartes du Carnet (« 3 att », « 3 appr ») et sur les étiquettes des terrains
+intermédiaires de la saisie. Autres abréviations, PDF et CSV inchangés.
+
+**R90 : avion sur une seule ligne** dans la saisie : « M99 / F-XZZZ / Dash 8 Q400 MRE », le type un peu plus petit. Trop long :
+la police se réduit toute seule jusqu'à ce que ça tienne (jamais sous 12 px) ; « … » sur le type seulement si même à 12 px ça
+ne tient pas. Un peu moins de marge dans le cadre et autour des « / » pour que ce format tienne aussi à 360 px. Boutons « i »
+et « + » à la même place, même taille.
+
+**R91 : « Feux » se range parmi les compteurs** du bloc Mission (« Choisir et ranger les compteurs » : flèches ↑ ↓, pas
+d'interrupteur, toujours affiché). Ordre gardé (réglage « compteurs », qui voyage avec la synchro) ; par défaut « Feux » reste
+en premier. « + », « − » et « prochain : n°… » (qui se touche) inchangés, où que soit « Feux ».
+
+**Tests** : `tests/unitaires/v037.test.js`, `tests/navigateur/v037.mjs` (téléphone 390 et 360 px, iPad) ; v027, v028, v031 et
+v034 adaptés à « att » / « appr » sans point ; tous les tests existants.
+
 ## v0.36 — 11/11/2026
 
 Remarque R88. carnet.php v5 et format NPF-Q400 inchangés ; NAS et VPS non touchés.

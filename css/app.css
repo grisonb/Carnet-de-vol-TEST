@@ -662,6 +662,17 @@ body{padding-bottom:104px}
 .acbtn #ac-sub{order:2}
 .acbtn #ac-type{order:3;flex:1 1 auto;font-size:15px;font-weight:600;color:var(--ink)}
 .acbtn #ac-sub::before,.acbtn #ac-type:not(:empty)::before{content:"/";margin-right:6px;color:var(--muted);font-weight:500}
+/* v0.37 (R90) : tout sur UNE ligne ; tailles × --ac-k (réglé par ajusterAvion, saisie.js), jamais sous 12 px ; le type un peu
+   plus petit ; « … » sur le type seulement si même à 12 px ça ne tient pas (classe coupe) */
+.acbtn .t{flex-wrap:nowrap;overflow:hidden;white-space:nowrap;--ac-k:1;column-gap:4px}
+#ac-cur.acbtn{padding-left:7px;padding-right:7px}
+.acbtn .t #ac-sub::before,.acbtn .t #ac-type:not(:empty)::before{margin-right:4px}
+.acbtn .t #ac-sub{letter-spacing:0}
+.acbtn .t>*{flex:none}
+.acbtn .t #ac-reg{font-size:max(12px,calc(22px * var(--ac-k)))}
+.acbtn .t #ac-sub{font-size:max(12px,calc(17px * var(--ac-k)))}
+.acbtn .t #ac-type{font-size:max(12px,calc(15px * var(--ac-k)));min-width:auto;overflow:visible;text-overflow:clip}
+.acbtn .t.coupe #ac-type{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis}
 /* v0.32 (R78) : libellés des champs de la saisie comme ceux des compteurs (v0.30) ; titres de blocs inchangés */
 #v-saisie .field>label,#v-saisie .flabel,#via-modal .field>label{color:var(--ink);font-weight:600;font-size:17px}
 /* v0.32 (R76) : nuit calculée proposée pour un ancien vol */
@@ -691,3 +702,5 @@ body{padding-bottom:104px}
 .cp-ge[hidden]{display:none}
 svg.ipart{width:20px;height:20px;flex:none;fill:currentColor;stroke:currentColor;stroke-width:2;stroke-linecap:round}
 .feu-bulle .feu-ge{display:inline-flex;align-items:center;justify-content:center;gap:8px}
+/* v0.37 (R91) : « Feux » dans « Choisir et ranger les compteurs » : flèches seulement, pas d'interrupteur (toujours affiché) */
+.prow .sw-place{width:48px;flex:none}

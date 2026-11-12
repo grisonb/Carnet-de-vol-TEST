@@ -150,6 +150,10 @@ Pas d'étape de compilation : les fichiers du dépôt sont servis tels quels.
   `.fl-bloc.t-feu|feu2|mi|ifr|sable` (`couleurTemps` dans js/ui/carnet.js : feu > Entraînement > IFR > sable, mêmes règles
   et mêmes couleurs CSS que les étiquettes) (R66). Plus de bouton flottant : `#fab` = « + » rond vert dans `.tabs`, à droite
   de « Plus » (actif depuis toutes les vues ; saisie modifiée : « Abandonner la saisie ? » puis nouveau vol, `apresAbandon`) (R67).
+- v0.37 : R89 « 3 att », « 3 appr » sans point (carnet.js, `pastilleNombre` de saisie.js). R90 `ajusterAvion` (saisie.js) :
+  `#ac-cur .t` sur une ligne, tailles × `--ac-k` (≥ 12 px), classe `coupe` (« … » sur le type) en dernier recours ;
+  ResizeObserver + `document.fonts.ready`. R91 `compteursRanges` (modele.js) : entrée `{ cle: 'feux' }` dans le réglage
+  « compteurs » (absente = en premier) ; `rendreCompteurs` déplace `#feu-row` (même élément, mêmes boutons) dans `#ctrs`.
 - v0.36 : R88 `plusGrandFeu(vols, exclureId, avecSimulation)` : `avecSimulation` = vol de simulation (brouillonNpf,
   `prochainFeu` / mise à jour NPF de la saisie avec `F.simulation`) -> les n° se suivent entre simulations ; vrai vol :
   simulations ignorées (inchangé). NPF n'envoie aucun n° de feu.
@@ -263,6 +267,7 @@ BOMBING et TRANSPORT s'excluent sur un vol. Suggestions de missions masquées : 
 - `node tests/navigateur/v034.mjs` : couleurs R86 / R87 (Feu, contour, Entraînement, GAAR et pastille des vols GAAR : texte blanc gras, contrastes clair / sombre ; IFR / sable / Appr / att. / autres pastilles / ligne de mission / bandeau SIMULATION inchangés), téléphone, PC, iPad.
 - `node tests/navigateur/v035.mjs` : vols de simulation NPF-Q400-RUN (faux NAS v5 : bandeaux, jamais comptés, PDF, n° de feu, défauts, doublons, CSV, Google Earth, synchro PC / iPad, suppression + Annuler ; vrai vol inchangé).
 - `node tests/navigateur/v036.mjs` : n° de feu des simulations (55 ; 56-57 ; vrai vol 55 ; 58 ; « + » vrai vol 56, simulation 59 ; jamais renumérotés), téléphone et iPad.
+- `node tests/navigateur/v037.mjs` : « att » / « appr » sans point, avion sur une ligne (390 / 360 px, police réduite, « … » à 12 px seulement, boutons inchangés), « Feux » rangé parmi les compteurs (ordre gardé après réouverture, « + » / n° inchangés), iPad.
 - `node tests/navigateur/v024.mjs` : synchro dans les deux sens (passage en modification, conflits et 3 choix, doublon, NPF, hors ligne, >20 suppressions, annuler, mot de passe refusé).
 - `node tests/navigateur/fluidite.mjs` : 4070 vols inventés, processeur ralenti ×6.
 - `node outils/controle-import.mjs ../donnees-privees/flylog-decode-v1.csv ../donnees-privees/totaux-flylog-reference.json` :

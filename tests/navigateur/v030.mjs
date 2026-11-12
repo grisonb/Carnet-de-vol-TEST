@@ -52,7 +52,7 @@ const MESURE = () => {
       contraste: Math.round((Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05) * 10) / 10 }; };
   const valeur = getComputedStyle(document.querySelector('#feu-row output')).color;
   const feux = document.querySelector('#feu-row > span:first-child');
-  const libelles = [info(feux, 'Feux'), ...[...document.querySelectorAll('#ctrs .step > span:first-child')].map(e => info(e, 'compteur')),
+  const libelles = [info(feux, 'Feux'), ...[...document.querySelectorAll('#ctrs .step:not(#feu-row) > span:first-child')].map(e => info(e, 'compteur')), // v0.37 : Feux est rangé parmi les compteurs
     ...[...document.querySelectorAll('#v-saisie .mstep .mlbl, #via-modal .mstep .mlbl')].map(e => info(e, 'mlbl'))];
   const compl = document.getElementById('fire-next');
   // Boutons – / + : taille et chevauchement avec le libellé (compteurs du bloc Mission)
@@ -99,7 +99,7 @@ try {
   console.log('Téléphone 360 px : libellé long');
   const S = await appareil('360 px', nav, { viewport: { width: 360, height: 780 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true });
   // libellé encore plus long qu'aujourd'hui, pour vérifier le passage à la ligne
-  await S.evaluate(() => { document.querySelector('#ctrs .step > span:first-child').textContent = 'Largages instruction commandant de bord Dash (essai)'; });
+  await S.evaluate(() => { document.querySelector('#ctrs .step:not(#feu-row) > span:first-child').textContent = 'Largages instruction commandant de bord Dash (essai)'; });
   const m360 = await S.evaluate(MESURE);
   controler('360 px', m360);
   const long = m360.rangs.find(r => /essai/.test(r.texte));
