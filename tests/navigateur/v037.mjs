@@ -69,7 +69,8 @@ try {
 
   console.log('R89 : « att » et « appr » sans point');
   const chips = await T.$$eval('.flight[data-id="v-att"] .chips .chip', l => l.map(x => x.textContent));
-  verifier(chips.includes('3 att') && chips.includes('3 appr') && !chips.some(x => /att\.|appr\./.test(x)), `carte du Carnet : ${chips.join(' | ')}`);
+  // v0.38 (R98) : 2 de jour + 1 de nuit : « 2 att » et « 1 att nuit » (avant : « 3 att »)
+  verifier(chips.includes('2 att') && chips.includes('1 att nuit') && chips.includes('3 appr') && !chips.some(x => /att\.|appr\./.test(x)), `carte du Carnet : ${chips.join(' | ')}`);
   await T.locator('.flight[data-id="v-att"]').screenshot({ path: join(CAPT, 'v037-01-tel-390-carte.png') });
   await ouvrir(T, 'v-att');
   const via = await T.$$eval('#via-list .vc-p', l => l.map(x => x.textContent));

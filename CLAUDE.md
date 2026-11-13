@@ -150,6 +150,12 @@ Pas d'étape de compilation : les fichiers du dépôt sont servis tels quels.
   `.fl-bloc.t-feu|feu2|mi|ifr|sable` (`couleurTemps` dans js/ui/carnet.js : feu > Entraînement > IFR > sable, mêmes règles
   et mêmes couleurs CSS que les étiquettes) (R66). Plus de bouton flottant : `#fab` = « + » rond vert dans `.tabs`, à droite
   de « Plus » (actif depuis toutes les vues ; saisie modifiée : « Abandonner la saisie ? » puis nouveau vol, `apresAbandon`) (R67).
+- v0.38 : R93 `js/cadrage.js` (`placement`, `deplacer`, `zoomer`, `cadrageValide` ; cadrage { cx, cy, z ≥ 1 }) et
+  `js/ui/cadrage.js` (`ouvrirCadrage` -> `#rc-modal`, `placerPhoto`, `afficherPhotoCadree`) ; avion `photoCadre` (fiche :
+  `#fi-rc` « Recadrer », ouverture auto au chargement d'une photo) ; retiré avec la photo (synchro `elementsDuCarnet`,
+  `sansPhotos`), gardé par `garderPhotos` et `ecrireIci`. R94-R99 carnet.js : classe `vol-<couleurTemps>` sur `.flight`
+  (jetons `--c-feu|gaar|ent|ifr|sable`, `--vol`) ; pastille blanche contour 4 px ; `.fl-rem` noir + barre `--vol` ;
+  `.chip.hl.lrg-feu|lrg-ent` ; `.chip.att` (jour) ; `.chip.nuit.att-nuit` ; `.chip.appr` bleu IFR.
 - v0.37 : R89 « 3 att », « 3 appr » sans point (carnet.js, `pastilleNombre` de saisie.js). R90 `ajusterAvion` (saisie.js) :
   `#ac-cur .t` sur une ligne, tailles × `--ac-k` (≥ 12 px), classe `coupe` (« … » sur le type) en dernier recours ;
   ResizeObserver + `document.fonts.ready`. R91 `compteursRanges` (modele.js) : entrée `{ cle: 'feux' }` dans le réglage
@@ -268,6 +274,7 @@ BOMBING et TRANSPORT s'excluent sur un vol. Suggestions de missions masquées : 
 - `node tests/navigateur/v035.mjs` : vols de simulation NPF-Q400-RUN (faux NAS v5 : bandeaux, jamais comptés, PDF, n° de feu, défauts, doublons, CSV, Google Earth, synchro PC / iPad, suppression + Annuler ; vrai vol inchangé).
 - `node tests/navigateur/v036.mjs` : n° de feu des simulations (55 ; 56-57 ; vrai vol 55 ; 58 ; « + » vrai vol 56, simulation 59 ; jamais renumérotés), téléphone et iPad.
 - `node tests/navigateur/v037.mjs` : « att » / « appr » sans point, avion sur une ligne (390 / 360 px, police réduite, « … » à 12 px seulement, boutons inchangés), « Feux » rangé parmi les compteurs (ordre gardé après réouverture, « + » / n° inchangés), iPad.
+- `node tests/navigateur/v038.mjs` : recadrer la photo (fenêtre au chargement, pincer, glisser, molette, curseur, Valider / Annuler, gardé après réouverture, flèche retour) ; cartes des vols R94-R99 (couleurs, contours, même taille, ordre IFR / appr / att nuit, clair / sombre), téléphone 390 / 360 px, PC, iPad.
 - `node tests/navigateur/v024.mjs` : synchro dans les deux sens (passage en modification, conflits et 3 choix, doublon, NPF, hors ligne, >20 suppressions, annuler, mot de passe refusé).
 - `node tests/navigateur/fluidite.mjs` : 4070 vols inventés, processeur ralenti ×6.
 - `node outils/controle-import.mjs ../donnees-privees/flylog-decode-v1.csv ../donnees-privees/totaux-flylog-reference.json` :

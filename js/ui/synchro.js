@@ -71,7 +71,7 @@ async function locauxActuels() {
 async function ecrireIci(liste) {
   const recus = liste.map(x => ({ magasin: x.magasin, id: x.id, supprime: x.donnees === null, donnees: x.donnees }));
   const { mettre, enlever } = trierRecus(recus);
-  mettre.avions = mettre.avions.map(a => { const ici = etat.avions.get(a.id); return ici && ici.photo && !a.photo ? { ...a, photo: ici.photo } : a; });
+  mettre.avions = mettre.avions.map(a => { const ici = etat.avions.get(a.id); return ici && ici.photo && !a.photo ? { ...a, photo: ici.photo, ...(ici.photoCadre ? { photoCadre: ici.photoCadre } : {}) } : a; }); // v0.38 : + cadrage
   await db.appliquerSynchro({ mettre, enlever });
 }
 // « Annuler la dernière synchro » : ce que la synchro a remplacé ici, gardé 30 jours (20 synchros au plus)

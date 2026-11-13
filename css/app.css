@@ -704,3 +704,38 @@ svg.ipart{width:20px;height:20px;flex:none;fill:currentColor;stroke:currentColor
 .feu-bulle .feu-ge{display:inline-flex;align-items:center;justify-content:center;gap:8px}
 /* v0.37 (R91) : « Feux » dans « Choisir et ranger les compteurs » : flèches seulement, pas d'interrupteur (toujours affiché) */
 .prow .sw-place{width:48px;flex:none}
+/* v0.38 (R93) : « Recadrer » sur le bandeau de la fiche (en bas à gauche, à côté de l'appareil photo) et fenêtre de recadrage
+   (fond sombre, sans flou ; cadre blanc = partie visible ; Annuler rouge, Valider vert, 44 px au moins) */
+.fphoto .rcbtn{position:absolute;left:12px;bottom:12px;min-height:44px;padding:0 16px;border:0;border-radius:999px;background:rgba(0,0,0,.6);color:#fff;font:inherit;font-weight:700;font-size:15px}
+.fphoto .rcbtn[hidden],#fiche.ro .rcbtn,body.consultation .rcbtn{display:none}
+.rc-modal{align-items:center;background:rgba(5,10,16,.9);z-index:36}
+.rc-box{width:100%;max-width:640px;display:grid;gap:14px;color:#fff}
+.rc-box h2{margin:0;text-align:center;font-size:19px;color:#fff}
+.rc-zone{position:relative;overflow:hidden;margin:0 auto;border:2px solid #fff;border-radius:6px;background:#000;touch-action:none;cursor:grab;-webkit-user-select:none;user-select:none;box-sizing:content-box}
+.rc-zone img{position:absolute;left:0;top:0;pointer-events:none;-webkit-user-drag:none}
+.rc-aide{margin:0;text-align:center;color:#d6dbe3;font-size:15px}
+.rc-zoom{display:flex;align-items:center;gap:12px;color:#d6dbe3;font-size:15px}
+.rc-zoom input{flex:1;min-height:44px;accent-color:#fff}
+.rc-box .row2 button{min-height:48px}
+/* v0.38 (R94-R99) : cartes des vols de l'accueil. Couleur du vol = celle de la pastille du temps (feu > GAAR > Entraînement >
+   IFR > sable, couleurTemps). Clair : sur blanc ; sombre : sur le fond de la carte, teintes plus claires (contraste ≥ 4,5,
+   sauf l'orange Entraînement clair : 3,9, choix du pilote). */
+:root{--c-feu:#d32f2f;--c-gaar:#d81b60;--c-ent:#c8650f;--c-ifr:#1f4e79;--c-sable:#8a6a2e}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--c-feu:#ff6b6b;--c-gaar:#f06292;--c-ent:#e8913f;--c-ifr:#6ea8e0;--c-sable:#d4b98a}}
+:root[data-theme="dark"]{--c-feu:#ff6b6b;--c-gaar:#f06292;--c-ent:#e8913f;--c-ifr:#6ea8e0;--c-sable:#d4b98a}
+.flight{--vol:var(--c-sable)}
+.flight.vol-feu{--vol:var(--c-feu)}.flight.vol-gaar{--vol:var(--c-gaar)}.flight.vol-mi{--vol:var(--c-ent)}.flight.vol-ifr{--vol:var(--c-ifr)}
+/* R95 : pastille du temps : fond blanc, heure et contour 4 px de la couleur du vol ; même taille extérieure (1 px de bord
+   + 4 px d'espace avant = 4 px de bord + 1 px d'espace maintenant) */
+:root .flight[class*="vol-"] .fl-top .fl-bloc{background:var(--surface);color:var(--vol);border:4px solid var(--vol);padding:1px 9px}
+/* R94 : remarque / mission en noir (texte normal), barre à gauche de la couleur du vol */
+:root .flight[class*="vol-"] .fl-rem{color:var(--ink);border-left-color:var(--vol)}
+/* R96 : « N lrg » : rouge (vol feu) ou orange (entraînement), fond blanc, contour 2 px ; sinon le jaune d'avant */
+:root .flight .chips .chip.hl.lrg-feu,:root .flight .chips .chip.hl.lrg-ent{background:var(--surface);border:2px solid;padding:3px 8px;font-weight:700}
+:root .flight .chips .chip.hl.lrg-feu{color:var(--c-feu);border-color:var(--c-feu)}
+:root .flight .chips .chip.hl.lrg-ent{color:var(--c-ent);border-color:var(--c-ent)}
+/* R97 : « N att » (jour) : fond blanc, texte et contour 2 px noirs (couleur du texte normal) */
+:root .flight .chips .chip.att{background:var(--surface);color:var(--ink);border:2px solid var(--ink);padding:3px 8px;font-weight:600}
+/* R98 : « N att nuit » : comme « Nuit 0h40 » (classe chip nuit : texte blanc sur fond noir) */
+/* R99 : « N appr » : fond blanc, texte et contour 2 px du bleu de l'IFR, juste après « IFR » */
+:root .flight .chips .chip.appr{background:var(--surface);color:var(--c-ifr);border:2px solid var(--c-ifr);padding:3px 8px;font-weight:700}

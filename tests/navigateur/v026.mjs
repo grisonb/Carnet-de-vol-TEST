@@ -192,6 +192,8 @@ try {
   await T.screenshot({ path: join(CAPT, 'v026-05-tel-aucune-photo.png') });
   await T.setInputFiles('#ph-gal', join(RACINE, 'icones/icone-192.png'));
   await T.waitForSelector('#ph-modal', { state: 'hidden' });
+  // v0.38 (R93) : photo de la galerie = photo à moi : la fenêtre « Recadrer la photo » s'ouvre ; Valider
+  await T.waitForSelector('#rc-modal:not([hidden])'); await T.click('#rc-oui'); await T.waitForSelector('#rc-modal', { state: 'hidden' });
   verifier(await T.isVisible('#fiche img') && !(await T.isVisible('#fi-credit')), 'photo de la galerie mise dans la fiche (sans crédit)');
   await T.click('#fi-x'); await T.click('#fl-x'); await T.click('#cancel');
   await onglet(I, 'carnet');

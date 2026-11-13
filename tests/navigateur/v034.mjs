@@ -86,18 +86,22 @@ function controler(nom, theme, m, avant) {
   const c = (x, y) => contraste(x, y), cartes = m['v-feu'].carte;
   const cF = c(f.feu.fond, f.feu.encre), cC = c(r.carte, r.feu2.encre), cE = c(e.ent.fond, e.ent.encre), cG = c(g.gaar.fond, g.gaar.encre);
   verifier(f.feu.fond === ROUGE && f.feu.encre === BLANC && gras(f.feu) && cF >= 4.5, `${nom} ${theme} : « Feu n°60 » #d32f2f / blanc gras, contraste ${cF.toFixed(2)}`);
-  verifier(f.classe === 'feu' && f.pastille.fond === ROUGE && f.pastille.encre === BLANC && gras(f.pastille), `${nom} ${theme} : pastille du temps feu #d32f2f / blanc gras`);
-  verifier(r.classe === 'feu' && r.pastille.fond === ROUGE && r.pastille.encre === BLANC, `${nom} ${theme} : feu repris : pastille pleine identique`);
+  // v0.38 (R95) : pastilles du temps : fond blanc (sombre : fond de la carte), heure et contour de la couleur du vol
+  const FOND = theme === 'clair' ? BLANC : 'rgb(23, 34, 46)';
+  const V = theme === 'clair' ? { feu: ROUGE, ent: ORANGE, gaar: FRAMBOISE } : { feu: 'rgb(255, 107, 107)', ent: 'rgb(232, 145, 63)', gaar: 'rgb(240, 98, 146)' };
+  const pastilleDe = (x, k) => x.fond === FOND && x.encre === V[k] && x.bord === V[k] && gras(x);
+  verifier(f.classe === 'feu' && pastilleDe(f.pastille, 'feu'), `${nom} ${theme} : pastille du temps feu (${f.pastille.fond} / ${f.pastille.encre})`);
+  verifier(r.classe === 'feu' && pastilleDe(r.pastille, 'feu'), `${nom} ${theme} : feu repris : pastille identique`);
   verifier(r.feu2 && r.feu2.fond === 'rgba(0, 0, 0, 0)' && r.feu2.bord === a.contourBord && r.feu2.encre === a.contourEncre && gras(r.feu2) && cC >= 4.5,
     `${nom} ${theme} : « Feu » en contour : bord ${r.feu2.bord}, texte ${r.feu2.encre} sur ${r.carte}, contraste ${cC.toFixed(2)}`);
-  verifier(e.classe === 'mi' && e.ent.fond === ORANGE && e.ent.encre === BLANC && gras(e.ent) && e.pastille.fond === ORANGE && e.pastille.encre === BLANC && gras(e.pastille) && cE >= 3.9,
+  verifier(e.classe === 'mi' && e.ent.fond === ORANGE && e.ent.encre === BLANC && gras(e.ent) && pastilleDe(e.pastille, 'ent') && cE >= 3.9,
     `${nom} ${theme} : Entraînement (étiquette et pastille) #c8650f / blanc gras 700, contraste ${cE.toFixed(2)} (choix du pilote)`);
   verifier(g.gaar && g.gaar.fond === FRAMBOISE && g.gaar.encre === BLANC && gras(g.gaar) && cG >= 4.5, `${nom} ${theme} : GAAR framboise #d81b60 / blanc gras, contraste ${cG.toFixed(2)}`);
   // R87 : pastille du temps : feu, puis GAAR, puis Entraînement, puis IFR, sinon sable
-  const past = id => m[id].pastille, framboise = x => x.fond === FRAMBOISE && x.encre === BLANC && gras(x);
+  const past = id => m[id].pastille, framboise = x => pastilleDe(x, 'gaar');
   verifier(m['v-gaar'].classe === 'gaar' && framboise(past('v-gaar')), `${nom} ${theme} : vol GAAR seul : pastille framboise`);
   verifier(m['v-gaar-ifr'].classe === 'gaar' && framboise(past('v-gaar-ifr')) && m['v-gaar-ifr'].ifr, `${nom} ${theme} : GAAR + IFR : pastille framboise (étiquette IFR toujours là)`);
-  verifier(m['v-gaar-feu'].classe === 'feu' && past('v-gaar-feu').fond === ROUGE && m['v-gaar-feu'].gaar.fond === FRAMBOISE, `${nom} ${theme} : GAAR + feu : pastille couleur feu`);
+  verifier(m['v-gaar-feu'].classe === 'feu' && pastilleDe(past('v-gaar-feu'), 'feu') && m['v-gaar-feu'].gaar.fond === FRAMBOISE, `${nom} ${theme} : GAAR + feu : pastille couleur feu`);
   verifier(m['v-gaar-ent'].classe === 'gaar' && framboise(past('v-gaar-ent')) && m['v-gaar-ent'].ent.fond === ORANGE, `${nom} ${theme} : GAAR + entraînement : pastille framboise (GAAR)`);
   const distincts = [ROUGE, ORANGE, FRAMBOISE].map(x => c(x, cartes));
   verifier(distincts.every(x => x >= 3), `${nom} ${theme} : les trois fonds se distinguent de la carte (${distincts.map(x => x.toFixed(1)).join(' / ')})`);

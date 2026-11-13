@@ -181,7 +181,8 @@ async function controlerEntrainement(p, vue, sombre) {
   const e = await couleurs(p, '.flight[data-id="v-ent"] .chip.mi.ent'), b = await couleurs(p, '.flight[data-id="v-ent"] .fl-bloc');
   // v0.35 (R86) : l'orange de R70 est remplacé par #c8650f, texte blanc gras (contraste 3,9 : choix du pilote)
   if (!sombre) verifier(e.fond === 'rgb(200, 101, 15)' && e.texte === 'rgb(255, 255, 255)', `${vue} : étiquette « Entraînement » #c8650f / blanc (R86)`);
-  verifier(e.fond === b.fond && e.texte === b.texte, `${vue} : pastille du temps de vol de la même couleur (${b.fond} / ${b.texte})`);
+  // v0.38 (R95) : pastille fond blanc (sombre : fond de la carte), heure de la couleur Entraînement (sombre : #e8913f)
+  verifier(b.texte === (sombre ? 'rgb(232, 145, 63)' : e.fond) && b.fond === (sombre ? 'rgb(23, 34, 46)' : 'rgb(255, 255, 255)'), `${vue} : pastille du temps de vol de la couleur Entraînement (${b.fond} / ${b.texte})`);
   verifier(e.contraste >= 3.9, `${vue} : contraste mesuré ${e.contraste} (3,9 voulu par le pilote, texte gras)`);
   return e;
 }

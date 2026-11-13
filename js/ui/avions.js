@@ -8,6 +8,7 @@ import { normaliser } from '../missions.js';
 import { hm, dateFr } from '../temps.js';
 import { calculerTotaux } from '../totaux.js';
 import { ouvrirRecherchePhoto, initPhotoWeb, htmlCredit } from './photo-web.js';
+import { ouvrirCadrage, afficherPhotoCadree, suivreBandeau } from './cadrage.js';
 
 export const SIL = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5z"/></svg>';
 export const SIMI = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h18v12H3zm2 2v8h14V6zm3 12h8v2H8zM10 8l5 2-5 2z"/></svg>';
@@ -170,6 +171,7 @@ function genreFiche() {
   $('#fi-tl').hidden = sim; $('#fi-ind-z').hidden = sim; $('#fi-tgsec').hidden = sim; $('#fi-hex-z').hidden = sim;
   if (!FI.photo) $('#fi-img').innerHTML = sim ? SIMI : SIL;
   $('#fi-web').hidden = sim;
+  $('#fi-rc').hidden = !FI.photo;
   ligneType();
 }
 
@@ -193,14 +195,15 @@ export function ouvrirFiche(a, init = {}, mode = 'modif', origine = a ? 'saisie'
   fiAvion = a || null; fiOrigine = origine;
   const b = a ? { ...a } : Object.assign(avionVide(), init);
   FI = { sim: !!b.sim, equipage: b.equipage, moteurs: b.moteurs, moteur: b.moteur, surface: b.surface || 'L',
-    train: b.train || 'tricycle', photo: b.photo, photoCredit: b.photo ? (b.photoCredit || null) : null, fstd: b.fstd, constructeur: b.constructeur, _o: b.typeOACI,
+    train: b.train || 'tricycle', photo: b.photo, photoCredit: b.photo ? (b.photoCredit || null) : null, photoCadre: b.photo ? (b.photoCadre || null) : null,
+    fstd: b.fstd, constructeur: b.constructeur, _o: b.typeOACI,
     etiquettes: [...(b.etiquettes || [])] };
   $('#fi-reg').value = b.immat; $('#fi-oaci').value = b.sim ? '' : (b.typeOACI || '');
   $('#fi-mod').value = b.modele || ''; $('#fi-ind').value = b.indicatif || ''; $('#fi-nm').value = b.nom || '';
   $('#fi-hex').value = (b.hexAdsb || '').toUpperCase();
   $('#fi-rem').value = b.remarques || '';
   rendreEtiquettesFiche();
-  $('#fi-img').innerHTML = b.photo ? `<img src="${b.photo}" alt="Photo de ${esc(b.immat)}">` : (b.sim ? SIMI : SIL);
+  if (b.photo) afficherPhotoFiche(`Photo de ${b.immat}`); else $('#fi-img').innerHTML = b.sim ? SIMI : SIL;
   afficherCredit();
   if (!stats) calculerStats();
   const s = a && stats[a.id];
@@ -210,6 +213,19 @@ export function ouvrirFiche(a, init = {}, mode = 'modif', origine = a ? 'saisie'
   $('#fiche').hidden = false; $('#fiche').scrollTop = 0;
   modeFiche(mode === 'lecture' && !!a);
   if (!a && !b.immat) setTimeout(() => $('#fi-reg').focus(), 50);
+}
+// v0.38 (R93) : photo du bandeau avec son cadrage (sans cadrage : centrée, comme avant) ; « Recadrer » s'il y a une photo
+function afficherPhotoFiche(alt = '') {
+  afficherPhotoCadree($('#fi-img'), document.querySelector('#fiche .fphoto'), FI.photo, FI.photoCadre, alt);
+  $('#fi-rc').hidden = !FI.photo;
+}
+async function recadrer() {
+  if (!FI || !FI.photo) return;
+  const b = document.querySelector('#fiche .fphoto');
+  const c = await ouvrirCadrage(FI.photo, FI.photoCadre, b.clientWidth / b.clientHeight);
+  if (!c) return; // Annuler : rien ne change
+  FI.photoCadre = c;
+  afficherPhotoFiche();
 }
 // v0.21 : crédit d'une photo trouvée sur Internet, sous la photo (rien pour une photo prise au téléphone)
 function afficherCredit() {
@@ -252,7 +268,8 @@ async function enregistrerFiche() {
     immat, sim: FI.sim, typeOACI: FI.sim ? 'SIM' : o, constructeur: t ? t.constructeur : (FI.constructeur || ''),
     modele: FI.sim ? ($('#fi-mod').value.trim() || immat) : ($('#fi-mod').value.trim() || o),
     indicatif: $('#fi-ind').value.trim().toUpperCase(), nom: $('#fi-nm').value.trim().toUpperCase(), etiquettes,
-    remarques: $('#fi-rem').value.trim(), photo: FI.photo || null, photoCredit: FI.photo ? (FI.photoCredit || null) : null, hexAdsb: FI.sim ? '' : hex, hexAdsbManuel: hexManuel,
+    remarques: $('#fi-rem').value.trim(), photo: FI.photo || null, photoCredit: FI.photo ? (FI.photoCredit || null) : null,
+    photoCadre: FI.photo ? (FI.photoCadre || null) : null, hexAdsb: FI.sim ? '' : hex, hexAdsbManuel: hexManuel,
     equipage: FI.sim ? null : FI.equipage, moteurs: FI.sim ? null : (FI.equipage === 'MP' ? 'ME' : FI.moteurs),
     moteur: FI.sim ? null : FI.moteur, surface: FI.surface, train: FI.train, fstd: FI.sim ? (FI.fstd || null) : null,
   });
@@ -326,13 +343,16 @@ export function initAvions({ choix, courant, modifie }) {
     if (!f) return;
     try {
       FI.photo = await reduirePhoto(f);
-      FI.photoCredit = null;
-      $('#fi-img').innerHTML = `<img src="${FI.photo}" alt="">`;
+      FI.photoCredit = null; FI.photoCadre = null; // nouvelle photo : pas encore de cadrage (centrée)
+      afficherPhotoFiche();
       afficherCredit();
+      recadrer(); // v0.38 (R93) : la fenêtre « Recadrer la photo » s'ouvre tout de suite
     } catch { toast('Photo illisible'); }
     e.target.value = '';
   });
   $('#fi-save').addEventListener('click', enregistrerFiche);
+  $('#fi-rc').addEventListener('click', recadrer);
+  suivreBandeau(document.querySelector('#fiche .fphoto'));
   // v0.21 (R34) : photo trouvée sur Internet, choisie par le pilote (gardée à « Enregistrer »)
   initPhotoWeb();
   $('#fi-web').addEventListener('click', () => {
@@ -343,10 +363,12 @@ export function initAvions({ choix, courant, modifie }) {
       immat, avion: { typeOACI: $('#fi-oaci').value.trim().toUpperCase(), modele: $('#fi-mod').value.trim(), constructeur: FI.constructeur || '' },
       reduirePhoto,
       choisir: (photo, credit) => {
-        FI.photo = photo; FI.photoCredit = credit;
-        $('#fi-img').innerHTML = `<img src="${photo}" alt="">`;
+        FI.photo = photo; FI.photoCredit = credit; FI.photoCadre = null;
+        afficherPhotoFiche();
         afficherCredit();
         toast('Photo choisie : appuie sur Enregistrer pour la garder', 2600);
+        // v0.38 (R93) : photo prise ou choisie dans la galerie (à moi, sans crédit) : recadrage tout de suite, comme l'appareil photo
+        if (!credit) recadrer();
       },
     });
   });

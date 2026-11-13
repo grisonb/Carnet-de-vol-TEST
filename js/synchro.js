@@ -39,7 +39,7 @@ export function elementsDuCarnet(contenu) {
   for (const v of contenu.vols || []) if (v && v.id) l.push({ magasin: 'vols', id: v.id, donnees: v });
   for (const a of contenu.avions || []) {
     if (!a || !a.id) continue;
-    const { photo, ...sansPhoto } = a;
+    const { photo, photoCadre, ...sansPhoto } = a; // v0.38 (R93) : le cadrage reste avec la photo, sur l'appareil
     l.push({ magasin: 'avions', id: a.id, donnees: sansPhoto });
   }
   for (const p of contenu.personnes || []) if (p && p.id) l.push({ magasin: 'personnes', id: p.id, donnees: p });

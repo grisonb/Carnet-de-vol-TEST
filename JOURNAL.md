@@ -1,5 +1,33 @@
 # Journal des versions
 
+## v0.38 — 13/11/2026
+
+Remarques R93 à R99. carnet.php v5 et format NPF-Q400 inchangés ; NAS et VPS non touchés.
+
+**R93 : recadrer la photo de l'avion** (fiche avion)
+- Photo chargée à la main : la fenêtre « Recadrer la photo » s'ouvre tout de suite (glisser pour déplacer, pincer, molette
+  ou curseur « Zoom » pour zoomer ; le cadre blanc a exactement la proportion du bandeau ; Annuler rouge, Valider vert).
+- Le zoom minimum remplit toujours le bandeau (jamais de bande vide). Bouton « Recadrer » en bas à gauche du bandeau (à côté
+  de l'appareil photo) dès qu'il y a une photo, y compris trouvée par « Chercher une photo » ; il rouvre le cadrage précédent.
+- La photo d'origine est gardée entière (même réduction et même JPEG qu'avant) ; seul le cadrage { centre, zoom } est gardé
+  avec l'avion (`photoCadre`), à « Enregistrer » comme la photo. Sans cadrage : affichage d'avant (centré).
+- Le cadrage suit la photo : il reste sur l'appareil (les photos ne voyagent ni par la synchro ni par la copie NAS) et une
+  restauration depuis le NAS le garde avec la photo du téléphone. Aucun changement du NAS.
+
+**R94-R99 : cartes des vols de l'accueil** (couleur du vol = celle de la pastille : feu, GAAR, Entraînement, IFR, sable)
+- R94 remarque / mission en noir ; la barre à gauche prend la couleur du vol.
+- R95 pastille du temps : fond blanc, heure et contour 4 px de la couleur du vol, même taille extérieure ; sable : #8a6a2e.
+- R96 « N lrg » : contour et texte rouges (vol feu) ou orange (entraînement ; feu d'abord), sinon jaune comme avant.
+- R97 « N att » (atterrissages de jour) : fond blanc, texte et contour noirs.
+- R98 atterrissages de nuit à part : « N att nuit », comme l'étiquette « Nuit 0h40 » (texte blanc sur fond noir), juste
+  après elle (ou à la place de « N att » s'il n'y a pas d'heures de nuit).
+- R99 « N appr » : texte et contour du bleu IFR, juste après « IFR » (déjà le cas).
+- Thème sombre : même logique sur le fond de la carte, teintes plus claires (contraste ≥ 4,5).
+- Autres étiquettes, saisie, PDF et CSV inchangés.
+
+**Tests** : `tests/unitaires/v038.test.js`, `tests/navigateur/v038.mjs` (téléphone 390 / 360 px, PC, iPad ; image inventée) ;
+tous les tests existants (ceux qui vérifiaient l'ancien style de la pastille et des étiquettes adaptés).
+
 ## v0.37 — 12/11/2026
 
 Remarques R89, R90 et R91. carnet.php v5 et format NPF-Q400 inchangés ; NAS et VPS non touchés.

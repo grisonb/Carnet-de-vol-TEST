@@ -69,12 +69,16 @@ try {
   verifier(c['v-autre'].chips.includes('2 appr') && c['v-autre'].chips.indexOf('2 appr') === c['v-autre'].chips.indexOf('1 att') + 1, 'VFR 2 approches : « 2 appr » à la place de l\'IFR (après « 1 att. »)');
   const ci = c['v-ifr'].chips;
   verifier(ci.indexOf('3 appr') === ci.indexOf('IFR 1h36') + 1, `IFR avec approches à l'arrivée et sur un terrain intermédiaire : « IFR 1h36 » puis « 3 appr » (${ci.join(' | ')})`);
-  verifier(c['v-ifr'].refAppr && c['v-ifr'].refAppr !== c['v-ifr'].refIfr && c['v-ifr'].refAppr.split('|')[0] === 'rgb(226, 242, 238)', `couleur propre (vert-de-gris clair) : ${c['v-ifr'].refAppr}`);
+  // v0.38 (R99) : « appr » fond blanc, texte du bleu de l'IFR (avant : vert-de-gris clair)
+  verifier(c['v-ifr'].refAppr && c['v-ifr'].refAppr === 'rgb(255, 255, 255)|' + c['v-ifr'].refIfr.split('|')[1], `« appr » blanc, bleu IFR : ${c['v-ifr'].refAppr}`);
   // R66
-  verifier(c['v-feu'].classe === 'feu' && c['v-feu'].fond === c['v-feu'].refFeu, `feu (+ IFR) : couleur de l'étiquette « Feu n°… » (${c['v-feu'].fond})`);
-  verifier(c['v-ent'].classe === 'mi' && c['v-ent'].fond === c['v-ent'].refMi, `entraînement (+ IFR) : couleur de l'étiquette « Entraînement » (${c['v-ent'].fond})`);
-  verifier(c['v-ifr'].classe === 'ifr' && c['v-ifr'].fond === c['v-ifr'].refIfr, `IFR : couleur de l'étiquette « IFR » (${c['v-ifr'].fond})`);
-  verifier(c['v-autre'].classe === 'sable' && c['v-autre'].fond === 'rgb(239, 230, 211)|rgb(58, 47, 26)', `autre vol : sable (${c['v-autre'].fond})`);
+  // v0.38 (R95) : pastille fond blanc, heure (et contour) de la couleur du vol : celle du fond de l'étiquette (feu,
+  // entraînement), le bleu du texte « IFR », sable foncé #8a6a2e (avant : pastille pleine de la couleur de l'étiquette)
+  const fondDe = r => r.split('|')[0], encreDe = r => r.split('|')[1], BLANC = 'rgb(255, 255, 255)';
+  verifier(c['v-feu'].classe === 'feu' && c['v-feu'].fond === BLANC + '|' + fondDe(c['v-feu'].refFeu), `feu (+ IFR) : couleur de l'étiquette « Feu n°… » (${c['v-feu'].fond})`);
+  verifier(c['v-ent'].classe === 'mi' && c['v-ent'].fond === BLANC + '|' + fondDe(c['v-ent'].refMi), `entraînement (+ IFR) : couleur de l'étiquette « Entraînement » (${c['v-ent'].fond})`);
+  verifier(c['v-ifr'].classe === 'ifr' && c['v-ifr'].fond === BLANC + '|' + encreDe(c['v-ifr'].refIfr), `IFR : couleur de l'étiquette « IFR » (${c['v-ifr'].fond})`);
+  verifier(c['v-autre'].classe === 'sable' && c['v-autre'].fond === BLANC + '|rgb(138, 106, 46)', `autre vol : sable (${c['v-autre'].fond})`);
   verifier(c['v-autre'].taille > 24 && Number(c['v-autre'].graisse) >= 800 && parseFloat(c['v-autre'].rayon) >= 10, `pastille arrondie, gras, ${c['v-autre'].taille} px (avant : 24 px, normal 700)`);
   verifier(!c['v-ifr'].chevauche, 'route à 4 terrains : passe à la ligne à gauche, la pastille garde sa place, rien ne se chevauche');
   await T.screenshot({ path: join(CAPT, 'v028-01-tel-carnet.png') });

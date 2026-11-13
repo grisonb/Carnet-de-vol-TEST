@@ -60,14 +60,18 @@ const memes = (a, b) => a.fond === b.fond && a.encre === b.encre;
 function controler(nomVue, c) {
   const ref = c['v-num'].etiquette;
   verifier(ref && ref.classe === 'feu' && /^Feu n°60$/.test(ref.texte), `${nomVue} : vol « Feu n°60 » : étiquette pleine (référence ${ref?.fond} / ${ref?.encre})`);
-  verifier(c['v-num'].classe === 'feu' && memes(c['v-num'].pastille, ref), `${nomVue} : vol « Feu n°60 » : pastille pleine, couleur « Feu n°… »`);
+  // v0.38 (R95) : la pastille n'est plus pleine : fond blanc (ou fond de la carte en sombre), heure et contour de la couleur
+  // « Feu » (#d32f2f ; sombre : #ff6b6b). Ce qui reste vérifié : TOUT vol feu a la même pastille, couleur feu.
+  const rougeFeu = ref.fond === 'rgb(211, 47, 47)' && c['v-num'].pastille.fond === 'rgb(255, 255, 255)' ? 'rgb(211, 47, 47)' : 'rgb(255, 107, 107)';
+  verifier(c['v-num'].classe === 'feu' && c['v-num'].pastille.encre === rougeFeu && c['v-num'].pastille.bord === rougeFeu,
+    `${nomVue} : vol « Feu n°60 » : pastille couleur « Feu » (${c['v-num'].pastille.fond} / ${c['v-num'].pastille.encre})`);
   const r = c['v-rep'];
   verifier(r.etiquette && r.etiquette.classe === 'feu2' && r.etiquette.texte === 'Feu' && r.etiquette.fond === 'rgba(0, 0, 0, 0)',
     `${nomVue} : vol « Feu » sans numéro : l'étiquette reste en contour (fond transparent, bord ${r.etiquette?.bord})`);
-  verifier(r.classe === 'feu' && memes(r.pastille, ref) && memes(r.pastille, c['v-num'].pastille),
-    `${nomVue} : vol « Feu » sans numéro : pastille PLEINE, identique à celle du « Feu n°60 » (${r.pastille.fond} / ${r.pastille.encre})`);
-  verifier(c['v-ifr'].classe === 'feu' && memes(c['v-ifr'].pastille, ref), `${nomVue} : « Feu » + IFR : pastille feu pleine`);
-  verifier(c['v-ent'].classe === 'feu' && memes(c['v-ent'].pastille, ref), `${nomVue} : feu + entraînement : pastille feu pleine`);
+  verifier(r.classe === 'feu' && memes(r.pastille, c['v-num'].pastille) && r.pastille.bord === c['v-num'].pastille.bord,
+    `${nomVue} : vol « Feu » sans numéro : même pastille que le « Feu n°60 » (${r.pastille.fond} / ${r.pastille.encre})`);
+  verifier(c['v-ifr'].classe === 'feu' && memes(c['v-ifr'].pastille, c['v-num'].pastille), `${nomVue} : « Feu » + IFR : pastille feu`);
+  verifier(c['v-ent'].classe === 'feu' && memes(c['v-ent'].pastille, c['v-num'].pastille), `${nomVue} : feu + entraînement : pastille feu`);
   verifier(c['v-mi'].classe === 'mi' && c['v-sable'].classe === 'sable', `${nomVue} : entraînement et autre vol inchangés (orange, sable)`);
 }
 
@@ -80,7 +84,7 @@ try {
   await T.emulateMedia({ colorScheme: 'dark' });
   const sombre = await tout(T);
   controler('sombre (réglage du téléphone)', sombre);
-  verifier(sombre['v-rep'].pastille.fond !== 'rgb(253, 227, 225)', `sombre : la pastille prend bien les couleurs sombres (${sombre['v-rep'].pastille.fond})`);
+  verifier(sombre['v-rep'].pastille.fond === 'rgb(23, 34, 46)', `sombre : la pastille prend bien les couleurs sombres (${sombre['v-rep'].pastille.fond})`);
   await T.screenshot({ path: join(CAPT, 'v029-02-tel-sombre.png') });
   await T.emulateMedia({ colorScheme: 'light' });
   await T.evaluate(() => { document.documentElement.dataset.theme = 'dark'; });

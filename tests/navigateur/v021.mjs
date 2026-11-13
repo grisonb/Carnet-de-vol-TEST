@@ -148,6 +148,8 @@ try {
   await ouvrirFiche('a1');
   verifier(await p.isVisible('#fi-credit') && await p.isVisible('#fiche img'), 'fiche rouverte : photo et crédit');
   await p.setInputFiles('#fi-file', join(RACINE, 'icones/icone-192.png')); await attendre(400);
+  // v0.38 (R93) : la fenêtre « Recadrer la photo » s'ouvre au chargement ; Annuler garde la photo, centrée
+  await p.waitForSelector('#rc-modal:not([hidden])'); await p.click('#rc-non'); await p.waitForSelector('#rc-modal', { state: 'hidden' });
   verifier(!(await p.isVisible('#fi-credit')), 'photo prise au téléphone : le crédit disparaît');
   await p.click('#fi-save'); await attendre(400);
   a = (await avions()).a1;

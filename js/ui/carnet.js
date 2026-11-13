@@ -139,21 +139,29 @@ export function carteVol(v, voir = false) {
   // v0.31 (R70) : l'étiquette « Entraînement » a son orange franc (classe ent), comme la pastille du temps de vol
   // v0.35 (R86) : « GAAR » a sa couleur (framboise) ; les autres pastilles de règles gardent l'orange pâle commun
   for (const p of regles) puces.push(`<span class="chip mi${p.toUpperCase() === 'ENTRAÎNEMENT' ? ' ent' : p.toUpperCase() === 'GAAR' ? ' gaar' : ''}">${esc(p)}</span>`);
+  // v0.38 (R96) : largages (« N lrg… ») : contour rouge sur un vol feu, orange sur un entraînement (feu d'abord), sinon jaune
+  const entrainement = regles.some(p => p.toUpperCase() === 'ENTRAÎNEMENT');
+  const lrg = feu ? ' lrg-feu' : entrainement ? ' lrg-ent' : '';
   for (const c of COMPTEURS) {
     const n = v.compteurs && v.compteurs[c.cle];
-    if (n) puces.push(`<span class="chip hl">${n} ${esc(c.court)}</span>`);
+    if (n) puces.push(`<span class="chip hl${/^lrg/.test(c.court) ? lrg : ''}">${n} ${esc(c.court)}</span>`);
   }
-  const att = (v.attJour || 0) + (v.attNuit || 0);
-  if (att) puces.push(`<span class="chip">${att} att</span>`);
+  // v0.38 (R97 / R98) : « N att » = atterrissages de jour (contour noir) ; ceux de nuit à part : « N att nuit » (comme « Nuit »)
+  const attJour = v.attJour || 0, attNuit = v.attNuit || 0;
+  const pucesAttNuit = attNuit ? `<span class="chip nuit att-nuit">${attNuit} att nuit</span>` : '';
+  if (attJour) puces.push(`<span class="chip att">${attJour} att</span>`);
+  if (attNuit && !v.tempsNuit) puces.push(pucesAttNuit); // pas d'étiquette « Nuit » : à la place des atterrissages
   if (v.tempsIFR) puces.push(`<span class="chip ifr">IFR ${hm(v.tempsIFR)}</span>`);
   // v0.28 (R65) : approches du vol (total : arrivée + terrains intermédiaires), juste après l'IFR
   if (v.approches > 0) puces.push(`<span class="chip appr">${v.approches} appr</span>`);
   if (v.tempsNuit) puces.push(`<span class="chip nuit">Nuit ${hm(v.tempsNuit)}</span>`);
+  if (attNuit && v.tempsNuit) puces.push(pucesAttNuit); // juste après « Nuit 0h40 »
   const mission = texteMissions(v);
   const duree = v.tempsTotal || v.simTemps || 0;
+  const couleur = couleurTemps(feu, regles, v); // v0.38 (R94 / R95) : couleur du vol (pastille, barre de la remarque)
   // la carte se glisse vers la gauche pour faire apparaître « Supprimer » (avec confirmation)
-  return `<div class="swrow flrow"><button type="button" class="swdel" data-fdel="${esc(v.id)}" tabindex="-1">Supprimer</button><button type="button" class="flight swfront${estSimulation(v) ? ' sim' : ''}" data-id="${esc(v.id)}">
-    ${estSimulation(v) ? '<div class="sim-bandeau fl-sim">SIMULATION VOL<small>hors totaux</small></div>' : ''}<div class="fl-top"><span class="fl-route${taille}">${route}</span><span class="fl-bloc t-${couleurTemps(feu, regles, v)}">${hm(duree)}</span></div>
+  return `<div class="swrow flrow"><button type="button" class="swdel" data-fdel="${esc(v.id)}" tabindex="-1">Supprimer</button><button type="button" class="flight swfront vol-${couleur}${estSimulation(v) ? ' sim' : ''}" data-id="${esc(v.id)}">
+    ${estSimulation(v) ? '<div class="sim-bandeau fl-sim">SIMULATION VOL<small>hors totaux</small></div>' : ''}<div class="fl-top"><span class="fl-route${taille}">${route}</span><span class="fl-bloc t-${couleur}">${hm(duree)}</span></div>
     <div class="fl-id">${ligne}</div>
     <div class="fl-meta num">${esc(ligneHeures(v))}</div>
     <div class="chips">${puces.join('')}</div>

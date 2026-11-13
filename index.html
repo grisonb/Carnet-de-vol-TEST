@@ -270,10 +270,20 @@
   <div class="row2"><button type="button" class="ghost annuler" id="a1-x">Annuler</button><button type="button" class="ghost primary" id="a1-go" disabled>Continuer</button></div>
 </div></div>
 
+<!-- v0.38 (R93) : « Recadrer la photo » (fiche avion) : le cadre blanc montre exactement ce qui sera visible dans le bandeau -->
+<div class="modal rc-modal" id="rc-modal" hidden role="dialog" aria-modal="true" aria-labelledby="rc-t" style="z-index:36"><div class="rc-box">
+  <h2 id="rc-t">Recadrer la photo</h2>
+  <div class="rc-zone" id="rc-zone"><img id="rc-img" alt="Photo à recadrer" draggable="false"></div>
+  <p class="rc-aide">Glisse pour déplacer, pince pour zoomer. Le cadre blanc montre ce qui sera visible.</p>
+  <label class="rc-zoom"><span>Zoom</span><input type="range" id="rc-zoom" min="1" max="4" step="0.01" value="1" aria-label="Zoom"></label>
+  <div class="row2"><button type="button" class="ghost annuler" id="rc-non">Annuler</button><button type="button" class="ghost vert" id="rc-oui">Valider</button></div>
+</div></div>
+
 <!-- Fiche avion -->
 <div class="sheet" id="fiche" hidden role="dialog" aria-modal="true" aria-labelledby="fi-reg-l" style="z-index:28"><div class="sheet-in">
   <div class="fphoto"><span id="fi-img"></span><button type="button" class="xbtn" id="fi-x" aria-label="Fermer"><svg class="ix" viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></svg></button><button type="button" class="fedit" id="fi-ed" hidden aria-label="Modifier la fiche"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17.25V21h3.75L17.8 9.94l-3.75-3.75zM20.7 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75z"/></svg></button>
-    <label class="cam" aria-label="Prendre ou choisir une photo"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3 7.2 5H4a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-3.2L15 3zm3 5a4.5 4.5 0 1 1 0 9 4.5 4.5 0 0 1 0-9zm0 2a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5z"/></svg><input type="file" accept="image/*" id="fi-file"></label></div>
+    <label class="cam" aria-label="Prendre ou choisir une photo"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3 7.2 5H4a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-3.2L15 3zm3 5a4.5 4.5 0 1 1 0 9 4.5 4.5 0 0 1 0-9zm0 2a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5z"/></svg><input type="file" accept="image/*" id="fi-file"></label>
+    <button type="button" class="rcbtn" id="fi-rc" hidden>Recadrer</button></div>
   <div class="fph-bas"><p class="phcredit" id="fi-credit" hidden></p><button type="button" class="linkbtn" id="fi-web">Chercher une photo ›</button></div>
   <div class="seg" id="fi-kind" role="group" aria-label="Aéronef ou simulateur" style="justify-content:center;margin:14px 0 4px"><button type="button" aria-pressed="true">✈ Aéronef</button><button type="button" aria-pressed="false">Simulateur</button></div>
   <div class="sec">

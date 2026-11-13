@@ -66,8 +66,9 @@ try {
   verifier(!c1.tirets, 'plus de tirets « - » entre les éléments');
   verifier(c1.date.haut === c1.nm.haut || Math.abs(c1.date.haut - c1.nm.haut) < 6, 'date, nom, immatriculation sur la même ligne');
   verifier(c1.heures.t.includes('UTC') && c1.heures.taille <= 14 && c1.heures.couleur !== ENCRE, 'ligne des heures toujours en petit gris');
-  verifier(c1.mission.t === 'ESSAI MISSION COURTE' && c1.mission.gras && c1.mission.taille === 16 && c1.mission.couleur === COUL_MI, 'mission en gras, 16 px, orange foncé (bloc Mission)');
-  verifier(c1.mission.trait.startsWith('3px') && /rgb\(224, 123, 26\)/.test(c1.mission.trait), '  petit trait vertical orange à gauche');
+  verifier(c1.mission.t === 'ESSAI MISSION COURTE' && c1.mission.gras && c1.mission.taille === 16 && c1.mission.couleur === ENCRE, 'mission en gras, 16 px, en noir (v0.38, R94 ; avant : orange foncé)');
+  // v0.38 (R94) : le trait prend la couleur du vol (feu, GAAR, entraînement, IFR ou sable) (avant : orange)
+  verifier(c1.mission.trait.startsWith('3px') && /rgb\((211, 47, 47|216, 27, 96|200, 101, 15|31, 78, 121|138, 106, 46)\)/.test(c1.mission.trait), `  petit trait vertical à gauche, couleur du vol (${c1.mission.trait})`);
 
   console.log('Vol sans nom d\'avion');
   const c2 = await carte('v2');
@@ -87,7 +88,7 @@ try {
   await p.emulateMedia({ colorScheme: 'dark' });
   const s1 = await carte('v1');
   const fond = await p.$eval('.flight', b => getComputedStyle(b).backgroundColor);
-  verifier(s1.nm.couleur === 'rgb(77, 182, 172)' && s1.mission.couleur === 'rgb(255, 160, 77)', `couleurs claires sur fond sombre (${fond})`);
+  verifier(s1.nm.couleur === 'rgb(77, 182, 172)' && s1.mission.couleur === 'rgb(231, 237, 243)', `couleurs claires sur fond sombre (${fond}) ; mission en texte normal (R94)`);
   verifier(s1.date.couleur !== 'rgb(0, 0, 0)' && s1.date.couleur === await p.evaluate(() => getComputedStyle(document.body).color), 'date lisible (encre du mode sombre)');
   await p.screenshot({ path: join(CAPT, 'v011-02-carnet-sombre.png') });
 

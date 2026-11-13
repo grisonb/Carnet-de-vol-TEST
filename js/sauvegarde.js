@@ -31,7 +31,8 @@ export const texteSauvegarde = s => JSON.stringify(s);
 // La sauvegarde de secours manuelle, elle, garde les photos.
 export function sansPhotos(s) {
   // v0.21 : le crédit d'une photo trouvée sur Internet suit la photo (retiré avec elle)
-  return { ...s, sansPhotos: true, avions: s.avions.map(a => { const { photo, photoCredit, ...reste } = a; return reste; }) };
+  // v0.38 (R93) : le cadrage de la photo suit la photo (retiré avec elle)
+  return { ...s, sansPhotos: true, avions: s.avions.map(a => { const { photo, photoCredit, photoCadre, ...reste } = a; return reste; }) };
 }
 
 // Restauration d'une copie sans photo : chaque avion garde la photo qu'il a sur ce téléphone (même avion : même
@@ -40,7 +41,7 @@ export function garderPhotos(donnees, avionsDuTelephone) {
   const parId = new Map(), parImmat = new Map();
   for (const a of avionsDuTelephone) {
     if (!a || !a.photo) continue;
-    const ph = { photo: a.photo, photoCredit: a.photoCredit || null };
+    const ph = { photo: a.photo, photoCredit: a.photoCredit || null, photoCadre: a.photoCadre || null };
     parId.set(a.id, ph);
     if (a.immat) parImmat.set(String(a.immat).toUpperCase(), ph);
   }
@@ -50,7 +51,7 @@ export function garderPhotos(donnees, avionsDuTelephone) {
     const ph = parId.get(a.id) || (a.immat && parImmat.get(String(a.immat).toUpperCase()));
     if (!ph) return a;
     gardees++;
-    return { ...a, photo: ph.photo, photoCredit: ph.photoCredit };
+    return { ...a, photo: ph.photo, photoCredit: ph.photoCredit, ...(ph.photoCadre ? { photoCadre: ph.photoCadre } : {}) };
   });
   return { donnees: { ...donnees, avions }, gardees };
 }
