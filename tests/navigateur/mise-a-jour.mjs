@@ -9,7 +9,9 @@ import { readFile, mkdtemp, rm, cp, writeFile } from 'node:fs/promises';
 import { execSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import { extname, join } from 'node:path';
-import { playwright, verifier, RACINE, DOSSIER } from './outils.mjs';
+import { playwright, verifier, RACINE, ANCIEN_DOSSIER } from './outils.mjs';
+// v0.39 : les apps déjà installées se mettent à jour à leur ANCIENNE adresse (/Carnet-de-vol-TEST/) : c'est là qu'on le vérifie
+const DOSSIER = ANCIEN_DOSSIER;
 import { VERSION } from '../../js/version.js';
 
 const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json',

@@ -5,6 +5,7 @@
 
 import { $, esc, toast, ouvrirOutil, fermerOutil } from './commun.js';
 import { etat, reglage, ecrireReglageDiscret, contenuComplet, restaurer, enConsultation } from '../etat.js';
+import { estDemenage } from '../demenagement.js';
 import { creerSauvegarde, texteSauvegarde, lireSauvegarde, sansPhotos, garderPhotos } from '../sauvegarde.js';
 import { creerCopieur, urlApi, resumeNas, compresser, decompresser, empreinteSha256, taillePropre, depuis, problemeNouveauMotDePasse, texteAttente, MDP_MIN } from '../copieur.js';
 
@@ -32,6 +33,7 @@ export async function erreurDansReponse(r) {
 }
 // keepalive (v0.26) : le navigateur termine la demande même si la page se ferme (corps de 64 Ko au plus)
 export async function requete(action, { url = configNas().url, motDePasse = configNas().motDePasse, corps = null, entetes = {}, extra = '', delai = 30000, keepalive = false } = {}) {
+  if (estDemenage()) return { statut: 'demenage' }; // v0.39 : ancienne adresse : plus aucune demande au NAS (copie, synchro, NPF)
   if (!url) return { statut: 'adresse' };
   if (!enLigne()) return { statut: 'horsLigne' };
   const arret = new AbortController();

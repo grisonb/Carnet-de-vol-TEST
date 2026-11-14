@@ -4,6 +4,11 @@
 //   vols, avions, personnes (clé id) ; suppressions { id, magasin, supprimeLe } (pour la synchro NAS v0.2)
 //   reglages { cle, valeur } : compteurs, règles de pastilles, étiquettes, missions ajoutées, etc.
 
+import { estDemenage } from './demenagement.js';
+
+// v0.39 : app à l'ancienne adresse alors que la nouvelle répond : plus AUCUNE écriture (le carnet vit à la nouvelle adresse)
+function verifierEcriture() { if (estDemenage()) throw new Error("Le carnet a changé d'adresse : rien n'est enregistré ici."); }
+
 const NOM = 'carnet-de-vol';
 const VERSION = 2; // v0.8 : magasin « traces » ajouté (rien d'autre ne change, les données sont conservées)
 export const MAGASINS = { vols: 'id', avions: 'id', personnes: 'id', suppressions: 'id', reglages: 'cle' };
@@ -45,6 +50,7 @@ export async function tout(magasin) {
 
 // ecritures : { vols: [..], avions: [..], ... } enregistrés en une seule transaction
 export async function enregistrer(ecritures) {
+  verifierEcriture();
   const db = await ouvrir();
   const noms = Object.keys(ecritures).filter(n => ecritures[n] && ecritures[n].length);
   if (!noms.length) return;
@@ -54,6 +60,7 @@ export async function enregistrer(ecritures) {
 }
 
 export async function supprimer(magasin, id, maintenant = new Date().toISOString()) {
+  verifierEcriture();
   const db = await ouvrir();
   const tx = db.transaction([magasin, 'suppressions'], 'readwrite');
   tx.objectStore(magasin).delete(id);
@@ -63,6 +70,7 @@ export async function supprimer(magasin, id, maintenant = new Date().toISOString
 
 // Remet un élément supprimé (Annuler) : il revient et sa trace de suppression est effacée
 export async function remettre(magasin, objet) {
+  verifierEcriture();
   const db = await ouvrir();
   const tx = db.transaction([magasin, 'suppressions'], 'readwrite');
   tx.objectStore(magasin).put(objet);
@@ -72,6 +80,7 @@ export async function remettre(magasin, objet) {
 
 // Restauration d'une sauvegarde : tout est remplacé en une seule transaction
 export async function remplacerTout(contenu) {
+  verifierEcriture();
   const db = await ouvrir();
   const noms = Object.keys(MAGASINS);
   const tx = db.transaction(noms, 'readwrite');
@@ -86,6 +95,7 @@ export async function remplacerTout(contenu) {
 // Synchro (v0.23) : éléments reçus du NAS, écrits en une seule transaction. mettre / enlever : { vols, avions,
 // personnes : [objets | ids], reglages : [{ cle, valeur }] | [cles] }. Pas de trace de suppression (appareil qui consulte).
 export async function appliquerSynchro({ mettre, enlever }) {
+  verifierEcriture();
   const db = await ouvrir();
   const noms = ['vols', 'avions', 'personnes', 'reglages'].filter(n => (mettre[n] && mettre[n].length) || (enlever[n] && enlever[n].length));
   if (!noms.length) return;

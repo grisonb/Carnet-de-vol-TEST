@@ -10,7 +10,7 @@
 export const commonsApi = () => globalThis.CARNET_COMMONS || 'https://commons.wikimedia.org/w/api.php';
 export const planespottersApi = () => globalThis.CARNET_PLANESPOTTERS || 'https://api.planespotters.net/pub/photos/reg/';
 // Identification demandée par Wikimedia aux applications web (en-tête autorisé par Commons)
-export const AGENT = 'CarnetDeVol (https://github.com/grisonb/Carnet-de-vol-TEST)';
+export const AGENT = 'CarnetDeVol (https://github.com/grisonb/Carnet-de-vol)';
 export const MAX_PHOTOS = 24;
 const VIGNETTE = 330, GRANDE = 1280;
 

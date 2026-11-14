@@ -7,13 +7,25 @@
 <meta name="description" content="Carnet de vol électronique au format EASA">
 <title>Carnet de vol</title>
 <link rel="manifest" href="manifest.webmanifest">
-<link rel="icon" href="icones/icone-192.png">
-<link rel="apple-touch-icon" href="icones/icone-192.png">
-<meta name="apple-mobile-web-app-title" content="Carnet vol"><!-- v0.25 : nom sous l'icône de l'écran d'accueil (iPad) -->
+<!-- v0.39 : icône du pilote (favicon, écran d'accueil iPad / iPhone) -->
+<link rel="icon" href="icones/favicon.ico" sizes="16x16 32x32">
+<link rel="icon" href="icones/favicon-32.png" type="image/png" sizes="32x32">
+<link rel="apple-touch-icon" href="icones/apple-touch-icon.png" sizes="180x180">
+<meta name="apple-mobile-web-app-title" content="Carnet"><!-- nom sous l'icône de l'écran d'accueil (iPad) -->
 <link rel="stylesheet" href="css/polices.css">
 <link rel="stylesheet" href="css/app.css">
 </head>
 <body>
+<!-- v0.39 : à l'ANCIENNE adresse, quand la nouvelle répond : le carnet a déménagé (rien n'est plus enregistré ici) -->
+<div class="demenage" id="demenage" hidden role="alertdialog" aria-modal="true" aria-labelledby="dm-t" aria-describedby="dm-txt"><div class="dm-in">
+  <img src="icones/icon-192.png" alt="" width="96" height="96">
+  <h1 id="dm-t">Le carnet a changé d'adresse</h1>
+  <p id="dm-txt">Ton carnet de vol est maintenant à <b>grisonb.github.io/Carnet-de-vol</b>. Ici, plus rien n'est enregistré ni envoyé au NAS.</p>
+  <a class="bigbtn vert dm-go" id="dm-go" href="https://grisonb.github.io/Carnet-de-vol/">Ouvrir le carnet à sa nouvelle adresse</a>
+  <p class="dm-aide">Installe-le depuis la nouvelle adresse (menu du navigateur › Installer, ou Partager › Sur l'écran d'accueil), puis supprime cette ancienne icône <b>sans effacer les données</b>.</p>
+  <button type="button" class="bigbtn second" id="dm-sauv">Enregistrer une sauvegarde de ce carnet</button>
+  <p class="dm-aide">Sur iPad, la nouvelle icône peut démarrer vide : fais d'abord cette sauvegarde (photos comprises), puis restaure-la dans la nouvelle (Plus › Restaurer), ou reprends le carnet par la synchro du NAS.</p>
+</div></div>
 <div class="app">
 
   <!-- ========== CARNET ========== -->

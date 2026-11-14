@@ -61,7 +61,8 @@ Jamais d'enregistrement automatique ; jamais de message d'erreur intrusif.
 
 ## Hébergement
 
-GitHub Pages, branche `main`, racine : https://grisonb.github.io/Carnet-de-vol-TEST/
+GitHub Pages, branche `main`, racine : https://grisonb.github.io/Carnet-de-vol/ (dépôt grisonb/Carnet-de-vol ; jusqu'à la v0.39 :
+grisonb/Carnet-de-vol-TEST et https://grisonb.github.io/Carnet-de-vol-TEST/ — le dossier local garde son nom)
 Pas d'étape de compilation : les fichiers du dépôt sont servis tels quels.
 
 ## Architecture
@@ -70,11 +71,11 @@ Pas d'étape de compilation : les fichiers du dépôt sont servis tels quels.
   étiquette, règles, escale, écran « outil » générique).
 - `css/app.css` : styles repris de la maquette validée + compléments ; `css/polices.css` + `polices/` :
   Barlow (licence OFL), embarquée pour le hors ligne.
-- `manifest.webmanifest` : id, start_url et scope = `/Carnet-de-vol-TEST/` (le site grisonb.github.io héberge
+- `manifest.webmanifest` : id `/Carnet-de-vol/`, start_url et scope relatifs `./` (v0.39) (le site grisonb.github.io héberge
   d'autres apps, NPF-Q400 et NPF-Q400-TEST : ne jamais élargir la portée ni réutiliser leur id).
-- `sw.js` : service worker, portée `/Carnet-de-vol-TEST/`, cache « carnet-de-vol-vX.Y », cache d'abord ; ne lit
-  et ne supprime QUE les caches « carnet-de-vol-… » (les caches sont partagés par tout le site). Liste de fichiers à tenir à jour
-  (un test vérifie que tous les js/css/polices/icônes y sont).
+- `sw.js` : service worker, portée = dossier de l'app, cache d'abord. Un cache par adresse (v0.39) : `carnet-app-vX.Y` à
+  /Carnet-de-vol/, `carnet-de-vol-vX.Y` à l'ancienne /Carnet-de-vol-TEST/ ; chacun n'efface que ses anciennes versions (les
+  caches sont partagés par tout le site). Liste de fichiers à tenir à jour (un test vérifie que tous les js/css/polices/icônes y sont).
 - `js/` — logique sans interface (testée sous Node) :
   - `temps.js` durées et heures ; `fuseaux.js` UTC <-> heure locale du terrain (Intl) ;
   - `nuit.js` temps de nuit EASA (soleil à plus de 6° sous l'horizon, minute par minute le long de la route) ;
@@ -135,7 +136,7 @@ Pas d'étape de compilation : les fichiers du dépôt sont servis tels quels.
   iPadOS se présente comme un Mac) -> identifiant 'ipad-…', textes « Cet iPad », « Garder la version de l'iPad »
   (`duNom`, `ceNom`, `leNom` dans synchro.js). Tablette tactile (pointer:coarse, ≥ 700 px) : onglets et « Annuler » ≥ 44 px.
   Barre d'état : padding env(safe-area-inset-top). Carnet d'ici vide : pas de « Confirmer » des suppressions.
-  Même origine que NPF-Q400 (grisonb.github.io) : le Carnet ne touche qu'à ses caches (préfixe 'carnet-de-vol-',
+  Même origine que NPF-Q400 (grisonb.github.io) : le Carnet ne touche qu'à ses caches (préfixes 'carnet-app-v' / 'carnet-de-vol-v',
   sw.js) et à sa base IndexedDB 'carnet-de-vol' ; aucun localStorage.
 - v0.26 : majuscules par défaut (attribut `autocapitalize` : characters pour codes / immatriculations / noms d'avion /
   trigrammes / étiquettes / missions, words pour noms de personnes / terrains / titulaire, sentences pour remarques /
@@ -150,6 +151,10 @@ Pas d'étape de compilation : les fichiers du dépôt sont servis tels quels.
   `.fl-bloc.t-feu|feu2|mi|ifr|sable` (`couleurTemps` dans js/ui/carnet.js : feu > Entraînement > IFR > sable, mêmes règles
   et mêmes couleurs CSS que les étiquettes) (R66). Plus de bouton flottant : `#fab` = « + » rond vert dans `.tabs`, à droite
   de « Plus » (actif depuis toutes les vues ; saisie modifiée : « Abandonner la saisie ? » puis nouveau vol, `apresAbandon`) (R67).
+- v0.39 : nouvelle adresse /Carnet-de-vol/ et icône du pilote (`icones/icon-192|512.png`, `apple-touch-icon.png`, `favicon-32.png`,
+  `favicon.ico`). `js/demenagement.js` : à l'ANCIENNE adresse, si la nouvelle répond (`nouvelleAdresseRepond`, fichier de version
+  sans cache) -> `#demenage` (app.js `demenager`, carnet non lancé) + `estDemenage()` : db.js refuse toute écriture
+  (`verifierEcriture`), `requete` (ui/nas.js) répond `demenage` sans réseau. Revérifié au retour du réseau / au premier plan.
 - v0.38 : R93 `js/cadrage.js` (`placement`, `deplacer`, `zoomer`, `cadrageValide` ; cadrage { cx, cy, z ≥ 1 }) et
   `js/ui/cadrage.js` (`ouvrirCadrage` -> `#rc-modal`, `placerPhoto`, `afficherPhotoCadree`) ; avion `photoCadre` (fiche :
   `#fi-rc` « Recadrer », ouverture auto au chargement d'une photo) ; retiré avec la photo (synchro `elementsDuCarnet`,
@@ -226,7 +231,8 @@ BOMBING et TRANSPORT s'excluent sur un vol. Suggestions de missions masquées : 
 - `npm test` : tests unitaires (Node, vols inventés).
 - `node tests/navigateur/parcours.mjs` : parcours complet Chromium, émulation Pixel 7.
 - `node tests/navigateur/installation.mjs` : manifeste installable, id distinct des autres apps du site,
-  service worker limité au Carnet (le serveur de test sert l'app sous /Carnet-de-vol-TEST/).
+  service worker limité au Carnet (le serveur de test sert l'app sous /Carnet-de-vol/ ; `serveur({ dossiers })` peut aussi servir l'ancienne
+  adresse /Carnet-de-vol-TEST/, `fermerDossier` la fait répondre 404). `mise-a-jour.mjs` reste à l'ancienne adresse.
 - `node tests/navigateur/mise-a-jour.mjs` : mise à jour d'une app installée (v0.1, v0.2, version suivante).
 - `node tests/navigateur/v04.mjs` : écrans v0.4 à 390 px (migration v0.3, avion, étiquettes, monopilote,
   fiche lecture seule, terrains) + captures `tests/navigateur/captures/v04-*.png`.
@@ -275,6 +281,7 @@ BOMBING et TRANSPORT s'excluent sur un vol. Suggestions de missions masquées : 
 - `node tests/navigateur/v036.mjs` : n° de feu des simulations (55 ; 56-57 ; vrai vol 55 ; 58 ; « + » vrai vol 56, simulation 59 ; jamais renumérotés), téléphone et iPad.
 - `node tests/navigateur/v037.mjs` : « att » / « appr » sans point, avion sur une ligne (390 / 360 px, police réduite, « … » à 12 px seulement, boutons inchangés), « Feux » rangé parmi les compteurs (ordre gardé après réouverture, « + » / n° inchangés), iPad.
 - `node tests/navigateur/v038.mjs` : recadrer la photo (fenêtre au chargement, pincer, glisser, molette, curseur, Valider / Annuler, gardé après réouverture, flèche retour) ; cartes des vols R94-R99 (couleurs, contours, même taille, ordre IFR / appr / att nuit, clair / sombre), téléphone 390 / 360 px, PC, iPad.
+- `node tests/navigateur/v039.mjs` : changement d'adresse (les deux adresses servies, nouvelle en ligne ou non : écran « déménagé », aucune écriture, aucune demande au faux NAS, sauvegarde, bouton, caches séparés, icônes et nom), téléphone et iPad.
 - `node tests/navigateur/v024.mjs` : synchro dans les deux sens (passage en modification, conflits et 3 choix, doublon, NPF, hors ligne, >20 suppressions, annuler, mot de passe refusé).
 - `node tests/navigateur/fluidite.mjs` : 4070 vols inventés, processeur ralenti ×6.
 - `node outils/controle-import.mjs ../donnees-privees/flylog-decode-v1.csv ../donnees-privees/totaux-flylog-reference.json` :

@@ -739,3 +739,14 @@ svg.ipart{width:20px;height:20px;flex:none;fill:currentColor;stroke:currentColor
 /* R98 : « N att nuit » : comme « Nuit 0h40 » (classe chip nuit : texte blanc sur fond noir) */
 /* R99 : « N appr » : fond blanc, texte et contour 2 px du bleu de l'IFR, juste après « IFR » */
 :root .flight .chips .chip.appr{background:var(--surface);color:var(--c-ifr);border:2px solid var(--c-ifr);padding:3px 8px;font-weight:700}
+/* v0.39 : écran « Le carnet a changé d'adresse » (ancienne adresse, quand la nouvelle répond) : plein écran, au-dessus de tout */
+.demenage{position:fixed;inset:0;z-index:100;background:var(--bg);overflow:auto;display:flex;align-items:center;justify-content:center;
+  padding:calc(24px + env(safe-area-inset-top,0px)) 20px calc(24px + env(safe-area-inset-bottom,0px))}
+.demenage[hidden]{display:none}
+.dm-in{width:100%;max-width:460px;display:grid;gap:16px;text-align:center;color:var(--ink)}
+.dm-in img{justify-self:center;border-radius:22px}
+.dm-in h1{margin:0;font-size:24px}
+.dm-in p{margin:0;font-size:17px;line-height:1.45}
+.dm-in .dm-aide{font-size:15px;color:var(--muted)}
+.dm-in .bigbtn{display:flex;align-items:center;justify-content:center;min-height:56px;text-decoration:none;font-size:18px}
+body.est-demenage>*:not(#demenage):not(#toast){display:none!important}

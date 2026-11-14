@@ -10,7 +10,7 @@ import { fauxFlyLog, VOLS_INVENTES } from '../outils/faux-flylog.js';
 const CAPT = join(RACINE, 'tests/navigateur/captures');
 mkdirSync(CAPT, { recursive: true });
 const MDP = 'mot-de-passe-essai';
-const TUILE = readFileSync(join(RACINE, 'icones/icone-192.png'));
+const TUILE = readFileSync(join(RACINE, 'icones/icon-192.png'));
 // Trace inventée : un point par minute de 22h00 (20/08) à 02h00 (21/08) entre Nice et Cannes
 const fichier = (jour, h0, h1) => ({ hex: 'abc123', immat: 'F-XZZB', jour, source: 'Données © adsb.lol, ODbL',
   points: Array.from({ length: (h1 - h0) * 60 }, (_, k) => { const f = ((h0 * 60 + k) % 240) / 240; return [h0 * 3600 + k * 60, 43.665 - 0.117 * f + 0.05 * Math.sin(f * 6), 7.215 - 0.26 * f, 3000]; }) });

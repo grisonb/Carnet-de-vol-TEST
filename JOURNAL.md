@@ -1,5 +1,25 @@
 # Journal des versions
 
+## v0.39 — 14/11/2026
+
+Nouvelle adresse et nouvelle icône. carnet.php v5 et format NPF-Q400 inchangés ; NAS et VPS non touchés (ils n'acceptent que
+l'origine https://grisonb.github.io, sans chemin : rien à changer).
+
+- Le dépôt devient grisonb/Carnet-de-vol, l'app https://grisonb.github.io/Carnet-de-vol/ (renommage fait APRÈS cette version).
+- Icône du pilote : icon-192, icon-512 (manifeste, sans version « maskable »), apple-touch-icon (180), favicon-32, favicon.ico.
+  Nom « Carnet de vol », nom court « Carnet » (sous l'icône, iPad compris). Plus aucun « TEST » visible.
+- Manifeste : id /Carnet-de-vol/, start_url et scope relatifs (./) : l'app marche à l'ancienne et à la nouvelle adresse.
+- Service worker : un cache à part pour chaque adresse (ancienne : carnet-de-vol-vX.Y ; nouvelle : carnet-app-vX.Y) ; chacune
+  n'efface que ses propres anciennes versions (la nouvelle n'efface jamais le cache de l'ancienne).
+- Écran « Le carnet a changé d'adresse » : à l'ancienne adresse, dès que la nouvelle répond (fichier de version lu sans cache),
+  écran plein avec un bouton vers la nouvelle adresse et un bouton « Enregistrer une sauvegarde de ce carnet » ; plus AUCUNE
+  écriture (db.js) ni demande au NAS (copie, synchro, vols NPF). Tant que la nouvelle adresse ne répond pas : app normale.
+- Mêmes données à la nouvelle adresse sur Chrome (Android, PC) : même site. iPad : la nouvelle icône peut démarrer vide
+  (synchro du NAS ou sauvegarde de secours).
+
+**Tests** : `tests/navigateur/v039.mjs` (les deux adresses servies, nouvelle en ligne ou non, faux NAS v5, téléphone, iPad) ;
+tests adaptés à la nouvelle adresse (le test de mise à jour reste à l'ancienne, là où les apps installées se mettent à jour).
+
 ## v0.38 — 13/11/2026
 
 Remarques R93 à R99. carnet.php v5 et format NPF-Q400 inchangés ; NAS et VPS non touchés.

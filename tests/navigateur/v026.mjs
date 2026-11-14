@@ -11,7 +11,7 @@ import { volsPDF } from '../outils/vols-pdf.js';
 
 const CAPT = join(RACINE, 'tests/navigateur/captures');
 mkdirSync(CAPT, { recursive: true });
-const IMAGE = readFileSync(join(RACINE, 'icones/icone-512.png'));
+const IMAGE = readFileSync(join(RACINE, 'icones/icon-512.png'));
 const srv = await serveur();
 const nas = { mdp: 'mot-de-passe-essai-26', rev: 0, el: new Map(), lent: 0 };
 const faux = createServer((req, res) => {
@@ -190,7 +190,7 @@ try {
   verifier(await T.isVisible('label:has(#ph-cam)') && await T.isVisible('label:has(#ph-gal)') && await T.$eval('#ph-cam', e => e.getAttribute('capture')) === 'environment',
     '« Prendre une photo » (appareil photo) et « Choisir dans la galerie »');
   await T.screenshot({ path: join(CAPT, 'v026-05-tel-aucune-photo.png') });
-  await T.setInputFiles('#ph-gal', join(RACINE, 'icones/icone-192.png'));
+  await T.setInputFiles('#ph-gal', join(RACINE, 'icones/icon-192.png'));
   await T.waitForSelector('#ph-modal', { state: 'hidden' });
   // v0.38 (R93) : photo de la galerie = photo à moi : la fenêtre « Recadrer la photo » s'ouvre ; Valider
   await T.waitForSelector('#rc-modal:not([hidden])'); await T.click('#rc-oui'); await T.waitForSelector('#rc-modal', { state: 'hidden' });

@@ -16,6 +16,10 @@ import { initNpf, verifierVolsNpf } from './ui/npf.js';
 import { initSynchro, synchroModifiee, majBandeaux } from './ui/synchro.js';
 import { invaliderStats } from './ui/avions.js';
 import { VERSION } from './version.js';
+import { aAncienneAdresse, nouvelleAdresse, nouvelleAdresseRepond, marquerDemenage, estDemenage } from './demenagement.js';
+import { contenuComplet } from './etat.js';
+import { creerSauvegarde, texteSauvegarde, nomFichier } from './sauvegarde.js';
+import { proposerFichier } from './ui/commun.js';
 
 let vue = 'carnet';
 let aRafraichir = new Set(['carnet', 'totaux', 'plus']);
@@ -123,6 +127,34 @@ if ('serviceWorker' in navigator && location.protocol !== 'file:') {
   });
 }
 
+// v0.39 : « Le carnet a changé d'adresse ». À l'ANCIENNE adresse, si la nouvelle répond : écran plein, plus rien n'est
+// enregistré ici (db.js) et plus rien ne part au NAS (ui/nas.js). Un bouton ouvre la nouvelle adresse ; un autre enregistre
+// une sauvegarde complète (photos comprises), utile sur iPad où la nouvelle icône a sa propre mémoire.
+function demenager() {
+  if (document.getElementById('demenage').hidden === false) return;
+  marquerDemenage();
+  const m = $('#demenage');
+  $('#dm-go').href = nouvelleAdresse(location.origin);
+  m.hidden = false;
+  document.body.classList.add('est-demenage');
+  document.body.dataset.demenage = '1';
+  $('#dm-sauv').onclick = async () => {
+    try {
+      const s = creerSauvegarde(await contenuComplet()); // lecture seulement
+      await proposerFichier(new Blob([texteSauvegarde(s)], { type: 'application/json' }), nomFichier('carnet-de-vol-sauvegarde', 'json'), { partager: true });
+    } catch (e) { toast('Sauvegarde impossible : ' + e.message, 3000); }
+  };
+}
+async function lancer() {
+  if (aAncienneAdresse(location.pathname) && await nouvelleAdresseRepond(location.origin)) { demenager(); return; }
+  demarrer();
+  if (!aAncienneAdresse(location.pathname)) return;
+  // Ancienne adresse et nouvelle pas encore prête : on revérifie au retour du réseau et quand l'app revient au premier plan
+  const reverifier = async () => { if (!estDemenage() && await nouvelleAdresseRepond(location.origin)) demenager(); };
+  addEventListener('online', reverifier);
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') reverifier(); });
+}
+
 // Version toujours visible sur l'accueil (même si le chargement des vols échoue)
 $('#h-version').textContent = 'v' + VERSION;
-demarrer();
+lancer();

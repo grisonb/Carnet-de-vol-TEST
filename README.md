@@ -2,7 +2,7 @@
 
 Carnet de vol électronique au format EASA (FCL.050), pour téléphone Android, utilisable sans réseau.
 
-Application : https://grisonb.github.io/Carnet-de-vol-TEST/
+Application : https://grisonb.github.io/Carnet-de-vol/
 
 Installer : ouvrir l'adresse dans Chrome sur le téléphone, menu ⋮ › « Ajouter à l'écran d'accueil » (ou « Installer »).
 

@@ -78,7 +78,7 @@ test('la version est écrite à un seul endroit et donne le nom du cache', () =>
     assert.doesNotMatch(lire(f), new RegExp(`['"]v?${VERSION.replace('.', '\\.')}['"]`), f);
   }
   assert.match(sw, /importScripts\('js\/numero-version\.js'\)/);
-  assert.match(sw, /const CACHE = PREFIXE \+ 'v' \+ VERSION/);
+  assert.match(sw, /const CACHE = PREFIXE \+ VERSION/); // v0.39 : le « v » est dans le préfixe (carnet-de-vol-v / carnet-app-v)
 });
 
 test('le service worker reste un script classique (mise à jour possible depuis la v0.1)', () => {
@@ -93,14 +93,15 @@ test('le service worker reste un script classique (mise à jour possible depuis 
 
 test('le service worker ne touche qu\'au Carnet (portée et caches)', () => {
   const sw = readFileSync(new URL('../../sw.js', import.meta.url), 'utf8');
-  assert.match(sw, /const PREFIXE = 'carnet-de-vol-'/);
+  // v0.39 : un cache à part par adresse (ancienne : carnet-de-vol-v…, nouvelle : carnet-app-v…)
+  assert.match(sw, /const PREFIXE = .*'carnet-de-vol-v' : 'carnet-app-v'/);
   assert.match(sw, /k\.startsWith\(PREFIXE\)/);          // ne supprime que ses propres caches
   assert.doesNotMatch(sw, /caches\.match\(/);              // ne lit jamais les caches des autres apps
   assert.match(sw, /startsWith\(PORTEE\)/);               // ne répond qu'aux adresses du Carnet
   const m = JSON.parse(readFileSync(new URL('../../manifest.webmanifest', import.meta.url), 'utf8'));
-  assert.equal(m.id, '/Carnet-de-vol-TEST/');
-  assert.equal(m.start_url, '/Carnet-de-vol-TEST/');
-  assert.equal(m.scope, '/Carnet-de-vol-TEST/');
+  assert.equal(m.id, '/Carnet-de-vol/');
+  assert.equal(m.start_url, './');
+  assert.equal(m.scope, './');
 });
 
 test('le service worker met en cache tous les fichiers de l\'app', async () => {

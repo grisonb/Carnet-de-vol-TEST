@@ -12,7 +12,7 @@ import { serveur, playwright, verifier, RACINE } from './outils.mjs';
 const CAPT = join(RACINE, 'tests/navigateur/captures');
 mkdirSync(CAPT, { recursive: true });
 const H = '2026-01-01T00:00:00Z';
-const IMAGE = readFileSync(join(RACINE, 'icones/icone-512.png'));
+const IMAGE = readFileSync(join(RACINE, 'icones/icon-512.png'));
 const avion = (id, immat, typeOACI, modele, sim = false) => ({ id, immat, typeOACI, modele, constructeur: 'ESSAI', nom: '', indicatif: '', equipage: sim ? null : 'MP',
   moteurs: sim ? null : 'ME', moteur: sim ? null : 'T', surface: 'L', train: 'tricycle', etiquettes: [], sim, photo: null, remarques: '', creeLe: H, modifieLe: H });
 
@@ -147,7 +147,7 @@ try {
   console.log('Fiche rouverte, puis photo du téléphone');
   await ouvrirFiche('a1');
   verifier(await p.isVisible('#fi-credit') && await p.isVisible('#fiche img'), 'fiche rouverte : photo et crédit');
-  await p.setInputFiles('#fi-file', join(RACINE, 'icones/icone-192.png')); await attendre(400);
+  await p.setInputFiles('#fi-file', join(RACINE, 'icones/icon-192.png')); await attendre(400);
   // v0.38 (R93) : la fenêtre « Recadrer la photo » s'ouvre au chargement ; Annuler garde la photo, centrée
   await p.waitForSelector('#rc-modal:not([hidden])'); await p.click('#rc-non'); await p.waitForSelector('#rc-modal', { state: 'hidden' });
   verifier(!(await p.isVisible('#fi-credit')), 'photo prise au téléphone : le crédit disparaît');

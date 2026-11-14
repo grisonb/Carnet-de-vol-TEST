@@ -4,13 +4,17 @@
 // en silence et l'app restait bloquée en v0.1.
 // Le numéro de version vient de js/numero-version.js (seul endroit où il est écrit) : changer la version
 // change le nom du cache et le téléphone télécharge la nouvelle version.
-// Portée /Carnet-de-vol-TEST/ : il ne voit jamais les pages des autres apps de grisonb.github.io et ne
-// touche qu'à SES caches (noms commençant par « carnet-de-vol- »).
+// Portée = le dossier de l'app (/Carnet-de-vol/ ; avant v0.39 : /Carnet-de-vol-TEST/) : il ne voit jamais les pages
+// des autres apps de grisonb.github.io et ne touche qu'à SES caches.
 try { importScripts('js/numero-version.js'); } catch (e) { /* lu comme module (enregistrement v0.2) */ }
 const VERSION = self.VERSION_CARNET;
-const PREFIXE = 'carnet-de-vol-';
-const CACHE = PREFIXE + 'v' + VERSION;
-const PORTEE = self.registration.scope; // ex. https://grisonb.github.io/Carnet-de-vol-TEST/
+const PORTEE = self.registration.scope; // ex. https://grisonb.github.io/Carnet-de-vol/
+// v0.39 : un cache à part pour chaque adresse (les caches sont communs à tout le site). Ancienne adresse
+// /Carnet-de-vol-TEST/ : noms d'avant (« carnet-de-vol-v0.39 ») ; nouvelle adresse : « carnet-app-v0.39 ». Chaque adresse
+// n'efface que SES anciennes versions : la nouvelle app n'efface jamais le cache de l'ancienne, qui garde ainsi son écran
+// « Le carnet a changé d'adresse » (et l'ancienne n'efface jamais celui de la nouvelle).
+const PREFIXE = /\/Carnet-de-vol-TEST\/$/.test(PORTEE) ? 'carnet-de-vol-v' : 'carnet-app-v';
+const CACHE = PREFIXE + VERSION;
 
 const FICHIERS = [
   './', 'index.html', 'manifest.webmanifest',
@@ -19,10 +23,10 @@ const FICHIERS = [
   'js/fuseaux.js', 'js/missions.js', 'js/modele.js', 'js/nuit.js', 'js/pdf.js', 'js/sauvegarde.js',
   'js/temps.js', 'js/terrains.js', 'js/totaux.js', 'js/types-avion.js', 'js/version.js', 'js/numero-version.js',
   'js/ui/avions.js', 'js/ui/carnet.js', 'js/ui/commun.js', 'js/ui/plus.js', 'js/ui/regles.js',
-  'js/ui/saisie.js', 'js/ui/totaux.js', 'js/ui/terrain-perso.js', 'js/ui/glisser.js', 'js/ui/suppression.js', 'js/bande.js', 'js/traces.js', 'js/ui/carte.js', 'js/recherche.js', 'js/ui/retour.js', 'js/copieur.js', 'js/ui/nas.js', 'js/npf.js', 'js/ui/npf.js', 'js/fiches-avions.js', 'js/photos-web.js', 'js/ui/photo-web.js', 'js/synchro.js', 'js/ui/synchro.js', 'js/kml.js', 'js/cadrage.js', 'js/ui/cadrage.js',
+  'js/ui/saisie.js', 'js/ui/totaux.js', 'js/ui/terrain-perso.js', 'js/ui/glisser.js', 'js/ui/suppression.js', 'js/bande.js', 'js/traces.js', 'js/ui/carte.js', 'js/recherche.js', 'js/ui/retour.js', 'js/copieur.js', 'js/ui/nas.js', 'js/npf.js', 'js/ui/npf.js', 'js/fiches-avions.js', 'js/photos-web.js', 'js/ui/photo-web.js', 'js/synchro.js', 'js/ui/synchro.js', 'js/kml.js', 'js/demenagement.js', 'js/cadrage.js', 'js/ui/cadrage.js',
   'vendor/leaflet/leaflet.js', 'vendor/leaflet/leaflet.css',
   'vendor/jspdf.umd.min.js', 'ressources/terrains.json',
-  'icones/icone-192.png', 'icones/icone-512.png', 'icones/icone-maskable-512.png',
+  'icones/icon-192.png', 'icones/icon-512.png', 'icones/apple-touch-icon.png', 'icones/favicon-32.png', 'icones/favicon.ico',
   'polices/Barlow-400-latin.woff2', 'polices/Barlow-400-latin-ext.woff2',
   'polices/Barlow-500-latin.woff2', 'polices/Barlow-500-latin-ext.woff2',
   'polices/Barlow-600-latin.woff2', 'polices/Barlow-600-latin-ext.woff2',
@@ -53,7 +57,7 @@ self.addEventListener('activate', e => {
 
 // Toujours le cache d'abord : l'app démarre instantanément, avec ou sans réseau.
 self.addEventListener('fetch', e => {
-  // Uniquement les fichiers du Carnet (même origine ET sous /Carnet-de-vol-TEST/), et seulement
+  // Uniquement les fichiers du Carnet (même origine ET sous sa portée), et seulement
   // dans le cache du Carnet : jamais dans les caches des autres apps du même site.
   if (e.request.method !== 'GET' || !e.request.url.startsWith(PORTEE)) return;
   // Réparation : tout vient du réseau, sans le cache HTTP du navigateur (sinon il redonnerait l'ancienne app)

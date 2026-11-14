@@ -42,7 +42,7 @@ try {
   await p.evaluate(() => navigator.serviceWorker.ready);
   const carnet = await identite(srv.url);
   console.log(`  ${new URL(srv.url).pathname} -> id ${carnet.appId}   portée ${carnet.scope}`);
-  verifier(carnet.scope === srv.url, 'portée de l\'app limitée à /Carnet-de-vol-TEST/');
+  verifier(carnet.scope === srv.url, 'portée de l\'app limitée à /Carnet-de-vol/');
 
   verifier(carnet.errors.length === 0, 'manifeste lu sans erreur : ' + JSON.stringify(carnet.errors));
   verifier(carnet.installabilityErrors.length === 0,
@@ -58,9 +58,10 @@ try {
   }
 
   const m = await p.evaluate(async u => (await fetch(u)).json(), carnet.urlManifeste);
-  verifier(m.id === '/Carnet-de-vol-TEST/' && m.start_url === '/Carnet-de-vol-TEST/' && m.scope === '/Carnet-de-vol-TEST/',
-    'manifeste : id, start_url et scope = /Carnet-de-vol-TEST/');
-  verifier(m.short_name && m.short_name !== 'NPF-Q400', `nom court unique : « ${m.short_name} »`);
+  verifier(m.id === '/Carnet-de-vol/' && m.start_url === './' && m.scope === './',
+    'manifeste : id /Carnet-de-vol/, start_url et scope relatifs (./ : l\'adresse de l\'app)');
+  verifier(m.short_name === 'Carnet' && m.name === 'Carnet de vol' && !/TEST/i.test(JSON.stringify(m)), `nom « ${m.name} », nom court « ${m.short_name} », aucun « TEST »`);
+  verifier(m.icons.length === 2 && m.icons.every(i => !i.purpose) && m.icons.map(i => i.sizes).join() === '192x192,512x512', 'icônes 192 et 512, sans version « maskable »');
 
   const sw = await p.evaluate(async () => {
     const r = await navigator.serviceWorker.getRegistration();
@@ -68,7 +69,7 @@ try {
   });
   verifier(sw.scope === srv.url, `portée du service worker = ${sw.scope}`);
   verifier(sw.controle, 'la page du Carnet est servie par son service worker (hors ligne possible)');
-  verifier(sw.caches.includes('carnet-de-vol-v' + VERSION), `cache « carnet-de-vol-v${VERSION} » créé`);
+  verifier(sw.caches.includes('carnet-app-v' + VERSION), `cache « carnet-app-v${VERSION} » créé (nouvelle adresse : cache à part)`);
   verifier(Object.keys(AUTRES_APPS).every(d => sw.caches.includes('autre-app' + d.replace(/\//g, '-'))),
     'les caches des autres apps sont intacts');
 
