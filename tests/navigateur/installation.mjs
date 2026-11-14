@@ -60,7 +60,7 @@ try {
   const m = await p.evaluate(async u => (await fetch(u)).json(), carnet.urlManifeste);
   verifier(m.id === '/Carnet-de-vol/' && m.start_url === './' && m.scope === './',
     'manifeste : id /Carnet-de-vol/, start_url et scope relatifs (./ : l\'adresse de l\'app)');
-  verifier(m.short_name === 'Carnet' && m.name === 'Carnet de vol' && !/TEST/i.test(JSON.stringify(m)), `nom « ${m.name} », nom court « ${m.short_name} », aucun « TEST »`);
+  verifier(m.short_name === 'Carnet de Vol' && m.name === 'Carnet de Vol' && !/TEST/i.test(JSON.stringify(m)), `nom « ${m.name} », nom court « ${m.short_name} », aucun « TEST »`);
   verifier(m.icons.length === 2 && m.icons.every(i => !i.purpose) && m.icons.map(i => i.sizes).join() === '192x192,512x512', 'icônes 192 et 512, sans version « maskable »');
 
   const sw = await p.evaluate(async () => {

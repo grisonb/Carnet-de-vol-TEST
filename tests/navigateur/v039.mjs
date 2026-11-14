@@ -2,7 +2,7 @@
 // (même origine, donc même base de données, comme sur grisonb.github.io) ; la nouvelle peut répondre « introuvable ».
 // Ancienne adresse + nouvelle qui ne répond pas : app normale (écritures, NAS). Nouvelle qui répond : écran « Le carnet a
 // changé d'adresse », AUCUNE écriture, AUCUNE demande au NAS (faux NAS local qui compte), sauvegarde possible, bouton vers
-// la nouvelle adresse (mêmes données). Caches séparés par adresse. Icônes, nom « Carnet de vol » / « Carnet », aucun « TEST ».
+// la nouvelle adresse (mêmes données). Caches séparés par adresse. Icônes, nom « Carnet de Vol » (v0.40), aucun « TEST ».
 // Téléphone (Chromium 390 px), iPad (WebKit). Vols INVENTÉS. Captures : tests/navigateur/captures/v039-*.png (non commitées).
 // Usage : node tests/navigateur/v039.mjs
 process.env.PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS = '1';
@@ -110,8 +110,8 @@ try {
   verifier(caches.includes('carnet-app-v' + VERSION) && caches.includes('carnet-de-vol-v' + VERSION), `caches séparés et gardés tous les deux : ${caches.join(', ')}`);
   const tete = await T.evaluate(async () => ({ titre: document.title, apple: document.querySelector('link[rel="apple-touch-icon"]').href, icone: document.querySelector('link[rel="icon"]').href,
     nomIpad: document.querySelector('meta[name="apple-mobile-web-app-title"]').content, testVisible: /TEST/.test(document.body.innerText) }));
-  verifier(tete.titre === 'Carnet de vol' && tete.nomIpad === 'Carnet' && !tete.testVisible && /apple-touch-icon\.png$/.test(tete.apple) && /favicon\.ico$/.test(tete.icone),
-    'nom « Carnet de vol » (« Carnet » sous l\'icône), nouvelles icônes, aucun « TEST » visible');
+  verifier(tete.titre === 'Carnet de Vol' && tete.nomIpad === 'Carnet de Vol' && !tete.testVisible && /apple-touch-icon\.png$/.test(tete.apple) && /favicon\.ico$/.test(tete.icone),
+    'nom « Carnet de Vol » (aussi sous l\'icône, v0.40), nouvelles icônes, aucun « TEST » visible');
   const tailles = await T.evaluate(async () => Promise.all(['icones/icon-192.png', 'icones/icon-512.png', 'icones/apple-touch-icon.png', 'icones/favicon-32.png'].map(async f => {
     const i = new Image(); i.src = f; await i.decode(); return i.naturalWidth; })));
   verifier(tailles.join(',') === '192,512,180,32', `icônes du pilote : ${tailles.join(', ')} px`);

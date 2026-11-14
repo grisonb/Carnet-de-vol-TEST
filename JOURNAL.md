@@ -1,5 +1,15 @@
 # Journal des versions
 
+## v0.40 — 14/11/2026
+
+Remarque R101. carnet.php v5 et format NPF-Q400 inchangés ; NAS et VPS non touchés.
+
+**R101 : nom de l'app « Carnet de Vol »** (V majuscule) : manifeste (name et short_name), titre de la page, nom sous l'icône
+de l'iPad (apple-mobile-web-app-title), ligne de version de Plus et message « pas une sauvegarde Carnet de Vol ». id, start_url
+et scope du manifeste inchangés (Android garde la même app). Les phrases ordinaires (« ton carnet de vol… ») ne changent pas.
+
+**Tests** : installation (manifeste), mise à jour, démarrage, v039 (nom et icônes) ; toute la batterie.
+
 ## v0.39 — 14/11/2026
 
 Nouvelle adresse et nouvelle icône. carnet.php v5 et format NPF-Q400 inchangés ; NAS et VPS non touchés (ils n'acceptent que

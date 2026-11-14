@@ -59,7 +59,7 @@ export function garderPhotos(donnees, avionsDuTelephone) {
 export function lireSauvegarde(texte) {
   let d;
   try { d = JSON.parse(texte); } catch { return { ok: false, message: "Ce fichier n'est pas une sauvegarde lisible." }; }
-  if (!d || d.format !== FORMAT) return { ok: false, message: "Ce fichier n'est pas une sauvegarde Carnet de vol." };
+  if (!d || d.format !== FORMAT) return { ok: false, message: "Ce fichier n'est pas une sauvegarde Carnet de Vol." };
   if (d.formatVersion > 1) return { ok: false, message: "Sauvegarde faite par une version plus récente de l'app : mets l'app à jour." };
   for (const k of ['vols', 'avions', 'personnes']) {
     if (!Array.isArray(d[k]) || d[k].length !== d.nombres?.[k]) return { ok: false, message: `Sauvegarde incomplète (${k}).` };

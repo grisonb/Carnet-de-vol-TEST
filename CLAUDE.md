@@ -151,6 +151,7 @@ Pas d'étape de compilation : les fichiers du dépôt sont servis tels quels.
   `.fl-bloc.t-feu|feu2|mi|ifr|sable` (`couleurTemps` dans js/ui/carnet.js : feu > Entraînement > IFR > sable, mêmes règles
   et mêmes couleurs CSS que les étiquettes) (R66). Plus de bouton flottant : `#fab` = « + » rond vert dans `.tabs`, à droite
   de « Plus » (actif depuis toutes les vues ; saisie modifiée : « Abandonner la saisie ? » puis nouveau vol, `apresAbandon`) (R67).
+- v0.40 : R101 nom « Carnet de Vol » (manifest name / short_name, title, apple-mobile-web-app-title, `.pver`) ; id / start_url / scope inchangés.
 - v0.39 : nouvelle adresse /Carnet-de-vol/ et icône du pilote (`icones/icon-192|512.png`, `apple-touch-icon.png`, `favicon-32.png`,
   `favicon.ico`). `js/demenagement.js` : à l'ANCIENNE adresse, si la nouvelle répond (`nouvelleAdresseRepond`, fichier de version
   sans cache) -> `#demenage` (app.js `demenager`, carnet non lancé) + `estDemenage()` : db.js refuse toute écriture
